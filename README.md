@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 67 %** (43 of 64 task cards done; 1 active)
+**Overall: about 69 %** (44 of 64 task cards done; 1 active)
 
 ```
-[###########################-------------]  67 %
+[############################------------]  69 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -24,11 +24,11 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
-| 3 - Retention | 6 | 0 | 0 | 1 | 0 | 0 | 0 % |
+| 3 - Retention | 6 | 1 | 0 | 1 | 0 | 0 | 17 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 | 0 | 0 | 0 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **43** | **3** | **1** | **0** | **0** | **67 %** |
+| **Total** | **64** | **44** | **3** | **1** | **0** | **0** | **69 %** |
 
 ## Done
 
@@ -77,17 +77,18 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | A12 | Four guided intro puzzles, localized coach lines and fresh-install Continue targeting. Intros are validated with the bank; `check` and four connected tests pass. Independently reviewed; short-screen coach clipping was fixed and layout tests pass at 1×/2× font scale. |
 | A13 | Edge-to-edge with safe drawing/IME insets, progress-driven predictive back that preserves Play saves, centered tablet content, and a side-tool landscape Play layout. Phone/tablet previews cover all screens; actual Mini Sudoku and 15×15 Nonogram boards preview at 360/840/840×360 dp. `check` and Android test-source compilation pass; independently reviewed with blockers fixed. |
 | A14 | Four emulator smoke journeys open each launch game from Home, Continue through its coach line, solve the intro board, and reach Result. The full connected Android test suite passes (20 tests); independently reviewed with no blockers. |
+| R1 | Local 365-day puzzle index, shared daily streak, one-at-a-time Monday freeze refill, offline reconciliation and 48-hour latest-miss repair. Streak and repair metadata persist in DataStore; API-24-compatible date logic, unit tests and full `check` pass; independently reviewed with no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| R1 | Daily, streak and freeze logic | Codex |
+| R2 | Daily UI and calendar screen | Claude |
 
 ## Next steps
 
-1. **Build R1:** local-date daily indexing, shared streaks, weekly freeze refill and streak repair rules.
-2. **Build R2 next:** daily entry and calendar UI, after R1 is complete.
+1. **Build R2:** daily entry and calendar UI, using R1's reconciliation API and persisted streak data.
+2. **Build R3 next:** statistics screen after R2 is complete.
 3. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 4. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
 

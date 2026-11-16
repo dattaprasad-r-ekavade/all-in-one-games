@@ -48,14 +48,14 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | done |
 | A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, A12, A13, B2 | done |
 | **Phase 3 — Retention** |||||||
-| R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | active |
-| R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | todo |
+| R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | done |
+| R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | active |
 | R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | todo |
 | R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | todo |
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R4, M1 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
-| M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, A11 | todo |
+| M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | todo |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | todo |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | todo |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
@@ -323,13 +323,13 @@ Tier L · Build Codex (`gpt-6-luna`) · Review Claude
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 6 (daily index), 5, 7.5, 8.2 (streak repair).
 **Owns:** `app/…/domain/daily/**`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
-**Do:** Keep daily and streak rules in plain Kotlin. Daily index is the local date's days since a fixed date mod 365. One shared streak day is earned when any one of the four daily puzzles is completed that local date. Hold at most one free freeze; refill it to one each local Monday, with no accumulation, and automatically use it to cover one missed local day. A freeze covers only one date; a longer gap still breaks the streak. A rewarded repair restores the latest missed local day and must complete within 48 hours after that day ends; M4 supplies the reward callback. Persist the freeze refill date and repairable missed date with the existing streak data. Use an injected clock and time zone throughout. A backwards clock change must not rewind streak state or grant a duplicate day.
-**Done when:** JVM tests cover local midnight, time-zone changes, one and multiple missed days with and without a freeze, Monday refill including unused-freeze and missed-week behavior, repair deadline boundaries, a 7-day offline streak, and the clock moving backwards. Existing `DataStorePlayerDataRepository` tests still pass.
+**Do:** Keep daily and streak rules in plain Kotlin. Daily index is the local date's days since the Unix epoch date (1970-01-01) mod 365. One shared streak day is earned when any one of the four daily puzzles is completed that local date. Hold at most one free freeze; refill it to one each local Monday before reconciling missed dates, with no accumulation, and automatically use it to cover the earliest missed local date. A freeze covers only one date; a longer gap still breaks the streak. A rewarded repair restores the latest uncovered missed local date and must complete within 48 hours after that day ends; M4 supplies the reward callback. Persist the freeze refill date and repairable missed date with the existing streak data. Inject a millisecond clock and a time-zone provider so changes to the device zone take effect. Do not rewind streak state or grant a duplicate day when the clock moves backwards. Keep production code compatible with minSdk 24; do not add a library for date support.
+**Done when:** JVM tests cover local midnight, time-zone changes, one and multiple missed days with and without a freeze, Monday refill including unused-freeze and missed-week behavior, repair deadline boundaries including an overlapping midnight, a 7-day offline streak, and the clock moving backwards. Existing `DataStorePlayerDataRepository` tests still pass; `./gradlew check` passes.
 
 ### R2 — Daily UI and calendar screen
 Tier M · Build Claude (`builder`) · Review Codex
-**Owns:** `app/…/ui/screens/calendar/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
-**Do:** Wire daily puzzle entry, completion state and calendar navigation to R1's local-date rules and the committed daily bank. Keep the daily status localized.
+**Owns:** `app/…/ui/screens/calendar/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/res/values/strings.xml`.
+**Do:** Wire daily puzzle entry, completion state and calendar navigation to R1's local-date rules and the committed daily bank. Reconcile and persist streak state before displaying repair availability; serialize read-transition-write updates and supply the current device time zone each time. Keep the daily status localized.
 **Done when:** `./gradlew check` passes.
 
 ### R3 — Statistics screen
