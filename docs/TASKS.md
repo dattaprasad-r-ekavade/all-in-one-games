@@ -215,13 +215,14 @@ Plan: 7.1 (storage, backup), 7.5.
 ### A3 — App contracts, navigation, play controller
 Tier H · Build Codex (`gpt-6.1-sol`, high) · Review independent `gpt-6.1-sol` agent + human read
 Plan: 7.3, 9.
-**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/GameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/GameRegistry.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/PlayController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/**`, stub screens in `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/**`, `app/src/main/kotlin/com/datathecodie/witgrid/MainActivity.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/AndroidManifest.xml`.
+**Owns:** `engine/src/main/kotlin/com/datathecodie/witgrid/engine/{crowns/CrownsEngine.kt,binary/BinaryEngine.kt,nonogram/NonogramEngine.kt,minisudoku/MiniSudokuEngine.kt}` for the state codecs; `app/src/main/kotlin/com/datathecodie/witgrid/games/GameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/GameRegistry.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/PlayController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/**`, stub screens in `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/**`, `app/src/main/kotlin/com/datathecodie/witgrid/MainActivity.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/AndroidManifest.xml`.
 **Do:**
 1. App-side `GameModule`: wraps one `GameEngine`, adds `levelsPerInterstitial` and `@Composable Board(state, onMove)`.
 2. `PlayController` (plain Kotlin, no Compose): loads a level from the bank, applies moves, undo and redo, timer that pauses in the background, saves after each move through `ProgressRepository`, emits a solved event. One gesture (including auto-X, auto-cross or note updates) and one hint "Apply" each make one `History` record. Undo history is not saved: after an app restart, undo starts empty (accepted for plan 7.5).
 3. Set `android:theme="@style/Theme.Witgrid"` in the manifest and wrap `MainActivity` content in `WitgridTheme` (from A1). The manifest and `MainActivity.kt` are in Owns for this step.
 4. Navigation: Home → Game → Play → Result / Level failed; Calendar, Statistics, Settings. Stub screens show their name.
-**Done when:** `./gradlew check` passes. `PlayController` has JVM tests with a fake engine and a fake repository. The human has read the interfaces.
+ 5. Implement versioned, self-contained state codecs in the four owned engines. Round-trip puzzle context, entries and notes, and reject malformed or unsupported versions.
+**Done when:** `./gradlew check` passes. `PlayController` has JVM tests with a fake engine and a fake repository. All four engine state codecs pass round-trip and malformed-save tests. The human has read the interfaces.
 
 ### A4 — Board canvas kit and gestures
 Tier H · Build Claude (`builder`) · Review Codex
