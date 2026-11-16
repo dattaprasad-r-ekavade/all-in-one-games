@@ -1,6 +1,5 @@
 package com.datathecodie.witgrid.engine.crowns
 
-import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.GameEngine
 import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.HintStep
@@ -8,36 +7,35 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 
-/**
- * CR lane placeholder. Unit types deliberately promise no puzzle or state model;
- * the lane replaces them with its own immutable types when implementing its rules.
- */
-object CrownsEngine : GameEngine<Unit, Unit> {
+/** Crowns rules and bank model exposed through the shared engine contract. */
+object CrownsEngine : GameEngine<CrownsPuzzle, CrownsState> {
     override val id: String = "crowns"
 
-    override fun decodePuzzle(line: String): Unit = unavailable()
+    override fun decodePuzzle(line: String): CrownsPuzzle = CrownsCodec.decode(line)
 
-    override fun encodePuzzle(puzzle: Unit): String = unavailable()
+    override fun encodePuzzle(puzzle: CrownsPuzzle): String = CrownsCodec.encode(puzzle)
 
-    override fun initialState(puzzle: Unit): Unit = unavailable()
+    override fun initialState(puzzle: CrownsPuzzle): CrownsState = CrownsState.initial(puzzle)
 
-    override fun applyMove(state: Unit, move: Move): Unit = unavailable()
+    override fun applyMove(state: CrownsState, move: Move): CrownsState = state.withMove(move)
 
-    override fun isSolved(puzzle: Unit, state: Unit): Boolean = unavailable()
+    override fun isSolved(puzzle: CrownsPuzzle, state: CrownsState): Boolean =
+        CrownsRules.isSolved(puzzle, state)
 
-    override fun mistakes(puzzle: Unit, state: Unit): List<Cell> = unavailable()
+    override fun mistakes(puzzle: CrownsPuzzle, state: CrownsState) = CrownsRules.mistakes(puzzle, state)
 
-    override fun countSolutions(puzzle: Unit, limit: Int): Int = unavailable()
+    override fun countSolutions(puzzle: CrownsPuzzle, limit: Int): Int =
+        CrownsRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: Unit, state: Unit): HintStep? = unavailable()
+    override fun nextStep(puzzle: CrownsPuzzle, state: CrownsState): HintStep? = unavailable()
 
-    override fun grade(puzzle: Unit): Grade = unavailable()
+    override fun grade(puzzle: CrownsPuzzle): Grade = unavailable()
 
-    override fun generate(rng: SplitMix64, pack: Pack): Unit = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): CrownsPuzzle = unavailable()
 
-    override fun encodeState(state: Unit): ByteArray = unavailable()
+    override fun encodeState(state: CrownsState): ByteArray = unavailable()
 
-    override fun decodeState(bytes: ByteArray): Unit = unavailable()
+    override fun decodeState(bytes: ByteArray): CrownsState = unavailable()
 
     private fun unavailable(): Nothing = throw NotImplementedError("CR")
 }

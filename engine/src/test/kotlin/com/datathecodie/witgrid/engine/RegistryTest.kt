@@ -7,7 +7,10 @@ import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
+import com.datathecodie.witgrid.engine.crowns.CrownsCodec
 import com.datathecodie.witgrid.engine.crowns.CrownsEngine
+import com.datathecodie.witgrid.engine.crowns.CrownsPuzzle
+import com.datathecodie.witgrid.engine.crowns.CrownsState
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuEngine
 import com.datathecodie.witgrid.engine.nonogram.NonogramEngine
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -22,9 +25,8 @@ class RegistryTest {
     }
 
     @Test
-    fun everyStubOperationFailsWithItsLaneId() {
+    fun remainingStubOperationsFailWithTheirLaneId() {
         val lanes: List<Pair<GameEngine<Unit, Unit>, String>> = listOf(
-            CrownsEngine to "CR",
             BinaryEngine to "BI",
             NonogramEngine to "NO",
             MiniSudokuEngine to "MS",
@@ -52,10 +54,44 @@ class RegistryTest {
     }
 
     @Test
+    fun crownsUnimplementedSolverAndSaveOperationsKeepTheirLaneId() {
+        val puzzle = crownsPuzzle()
+        val state = CrownsState.initial(puzzle)
+        val operations: List<() -> Any?> = listOf(
+            { CrownsEngine.nextStep(puzzle, state) },
+            { CrownsEngine.grade(puzzle) },
+            { CrownsEngine.generate(SplitMix64(0), Pack.EASY) },
+            { CrownsEngine.encodeState(state) },
+            { CrownsEngine.decodeState(byteArrayOf()) },
+        )
+
+        for (operation in operations) {
+            val error = assertThrows(NotImplementedError::class.java) { operation() }
+            assertEquals("CR", error.message)
+        }
+    }
+
+    @Test
     fun heterogeneousRegistrySupportsGenericCaptureWithoutCasts() {
-        for (engine in Registry.engines) {
+        val line = CrownsCodec.encode(crownsPuzzle())
+        val crowns = Registry.engines.single { it.id == "crowns" }
+
+        assertEquals(line, roundTrip(crowns, line))
+        for (engine in Registry.engines.filter { it.id != "crowns" }) {
             assertThrows(NotImplementedError::class.java) { roundTrip(engine, "line") }
         }
+    }
+
+    private fun crownsPuzzle(): CrownsPuzzle {
+        val size = 6
+        return CrownsPuzzle(
+            id = "CR-REGISTRY",
+            size = size,
+            regions = (0 until size).flatMap { row -> List(size) { row } },
+            solutionColumns = listOf(1, 3, 5, 0, 2, 4),
+            pack = Pack.EASY,
+            storedGrade = "pending",
+        )
     }
 
     private fun <P : Any, S : Any> roundTrip(engine: GameEngine<P, S>, line: String): String =

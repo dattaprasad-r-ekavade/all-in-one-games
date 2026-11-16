@@ -20,10 +20,46 @@ class CrownsRulesTest {
     }
 
     @Test
+    fun regionsReduceLaunchSizePuzzleFromMultipleSolutionsToOne() {
+        val solution = listOf(1, 3, 5, 0, 2, 4)
+        val rowRegions = (0 until 6).flatMap { row -> List(6) { row } }
+        val uniqueRegions = listOf(
+            "100230",
+            "024124",
+            "253422",
+            "350542",
+            "444502",
+            "242354",
+        ).flatMap { row -> row.map { it.digitToInt() } }
+
+        assertEquals(2, CrownsRules.countSolutions(puzzle(size = 6, solution = solution, regions = rowRegions)))
+        val uniquePuzzle = puzzle(size = 6, solution = solution, regions = uniqueRegions)
+        assertTrue(CrownsRules.isValidSolution(uniquePuzzle))
+        assertEquals(1, CrownsRules.countSolutions(uniquePuzzle))
+    }
+
+    @Test
     fun bankCodecRoundTripsLaunchPuzzle() {
         val puzzle = launchPuzzle()
 
         assertEquals(puzzle, CrownsCodec.decode(CrownsCodec.encode(puzzle)))
+    }
+
+    @Test
+    fun engineExposesCrownsModelThroughSharedContract() {
+        val puzzle = launchPuzzle()
+        val line = CrownsEngine.encodePuzzle(puzzle)
+        val decoded = CrownsEngine.decodePuzzle(line)
+        var state = CrownsEngine.initialState(decoded)
+        state = CrownsEngine.applyMove(
+            state,
+            Move.SetMark(decoded.grid.cell(0, decoded.solutionColumns[0]), Mark.FILLED),
+        )
+
+        assertEquals(line, CrownsEngine.encodePuzzle(decoded))
+        assertEquals(2, CrownsEngine.countSolutions(decoded))
+        assertEquals(emptyList<Cell>(), CrownsEngine.mistakes(decoded, state))
+        assertFalse(CrownsEngine.isSolved(decoded, state))
     }
 
     @Test
