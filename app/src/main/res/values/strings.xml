@@ -66,6 +66,16 @@
     <string name="button_mark_mode">Mark: %1$s</string>
     <string name="button_hint">Hint</string>
     <string name="button_check">Check</string>
+    <string name="hint_mistake_title">Review the highlighted cells</string>
+    <string name="hint_mistake_body">The highlighted cells contain a mistake.</string>
+    <string name="hint_unavailable">No hint is available for this position.</string>
+    <string name="hint_allowance_unavailable">A hint is not available right now.</string>
+    <string name="check_allowance_unavailable">A check is not available right now.</string>
+    <string name="check_no_mistakes">No mistakes found.</string>
+    <string name="check_mistakes_found">%1$d mistakes flagged.</string>
+    <string name="button_apply_hint">Apply</string>
+    <string name="button_dismiss_hint">Close</string>
+    <string name="board_highlighted_cell_accessibility">%1$s, highlighted</string>
     <string name="state_on">On</string>
     <string name="state_off">Off</string>
     <string name="button_hide_timer">Hide timer</string>

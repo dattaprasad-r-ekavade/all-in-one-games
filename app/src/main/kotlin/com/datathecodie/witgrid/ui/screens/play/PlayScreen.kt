@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +38,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.progress.ProgressRepository
+import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
@@ -43,14 +47,22 @@ import com.datathecodie.witgrid.games.GameModule
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
+import com.datathecodie.witgrid.play.AlwaysAllow
+import com.datathecodie.witgrid.play.CheckUi
+import com.datathecodie.witgrid.play.HintController
+import com.datathecodie.witgrid.play.HintRequest
+import com.datathecodie.witgrid.play.HintUi
 import com.datathecodie.witgrid.play.LevelSolvedEvent
 import com.datathecodie.witgrid.play.PlayController
+import com.datathecodie.witgrid.ui.board.LocalBoardHighlightCells
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -71,6 +83,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     var saveFailed by remember(levelRef) { mutableStateOf(false) }
     val latestOnSolved by rememberUpdatedState(onSolved)
     val scope = persistence.scope
+    val interactionMutex = remember(levelRef) { Mutex() }
 
     LaunchedEffect(levelRef, gameModule, bankSource, progressRepository) {
         controllerState.value = null
@@ -113,7 +126,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     fun perform(action: suspend () -> Unit) {
         scope.launch {
             try {
-                action()
+                interactionMutex.withLock { action() }
                 saveFailed = false
             } catch (exception: CancellationException) {
                 throw exception
@@ -148,10 +161,97 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
             }
         }
         val snapshot by controller.snapshot.collectAsState()
+        val hintController = remember(controller) {
+            HintController(
+                currentMistakes = { controller.snapshot.value.mistakes },
+                nextStep = controller::nextHint,
+                applyStep = controller::applyHint,
+                recordMistakeHintUse = controller::recordHintUse,
+                allowance = AlwaysAllow,
+            )
+        }
+        var hintRequest by remember(controller) { mutableStateOf<HintRequest?>(null) }
+        var checkResult by remember(controller) { mutableStateOf<CheckUi?>(null) }
+        var highlightedCells by remember(controller) { mutableStateOf(emptySet<Cell>()) }
+        var feedbackGeneration by remember(controller) { mutableStateOf(0L) }
+        var hintOperationPending by remember(controller) { mutableStateOf(false) }
+
+        fun clearFeedback() {
+            feedbackGeneration += 1
+            hintRequest = null
+            checkResult = null
+            highlightedCells = emptySet()
+        }
+
         val onMoves: (List<Move>) -> Unit = { moves ->
+            clearFeedback()
             perform { controller.applyGesture(moves) }
         }
-        val onUndo: () -> Unit = { perform { controller.undo() } }
+        val onUndo: () -> Unit = {
+            clearFeedback()
+            perform { controller.undo() }
+        }
+        val onRedo: () -> Unit = {
+            clearFeedback()
+            perform { controller.redo() }
+        }
+        val onRequestHint: () -> Unit = {
+            if (!hintOperationPending) {
+                hintOperationPending = true
+                clearFeedback()
+                val generation = feedbackGeneration
+                scope.launch {
+                    try {
+                        val request = interactionMutex.withLock { hintController.requestHint() }
+                        if (feedbackGeneration == generation) {
+                            hintRequest = request
+                            highlightedCells = (request as? HintRequest.Available)?.hint?.cells?.toSet().orEmpty()
+                        }
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Exception) {
+                        saveFailed = true
+                    } finally {
+                        hintOperationPending = false
+                    }
+                }
+            }
+        }
+        val onCheck: () -> Unit = {
+            if (!hintOperationPending) {
+                hintOperationPending = true
+                clearFeedback()
+                val generation = feedbackGeneration
+                scope.launch {
+                    try {
+                        val result = interactionMutex.withLock { hintController.check() }
+                        if (feedbackGeneration == generation) {
+                            checkResult = result
+                            highlightedCells = when (result) {
+                                is CheckUi.Mistakes -> result.cells.toSet()
+                                else -> emptySet()
+                            }
+                        }
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Exception) {
+                        saveFailed = true
+                    } finally {
+                        hintOperationPending = false
+                    }
+                }
+            }
+        }
+        val statusMessage = when (val request = hintRequest) {
+            HintRequest.NoStep -> stringResource(R.string.hint_unavailable)
+            HintRequest.NotAllowed -> stringResource(R.string.hint_allowance_unavailable)
+            else -> when (val result = checkResult) {
+                is CheckUi.Mistakes -> stringResource(R.string.check_mistakes_found, result.cells.size)
+                CheckUi.Clear -> stringResource(R.string.check_no_mistakes)
+                CheckUi.NotAllowed -> stringResource(R.string.check_allowance_unavailable)
+                null -> null
+            }
+        }
         val layout: @Composable (@Composable () -> Unit, @Composable () -> Unit) -> Unit = { board, controls ->
             PlayScreenLayout(
                 levelRef = levelRef,
@@ -159,17 +259,49 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 canUndo = snapshot.canUndo,
                 canRedo = snapshot.canRedo,
                 saveFailed = saveFailed,
+                statusMessage = statusMessage,
+                hintOperationPending = hintOperationPending,
                 board = board,
                 gameControls = controls,
                 onUndo = onUndo,
-                onRedo = { perform { controller.redo() } },
+                onRedo = onRedo,
+                onRequestHint = onRequestHint,
+                onCheck = onCheck,
                 onBack = leave,
             )
         }
-        when (val state = snapshot.state) {
-            is MiniSudokuState -> MiniSudokuBoard(state, onMoves, onUndo, layout = layout)
-            is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = layout)
-            else -> layout({ gameModule.Board(snapshot.state, onMoves, onUndo) }, {})
+        CompositionLocalProvider(LocalBoardHighlightCells provides highlightedCells) {
+            when (val state = snapshot.state) {
+                is MiniSudokuState -> MiniSudokuBoard(state, onMoves, onUndo, layout = layout)
+                is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = layout)
+                else -> layout({ gameModule.Board(snapshot.state, onMoves, onUndo) }, {})
+            }
+        }
+        when (val request = hintRequest) {
+            is HintRequest.Available -> HintDialog(
+                hint = request.hint,
+                applyPending = hintOperationPending,
+                onDismiss = { hintRequest = null },
+                onApply = {
+                    val step = request.hint as? HintUi.Step
+                    if (step != null && !hintOperationPending) {
+                        hintOperationPending = true
+                        perform {
+                            try {
+                                if (hintController.apply(step)) {
+                                    clearFeedback()
+                                } else {
+                                    hintRequest = HintRequest.NoStep
+                                    highlightedCells = emptySet()
+                                }
+                            } finally {
+                                hintOperationPending = false
+                            }
+                        }
+                    }
+                },
+            )
+            else -> Unit
         }
     }
 }
@@ -198,10 +330,14 @@ internal fun PlayScreenLayout(
     canUndo: Boolean,
     canRedo: Boolean,
     saveFailed: Boolean,
+    statusMessage: String?,
+    hintOperationPending: Boolean,
     board: @Composable () -> Unit,
     gameControls: @Composable () -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
+    onRequestHint: () -> Unit,
+    onCheck: () -> Unit,
     onBack: () -> Unit,
 ) {
     var timerVisible by remember(levelRef) { mutableStateOf(true) }
@@ -233,6 +369,7 @@ internal fun PlayScreenLayout(
                 if (saveFailed) {
                     Text(stringResource(R.string.play_save_failed), color = MaterialTheme.colorScheme.error)
                 }
+                statusMessage?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                 if (timerVisible) {
                     Text(
                         stringResource(R.string.play_elapsed_time, formatDuration(elapsedTimeMillis)),
@@ -251,12 +388,47 @@ internal fun PlayScreenLayout(
                     }
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    TextButton(onClick = {}, enabled = false) { Text(stringResource(R.string.button_hint)) }
-                    TextButton(onClick = {}, enabled = false) { Text(stringResource(R.string.button_check)) }
+                    TextButton(onClick = onRequestHint, enabled = !hintOperationPending) {
+                        Text(stringResource(R.string.button_hint))
+                    }
+                    TextButton(onClick = onCheck, enabled = !hintOperationPending) {
+                        Text(stringResource(R.string.button_check))
+                    }
                     TextButton(onClick = onBack) { Text(stringResource(R.string.button_back)) }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun HintDialog(
+    hint: HintUi,
+    applyPending: Boolean,
+    onDismiss: () -> Unit,
+    onApply: () -> Unit,
+) {
+    when (hint) {
+        is HintUi.Mistake -> AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(R.string.hint_mistake_title)) },
+            text = { Text(stringResource(R.string.hint_mistake_body)) },
+            confirmButton = {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_dismiss_hint)) }
+            },
+        )
+
+        is HintUi.Step -> AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(hint.hintStep.technique.displayName) },
+            text = { Text(hint.hintStep.explanation) },
+            confirmButton = {
+                Button(onClick = onApply, enabled = !applyPending) { Text(stringResource(R.string.button_apply_hint)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_dismiss_hint)) }
+            },
+        )
     }
 }
 
