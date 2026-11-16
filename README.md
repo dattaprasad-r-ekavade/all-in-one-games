@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 36 %** (22 of 61 task cards done; 1 more in progress)
+**Overall: about 38 %** (23 of 61 task cards done; 1 more in progress)
 
 ```
-[##############--------------------------]  36 %
+[###############-------------------------]  38 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 17 | 1 | 74 % |
+| 1 — Engine and puzzle bank | 23 | 18 | 1 | 78 % |
 | 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **22** | **1** | **36 %** |
+| **Total** | **61** | **23** | **1** | **38 %** |
 
 ## Done
 
@@ -56,19 +56,20 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | MS1 | Mini Sudoku 6×6 model, 2×3 box rules, bank codec, capped solution counter and immutable digit/note state. `SetDigit` clears cell notes; engine tests and check pass; independently reviewed with no blockers. |
 | MS2 | Guess-free Mini Sudoku solver, one-sentence hints for all four published techniques, grade metadata and technique-based pack bands. Unique fixtures cover all techniques and a unique stuck puzzle; engine tests and check pass; reviewed by `gpt-6.1-sol` with no blockers. |
 | MS3 | Seeded Mini Sudoku generator randomizes valid 6×6 grids and clue layouts, retaining unique technique-solvable puzzles in each pack. Ten seed-1 puzzles per pack are unique, solve with hints, meet their grade band, and repeat deterministically; `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` with no blockers. |
+| MS4 | Independent hand-built tests cover 6×6 row, column and 2×3 box rules, capped solution counts, mistakes, notes and solved-state semantics. `:engine:test` and `check` pass. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| MS4 | Independent Mini Sudoku rule tests with hand-made fixtures | Claude |
+| B1 | `bankgen` command-line tool | Codex |
 
 ## Next steps
 
-1. **Build the Mini Sudoku engine:** MS1–MS3 are complete; MS4 is active for independent rule tests.
-2. **Start independent ready work:** B1 (bank tooling), A2 (storage) and human card H0.1 (accounts and legal setup).
-3. **Wire the core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
-4. **Build the puzzle bank** after all game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
+1. **Build the puzzle bank:** all four game engines are complete; B1 is active for the bank tool, followed by B2 generation, B3 validation and H1 hand-testing.
+2. **Start app storage:** A2 is ready; A3 depends on A1 and A2, and A4 follows A3. Theme wiring into the manifest and activity is part of A3.
+3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
+4. **Generate the launch bank** after all game generators and B1 are ready: 600 levels and 365 daily puzzles for each game.
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
