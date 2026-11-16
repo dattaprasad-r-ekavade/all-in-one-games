@@ -1,6 +1,7 @@
 package com.datathecodie.witgrid.engine.nonogram
 
 import com.datathecodie.witgrid.engine.core.Grid
+import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.Pack
 import java.util.ArrayList
 import java.util.Collections
@@ -70,6 +71,23 @@ object NonogramPackBands {
         Pack.EASY -> 5
         Pack.MEDIUM, Pack.HARD -> 10
         Pack.EXPERT -> 15
+    }
+
+    /**
+     * Returns whether a grade fits the launch band. Easy uses Overlap in at most two passes;
+     * Medium allows Edge rules in at most four; Hard needs Line by line in at least two passes;
+     * Expert needs Line by line in at least four. Hard and Expert size bands distinguish the two.
+     */
+    fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean {
+        if (grade.pack != pack) return false
+        val hardestRank = grade.hardestTechnique?.difficultyRank ?: 0
+        val linePasses = grade.stepCount
+        return when (pack) {
+            Pack.EASY -> hardestRank == 0 && linePasses in 1..2
+            Pack.MEDIUM -> hardestRank in 0..1 && linePasses in 1..4
+            Pack.HARD -> hardestRank == 2 && linePasses >= 2
+            Pack.EXPERT -> hardestRank == 2 && linePasses >= 4
+        }
     }
 }
 

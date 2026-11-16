@@ -29,9 +29,10 @@ object NonogramEngine : GameEngine<NonogramPuzzle, NonogramState> {
     override fun countSolutions(puzzle: NonogramPuzzle, limit: Int): Int =
         NonogramRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: NonogramPuzzle, state: NonogramState): HintStep? = unavailable()
+    override fun nextStep(puzzle: NonogramPuzzle, state: NonogramState): HintStep? =
+        NonogramTechniqueSolver.nextStep(puzzle, state)
 
-    override fun grade(puzzle: NonogramPuzzle): Grade = unavailable()
+    override fun grade(puzzle: NonogramPuzzle): Grade = NonogramTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): NonogramPuzzle = unavailable()
 
