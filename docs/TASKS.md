@@ -305,9 +305,9 @@ Plan: 6.5 (first level), GDD onboarding row.
 ### A13 — Edge-to-edge, predictive back, tablet layout
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 7.1 (Play rules).
-**Owns:** `app/…/MainActivity.kt`, `app/…/ui/layout/**`, window-size handling in screen files (list them in the handoff).
-**Do:** Draw edge-to-edge and apply system-bar and IME insets so controls remain usable. Preserve each screen's back action and integrate it with Android predictive back. Make Home, Game, Play, Result, Level failed, Calendar, Statistics and Settings responsive, with centered/constrained content at tablet width; keep puzzle boards large enough to play. Add or update previews for 360 dp and 840 dp widths. Do not add a new dependency.
-**Done when:** `./gradlew check` passes. Screens work at 360 dp phone and 840 dp tablet widths in previews.
+**Owns:** `app/…/MainActivity.kt`, `app/…/nav/WitgridNavigation.kt`, `app/…/ui/layout/**`, window-size handling in screen files (list them in the handoff).
+**Do:** Draw edge-to-edge and apply system-bar and IME insets so controls remain usable. Preserve each screen's back action and use predictive-back progress to animate the current screen, reset on cancellation, and navigate only after completion. Make Home, Game, Play, Result, Level failed, Calendar, Statistics and Settings responsive, with centered/constrained content at tablet width. Reflow Play controls beside the board in wide, short windows so large puzzles remain usable. Add or update previews for 360 dp, 840 dp, and 840×360 dp; include a real large Nonogram board preview. Do not add a new dependency.
+**Done when:** `./gradlew check` passes. Screens work at 360 dp phone and 840 dp tablet widths in previews, including the short landscape Play layout.
 
 ### A14 — UI smoke tests
 Tier L · Build Codex (`gpt-6-luna`) · Review Claude
