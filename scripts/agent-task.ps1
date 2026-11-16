@@ -60,6 +60,7 @@ if ($Agent -eq 'codex') {
         -s workspace-write `
         -C $wt `
         --add-dir $gradleHome `
+        --add-dir (Join-Path $repo '.git') `
         -o $handoff `
         -
 } else {
