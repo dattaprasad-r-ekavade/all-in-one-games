@@ -108,6 +108,19 @@ class PlayController<P : Any, S : Any> private constructor(
 
     suspend fun redo(): Boolean = mutationMutex.withLock { saveHistory(history.redo(), hintsUsed) }
 
+    /**
+     * Starts a new attempt at the level. Completion and best time are kept. A solve in the
+     * new attempt sends a new solved event.
+     */
+    suspend fun restart() = mutationMutex.withLock {
+        history = History(gameModule.newState(level))
+        timerState = TimerState(elapsedMillis = 0L, resumedAtMillis = clock.nowMillis())
+        hintsUsed = 0
+        solvedEventSent = false
+        persistCurrentState()
+        publishSnapshot()
+    }
+
     suspend fun pauseForBackground() {
         val pauseRequestedAtMillis = clock.nowMillis()
         mutationMutex.withLock {

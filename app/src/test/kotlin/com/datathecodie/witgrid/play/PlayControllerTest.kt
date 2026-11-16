@@ -163,6 +163,45 @@ class PlayControllerTest {
         assertEquals(750, controller.snapshot.value.elapsedTimeMillis)
     }
 
+    @Test
+    fun restartResetsTheAttemptButKeepsCompletionAndBestTime() = runBlocking {
+        val repository = FakeProgressRepository()
+        val clock = FakeClock(40_000)
+        val controller = PlayController.open(testModule, testLevel, repository, clock)
+        clock.advance(250)
+        assertTrue(controller.applyHint(requireNotNull(controller.nextHint())))
+        controller.applyMove(Move.SetMark(Cell(1), Mark.FILLED))
+        assertEquals(250, controller.solvedEvents.first().elapsedTimeMillis)
+
+        clock.advance(5_000)
+        controller.restart()
+
+        val restarted = controller.snapshot.value
+        assertEquals(List(2) { Mark.EMPTY }, restarted.state.marks)
+        assertFalse(restarted.solved)
+        assertFalse(restarted.canUndo)
+        assertFalse(restarted.canRedo)
+        assertEquals(0, restarted.hintsUsed)
+        assertTrue(restarted.completed)
+        assertEquals(250, restarted.bestTimeMillis)
+        assertEquals(0, restarted.elapsedTimeMillis)
+
+        clock.advance(100)
+        controller.refreshTimer()
+        assertEquals(100, controller.snapshot.value.elapsedTimeMillis)
+        val saved = repository.lastSaved()
+        assertEquals(0, saved.elapsedTimeMillis)
+        assertTrue(saved.completed)
+        assertEquals(250, saved.bestTimeMillis)
+        assertEquals(List(2) { Mark.EMPTY }, TestEngine.decodeState(saved.stateBytes).marks)
+
+        controller.applyGesture(listOf(Move.SetMark(Cell(0), Mark.FILLED), Move.SetMark(Cell(1), Mark.FILLED)))
+        val secondSolve = controller.solvedEvents.first()
+        assertEquals(100, secondSolve.elapsedTimeMillis)
+        assertEquals(0, secondSolve.hintsUsed)
+        assertEquals(100, secondSolve.bestTimeMillis)
+    }
+
     private fun FakeProgressRepository.lastSaved(): LevelProgress = requireNotNull(writes.lastOrNull())
 
     private data class TestPuzzle(val solution: List<Mark>)
@@ -296,7 +335,7 @@ class PlayControllerTest {
     }
 
     private companion object {
-        val testModule = EngineGameModule(TestEngine, levelsPerInterstitial = 1)
+        val testModule = EngineGameModule(TestEngine) { 1 }
         val testLevel = GameLevel(
             ref = LevelRef(TestEngine.id, "test-easy-001", Pack.EASY),
             size = 2,

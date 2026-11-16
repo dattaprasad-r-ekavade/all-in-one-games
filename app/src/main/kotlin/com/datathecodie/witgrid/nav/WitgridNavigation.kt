@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.ui.screens.CalendarScreen
 import com.datathecodie.witgrid.ui.screens.GameScreen
@@ -38,7 +39,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
             gameId = currentDestination.gameId,
             onStart = {
                 val module = requireNotNull(GameRegistry.find(currentDestination.gameId))
-                val levelRef = module.firstLevelRef(Pack.EASY, context.assets)
+                val levelRef = module.firstLevelRef(Pack.EASY, AssetBankSource(context.assets))
                 navigator.navigate(AppDestination.Play(levelRef))
             },
             onHome = navigator::returnHome,
