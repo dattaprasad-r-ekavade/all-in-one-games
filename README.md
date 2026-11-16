@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 15 %** (9 of 61 task cards done; 1 more in progress)
+**Overall: about 18 %** (11 of 61 task cards done; 1 more in progress)
 
 ```
-[######----------------------------------]  15 %
+[#######---------------------------------]  18 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 4 | 1 | 17 % |
+| 1 — Engine and puzzle bank | 23 | 6 | 1 | 26 % |
 | 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **9** | **1** | **15 %** |
+| **Total** | **61** | **11** | **1** | **18 %** |
 
 ## Done
 
@@ -43,16 +43,18 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | E2 | ASCII-grid fixtures and generic engine test helpers for uniqueness, hint solving and deterministic generation. Six test-kit tests pass; `check` passes; reviewed by `gpt-6.1-sol` with no blockers. |
 | CR1 | Crowns puzzle/state model, bank codec, rule checks, mistake handling and capped solution counter exposed through `GameEngine`. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` after fixes. |
 | CR2 | Crowns technique solver, deterministic hints, one-sentence explanations, grade and size-based pack bands. `:engine:test` and `check` pass; reviewed and fixed by `gpt-6.1-sol`. |
+| CR3 | Seeded `SplitMix64` generator, connected flood-fill regions, unique and technique-solvable puzzles. Ten puzzles per pack pass for seed 1, including both Expert sizes; reviewed by `gpt-6.1-sol`. H1 should calibrate the immediate placements from small regions. |
+| CR4 | Independent plan-rule tests for valid layouts, touch rules, solution counts, mistakes and solved-state semantics. `:engine:test` and `check` pass. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| CR3 | Crowns generator for all four packs | Codex |
+| BI1 | Binary rules, puzzle/state model, bank payload and solution counter | Codex |
 
 ## Next steps
 
-1. **Complete the Crowns lane:** CR3 generates puzzles and CR4 adds independent spec tests. BI1, NO1, MS1, A2 and B1 are also ready as capacity allows.
+1. **Build the remaining game engines:** BI1 is active; NO1 and MS1 can follow. B1 (bank tooling), A2 (storage) and H0.1 (accounts and legal setup) are also ready.
 2. **Wire the theme and core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
 3. **Build the puzzle bank** after the game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
 4. **Human tasks can start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
