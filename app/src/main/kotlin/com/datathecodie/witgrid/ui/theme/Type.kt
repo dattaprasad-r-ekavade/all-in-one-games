@@ -34,11 +34,17 @@ object NumberStyles {
 
 val WitgridTypography = Typography(
     displayLarge = style(FontWeight.SemiBold, 40, 48),
+    displayMedium = style(FontWeight.SemiBold, 34, 42),
+    displaySmall = style(FontWeight.SemiBold, 30, 38),
+    headlineLarge = style(FontWeight.SemiBold, 32, 40),
     headlineMedium = style(FontWeight.SemiBold, 28, 36),
+    headlineSmall = style(FontWeight.SemiBold, 24, 32),
     titleLarge = style(FontWeight.SemiBold, 22, 28),
     titleMedium = style(FontWeight.Medium, 16, 24),
+    titleSmall = style(FontWeight.Medium, 14, 20),
     bodyLarge = style(FontWeight.Normal, 16, 24),
     bodyMedium = style(FontWeight.Normal, 14, 20),
+    bodySmall = style(FontWeight.Normal, 14, 18),
     labelLarge = style(FontWeight.Medium, 14, 20),
     labelMedium = style(FontWeight.Medium, 14, 18),
     labelSmall = style(FontWeight.Medium, 14, 16),

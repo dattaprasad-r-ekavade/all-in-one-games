@@ -2,10 +2,12 @@ package com.datathecodie.witgrid.ui.theme
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -81,4 +83,66 @@ private fun TokensLightPreview() {
 @Composable
 private fun TokensDarkPreview() {
     WitgridTheme(darkTheme = true) { TokenScreen() }
+}
+
+/** Sample board: the region colours with letters, so neighbouring regions can be judged side by side. */
+@Composable
+private fun SampleBoard(size: Int) {
+    val colors = WitgridTheme.colors
+    val columnGroups = 4
+    Column(Modifier.background(colors.paper).padding(Spacing.screenMargin)) {
+        repeat(size) { row ->
+            Row {
+                repeat(size) { column ->
+                    val region = colors.regions[(row * 2 / size) * columnGroups + column * columnGroups / size]
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .border(0.5.dp, colors.ink.copy(alpha = 0.35f))
+                            .background(region.color),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(region.letter.toString(), style = NumberStyles.clue, color = colors.ink)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(name = "Board 8x8 light", showBackground = true, widthDp = 360, heightDp = 360)
+@Composable
+private fun Board8LightPreview() {
+    WitgridTheme(darkTheme = false) { SampleBoard(8) }
+}
+
+@Preview(
+    name = "Board 8x8 dark",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 360,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun Board8DarkPreview() {
+    WitgridTheme(darkTheme = true) { SampleBoard(8) }
+}
+
+@Preview(name = "Board 10x10 light", showBackground = true, widthDp = 360, heightDp = 360)
+@Composable
+private fun Board10LightPreview() {
+    WitgridTheme(darkTheme = false) { SampleBoard(10) }
+}
+
+@Preview(
+    name = "Board 10x10 dark",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 360,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun Board10DarkPreview() {
+    WitgridTheme(darkTheme = true) { SampleBoard(10) }
 }

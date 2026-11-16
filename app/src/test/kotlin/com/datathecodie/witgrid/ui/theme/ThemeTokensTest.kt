@@ -50,6 +50,39 @@ class ThemeTokensTest {
     }
 
     @Test
+    fun everyPairOfRegionColoursIsFarApartInOklab() {
+        setups.forEach { (name, setup) ->
+            var minimum = Double.MAX_VALUE
+            for (i in setup.regions.indices) for (j in i + 1 until setup.regions.size) {
+                minimum = minOf(minimum, ColorMath.oklabDistance(setup.regions[i].rgb, setup.regions[j].rgb))
+            }
+            assertTrue(minimum >= 0.08, "$name minimum pair distance $minimum")
+        }
+    }
+
+    @Test
+    fun everyTypographyRoleUsesInter() {
+        val roles = with(WitgridTypography) {
+            listOf(
+                displayLarge, displayMedium, displaySmall,
+                headlineLarge, headlineMedium, headlineSmall,
+                titleLarge, titleMedium, titleSmall,
+                bodyLarge, bodyMedium, bodySmall,
+                labelLarge, labelMedium, labelSmall,
+            )
+        }
+        assertEquals(15, roles.size)
+        roles.forEach { assertEquals(InterFamily, it.fontFamily) }
+        assertTrue(roles.all { it.fontSize.value >= 14f })
+    }
+
+    @Test
+    fun oklabDistanceKnownValues() {
+        assertEquals(0.0, ColorMath.oklabDistance(0x336699, 0x336699), 1e-12)
+        assertEquals(1.0, ColorMath.oklabDistance(0x000000, 0xFFFFFF), 0.001)
+    }
+
+    @Test
     fun regionLightnessIsNearlyEqual() {
         setups.forEach { (name, setup) ->
             val lightness = setup.regions.map { ColorMath.oklabLightness(it.rgb) }
