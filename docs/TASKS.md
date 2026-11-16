@@ -86,11 +86,11 @@ Do the steps in `docs/AGENT_WORKFLOW.md` section 3.
 ### T0.1 — Gradle project with three modules
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 7.1, 7.2.
-**Owns:** `settings.gradle.kts`, `build.gradle.kts`, `gradle/**`, `gradlew*`, `gradle.properties`, `engine/build.gradle.kts`, `bankgen/build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`, one placeholder source file in each module.
+**Owns:** `settings.gradle.kts`, `build.gradle.kts`, `gradle/**`, `gradlew*`, `gradle.properties`, `engine/build.gradle.kts`, `bankgen/build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`, `app/src/main/res/values/strings.xml`, one placeholder source file in each module.
 **Do:**
 1. Check the newest stable versions of Kotlin, AGP, Gradle, Compose BOM. Use them. Write the versions you chose in the handoff.
 2. Make a version catalog `gradle/libs.versions.toml`.
-3. `engine`: Kotlin JVM library, JUnit 5. `bankgen`: Kotlin JVM application that depends on `engine`. `app`: Android application with Compose, `applicationId = "com.datathecodie.witgrid"`, minSdk 24, targetSdk 36.
+3. `engine`: Kotlin JVM library, JUnit Jupiter (newest stable; JUnit 6 is accepted). `bankgen`: Kotlin JVM application that depends on `engine`. `app`: Android application with Compose, `applicationId = "com.datathecodie.witgrid"`, minSdk 24, targetSdk 36, compileSdk as the Compose BOM needs (37 for BOM 2026.09).
 4. The app shows one Compose screen with the text "Witgrid".
 5. Configure JVM toolchain to the JDK version that the chosen AGP needs.
 **Done when:** `./gradlew check` and `./gradlew :app:assembleDebug` pass. `engine` has no Android dependency.

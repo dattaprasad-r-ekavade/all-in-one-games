@@ -22,9 +22,18 @@ if (-not (Test-Path $wt)) { throw "No worktree for $Task at $wt" }
 Push-Location $wt
 try {
     if ($Reviewer -eq 'codex') {
-        $instructions = "Review task $Task against docs/TASKS.md and AGENTS.md. Check spec match, correctness, AGENTS.md section 5 hard rules, and scope. Report blockers with file:line."
-        codex review --base $Base -c 'model=gpt-6.1-sol' -c 'model_reasoning_effort=high' $instructions |
-            Tee-Object -FilePath $review
+        # 'codex review --base' does not accept a custom prompt, so use a read-only exec run.
+        $instructions = @"
+You are the reviewer for task $Task on this branch. You do not change files.
+Run: git diff $Base...HEAD and git log $Base..HEAD --oneline.
+Review against the $Task card in docs/TASKS.md, the plan sections it names, and AGENTS.md.
+Check: spec match, correctness, AGENTS.md section 5 hard rules, scope (Owns line), test quality.
+Do not run Gradle; the lead runs the gate.
+Output: '## Review: $Task', 'Verdict: merge | fix first', 'Blockers:' numbered with file:line or 'none', 'Suggestions:'.
+Report only real problems.
+"@
+        codex exec -m gpt-6.1-sol -c 'model_reasoning_effort="high"' -s read-only -o $review $instructions
+        Get-Content $review
     } else {
         "Use the reviewer agent to review task $Task on this branch against $Base." |
             claude -p --model sonnet | Tee-Object -FilePath $review
