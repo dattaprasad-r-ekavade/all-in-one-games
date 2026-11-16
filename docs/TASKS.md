@@ -5,7 +5,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 - **Tier**: L, M, H or Human. See `docs/AGENT_WORKFLOW.md` section 2.
 - **Build / Review**: the default agent family. `Codex` = Codex CLI, `Claude` = Claude Code subagent. You can swap the families. Keep the reviewer from the other family.
 - **Status**: `todo` → `ready` (all needs done) → `active` → `review` → `done`. `blocked` if waiting on a person.
-- Path short forms: `engine/…` = `engine/src/{main,test}/kotlin/com/datathecodie/witgrid/engine/…`; `app/…` = `app/src/{main,test,androidTest}/kotlin/com/datathecodie/witgrid/app/…`; `bankgen/…` = `bankgen/src/{main,test}/kotlin/com/datathecodie/witgrid/bankgen/…`.
+- Path short forms: `engine/…` = `engine/src/{main,test}/kotlin/com/datathecodie/witgrid/engine/…`; `app/…` = `app/src/{main,test,androidTest}/kotlin/com/datathecodie/witgrid/…`; `bankgen/…` = `bankgen/src/{main,test}/kotlin/com/datathecodie/witgrid/bankgen/…`.
 
 ## Index
 
@@ -46,23 +46,23 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A11 | Hint and check UI | M | Codex | Claude | A10 | done |
 | A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | done |
 | A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | done |
-| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, A12, A13, B2 | active |
+| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, A12, A13, B2 | done |
 | **Phase 3 — Retention** |||||||
-| R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | ready |
+| R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | active |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | todo |
-| R3 | Statistics screen | L | Claude | Codex | A2, A9 | ready |
-| R4 | Reminder notification | L | Codex | Claude | A3 | ready |
-| R5 | Settings screen | L | Claude | Codex | A1, A3 | ready |
+| R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | todo |
+| R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | todo |
+| R5 | Settings screen | L | Claude | Codex | A1, A3, R4, M1 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
-| M1 | Monetisation policy logic | H | Codex | Claude | A2 | ready |
+| M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, A11 | todo |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | todo |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | todo |
-| M4 | Ads in the player flows | M | Claude | Codex | M3, A10, A11, R2 | todo |
-| M5 | Mistake limit and continue flow | M | Codex | Claude | M1, A10 | todo |
-| M6 | Premium purchase and restore | H | Claude | Codex | M1, R5 | todo |
+| M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
+| M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
+| M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | todo |
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
-| M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, H4 | todo |
+| M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | ready |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | todo |
@@ -322,32 +322,33 @@ Tier L · Build Codex (`gpt-6-luna`) · Review Claude
 ### R1 — Daily, streak and freeze logic
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 6 (daily index), 5, 7.5, 8.2 (streak repair).
-**Owns:** `app/…/domain/daily/**`.
-**Do:** Plain Kotlin. Daily index = days since a fixed date mod 365. Streak rules, one free freeze each week applied automatically, repair within 48 hours (the reward hook comes in M4). Use an injected clock and time zone.
-**Done when:** JVM tests cover: day change at midnight, time zone change, a missed day with and without a freeze, a 7-day offline streak, clock moved backwards.
+**Owns:** `app/…/domain/daily/**`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
+**Do:** Keep daily and streak rules in plain Kotlin. Daily index is the local date's days since a fixed date mod 365. One shared streak day is earned when any one of the four daily puzzles is completed that local date. Hold at most one free freeze; refill it to one each local Monday, with no accumulation, and automatically use it to cover one missed local day. A freeze covers only one date; a longer gap still breaks the streak. A rewarded repair restores the latest missed local day and must complete within 48 hours after that day ends; M4 supplies the reward callback. Persist the freeze refill date and repairable missed date with the existing streak data. Use an injected clock and time zone throughout. A backwards clock change must not rewind streak state or grant a duplicate day.
+**Done when:** JVM tests cover local midnight, time-zone changes, one and multiple missed days with and without a freeze, Monday refill including unused-freeze and missed-week behavior, repair deadline boundaries, a 7-day offline streak, and the clock moving backwards. Existing `DataStorePlayerDataRepository` tests still pass.
 
 ### R2 — Daily UI and calendar screen
 Tier M · Build Claude (`builder`) · Review Codex
-**Owns:** `app/…/ui/screens/calendar/**`, daily parts of Home/Game screens (list in handoff).
+**Owns:** `app/…/ui/screens/calendar/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
+**Do:** Wire daily puzzle entry, completion state and calendar navigation to R1's local-date rules and the committed daily bank. Keep the daily status localized.
 **Done when:** `./gradlew check` passes.
 
 ### R3 — Statistics screen
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Statistics).
-**Owns:** `app/…/ui/screens/stats/**`.
+**Owns:** `app/…/ui/screens/stats/**`, `app/…/domain/stats/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
 **Done when:** `./gradlew check` passes. The stats calculation has JVM tests.
 
 ### R4 — Reminder notification
 Tier L · Build Codex (`gpt-6-luna`) · Review Claude
 Plan: 5 (one optional reminder).
-**Owns:** `app/…/reminder/**`, manifest entries (list in handoff).
+**Owns:** `app/…/reminder/**`, `app/src/main/AndroidManifest.xml`, `app/src/main/res/values/strings.xml`.
 **Do:** Off by default. Player selects the time. Ask notification permission (API 33+) only when the player turns it on.
 **Done when:** `./gradlew check` passes.
 
 ### R5 — Settings screen
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Settings).
-**Owns:** `app/…/ui/screens/settings/**`.
+**Owns:** `app/…/ui/screens/settings/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
 **Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences.
 **Done when:** `./gradlew check` passes.
 
@@ -365,10 +366,10 @@ Plan: 4 (accessibility).
 ### M1 — Monetisation policy logic
 Tier H · Build Codex (`gpt-6.1-sol`, high) · Review Claude
 Plan: 8.1–8.6.
-**Owns:** `app/…/domain/monetisation/**`, `app/…/domain/config/**`.
+**Owns:** `app/…/domain/monetisation/**`, `app/…/domain/config/**`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/PlayController.kt`.
 **Do:** Plain Kotlin, no SDK code.
 - `InterstitialPolicy.shouldShow(...)` with every condition in 8.1.
-- `AllowanceLedger`: free hints each day, checks, continues, streak repairs, offline extra hints; Premium makes all unlimited. Rewards are stored before the callback returns.
+- `AllowanceLedger`: free hints each day, checks, continues, streak repairs, offline extra hints; Premium makes all unlimited. Hint allowances are shared across games. Spend when useful advice is revealed, but do not charge again for the same hint on an unchanged board; unavailable hints cost nothing. Rewards are stored atomically before the callback returns.
 - `ConfigKeys` with every key and default in 8.6, behind a `Config` interface.
 **Done when:** `./gradlew :app:testDebugUnitTest` passes.
 
@@ -381,27 +382,28 @@ Tier L · Build Claude (`test-writer`) · Review Codex
 ### M3 — Consent and ad service (test units)
 Tier H · Build Claude (`builder`) · Review Codex
 Plan: 7.1, 8.3, 8.7, decision from T0.3.
-**Owns:** `app/…/ads/**`, ads entries in `app/build.gradle.kts` and manifest.
+**Owns:** `app/…/ads/**`, `gradle/libs.versions.toml`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
 **Do:** `AdService` interface with a real implementation and a fake. UMP consent before the first ad request. Preload one interstitial and one rewarded ad when online; drop ads older than one hour. Google's public test app ID and test unit IDs only. Live IDs come later from Gradle properties outside the repo (S3).
 **Done when:** `./gradlew check` passes. The lead sees test ads on a device.
 
 ### M4 — Ads in the player flows
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 8.1–8.3, 8.5 (offer placement).
-**Owns:** wiring in play, result, failed and calendar screens; `app/…/ads/flow/**`.
+**Owns:** `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/ads/flow/**`, `app/src/main/res/values/strings.xml`.
 **Do:** Interstitial after "Next" through `InterstitialPolicy`. Rewarded buttons that state the reward first. Offline fallbacks. Premium offer when a rewarded ad cannot load.
 **Done when:** `./gradlew check` passes. The handoff has a manual test table: each placement × online/offline × free/Premium.
 
 ### M5 — Mistake limit and continue flow
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 8.4.
-**Owns:** `app/…/play/MistakeLimit.kt`, failed screen actions.
+**Owns:** `app/…/play/MistakeLimit.kt`, `app/…/play/PlayController.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
+**Do:** With the setting on, three mistakes fail a logic level. Continue grants exactly one additional mistake and leaves the board as-is; each later Continue grants one more. Restart is always free and never shows an ad.
 **Done when:** `./gradlew check` passes. Restart never shows an ad.
 
 ### M6 — Premium purchase and restore
 Tier H · Build Claude (`builder`) · Review Codex
 Plan: 8.5.
-**Owns:** `app/…/billing/**`.
+**Owns:** `app/…/billing/**`, `gradle/libs.versions.toml`, `app/build.gradle.kts`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/settings/SettingsScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
 **Do:** `BillingService` interface, real and fake. One non-consumable product. Acknowledge purchases. Local flag works offline; re-check when online. Restore in Settings. Handle pending purchases.
 **Done when:** `./gradlew check` passes. The lead buys and restores with a licence-test account.
 
@@ -413,7 +415,7 @@ Plan: 8.5.
 ### M7 — Analytics, Crashlytics, Remote Config
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 8.6, 10.
-**Owns:** `app/…/analytics/**`, Firebase entries in Gradle files.
+**Owns:** `app/…/analytics/**`, `gradle/libs.versions.toml`, `build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
 **Do:** `Analytics` interface with Firebase and fake implementations. All events in plan 10. Remote Config bound to `Config` from M1, in-app defaults first. The build works when `google-services.json` is missing (CI and agents): use the fake.
 **Done when:** `./gradlew check` passes in CI without `google-services.json`.
 

@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 66 %** (42 of 64 task cards done; 1 active)
+**Overall: about 67 %** (43 of 64 task cards done; 1 active)
 
 ```
-[##########################--------------]  66 %
+[###########################-------------]  67 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -23,12 +23,12 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 |---|---|---|---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
-| 2 - Core app | 14 | 13 | 0 | 1 | 0 | 0 | 93 % |
-| 3 - Retention | 6 | 0 | 4 | 0 | 0 | 0 | 0 % |
-| 4 — Monetisation and data | 8 | 0 | 1 | 0 | 0 | 0 | 0 % |
+| 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
+| 3 - Retention | 6 | 0 | 0 | 1 | 0 | 0 | 0 % |
+| 4 — Monetisation and data | 8 | 0 | 0 | 0 | 0 | 0 | 0 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **42** | **8** | **1** | **0** | **0** | **66 %** |
+| **Total** | **64** | **43** | **3** | **1** | **0** | **0** | **67 %** |
 
 ## Done
 
@@ -76,19 +76,20 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | B5 | Regenerated bank v2 and report: all 3,860 generated puzzles validate; Crowns region sizes and Mini Sudoku givens are reported. A12 intro assets bring `validate --all` to 3,864 puzzles across 24 files. `check` passes. |
 | A12 | Four guided intro puzzles, localized coach lines and fresh-install Continue targeting. Intros are validated with the bank; `check` and four connected tests pass. Independently reviewed; short-screen coach clipping was fixed and layout tests pass at 1×/2× font scale. |
 | A13 | Edge-to-edge with safe drawing/IME insets, progress-driven predictive back that preserves Play saves, centered tablet content, and a side-tool landscape Play layout. Phone/tablet previews cover all screens; actual Mini Sudoku and 15×15 Nonogram boards preview at 360/840/840×360 dp. `check` and Android test-source compilation pass; independently reviewed with blockers fixed. |
+| A14 | Four emulator smoke journeys open each launch game from Home, Continue through its coach line, solve the intro board, and reach Result. The full connected Android test suite passes (20 tests); independently reviewed with no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| A14 | UI smoke tests | Codex |
+| R1 | Daily, streak and freeze logic | Codex |
 
 ## Next steps
 
-1. **Build A14:** UI smoke tests are active and cover the four launch games from Home through Result.
-2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
-3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
-4. **Review the generated bank:** v2 contains 3,860 generated puzzles across 20 files, plus four guided intro puzzles; see [the v2 report](docs/reports/bank-v2.md).
+1. **Build R1:** local-date daily indexing, shared streaks, weekly freeze refill and streak repair rules.
+2. **Build R2 next:** daily entry and calendar UI, after R1 is complete.
+3. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
+4. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
