@@ -66,6 +66,15 @@ object MiniSudokuTechniqueSolver {
 
     /** Solves from the givens and returns the hardest technique and number of hint steps. */
     fun grade(puzzle: MiniSudokuPuzzle): Grade {
+        val grade = gradeByTechniques(puzzle)
+        require(MiniSudokuPackBands.isGradeInPackBand(puzzle.pack, grade)) {
+            "Mini Sudoku grade does not fit the ${puzzle.pack} technique band"
+        }
+        return grade
+    }
+
+    /** Computes a technique grade without enforcing the pack band, for generator filtering. */
+    internal fun gradeByTechniques(puzzle: MiniSudokuPuzzle): Grade {
         require(MiniSudokuRules.isValidSolution(puzzle)) {
             "Mini Sudoku grading requires a valid stored solution"
         }
@@ -95,11 +104,7 @@ object MiniSudokuTechniqueSolver {
             }
         }
 
-        val grade = Grade(hardestTechnique, stepCount, puzzle.pack)
-        require(MiniSudokuPackBands.isGradeInPackBand(puzzle.pack, grade)) {
-            "Mini Sudoku grade does not fit the ${puzzle.pack} technique band"
-        }
-        return grade
+        return Grade(hardestTechnique, stepCount, puzzle.pack)
     }
 
     private fun directHint(forced: ForcedPlacement, technique: Technique, evidence: List<Int>?): HintStep {

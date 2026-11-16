@@ -34,7 +34,8 @@ object MiniSudokuEngine : GameEngine<MiniSudokuPuzzle, MiniSudokuState> {
 
     override fun grade(puzzle: MiniSudokuPuzzle): Grade = MiniSudokuTechniqueSolver.grade(puzzle)
 
-    override fun generate(rng: SplitMix64, pack: Pack): MiniSudokuPuzzle = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): MiniSudokuPuzzle =
+        MiniSudokuGenerator.generate(rng, pack)
 
     override fun encodeState(state: MiniSudokuState): ByteArray = unavailable()
 

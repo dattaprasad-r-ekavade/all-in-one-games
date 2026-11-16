@@ -87,6 +87,12 @@ class MiniSudokuTechniqueSolverTest {
                 Grade(MiniSudokuTechniques.LOCKED_CANDIDATES, 1, Pack.EXPERT),
             ),
         )
+        assertFalse(
+            MiniSudokuPackBands.isGradeInPackBand(
+                Pack.EASY,
+                Grade(MiniSudokuTechniques.NAKED_SINGLE, MiniSudokuPackBands.MINIMUM_HINT_STEP_COUNT - 1, Pack.EASY),
+            ),
+        )
     }
 
     @Test

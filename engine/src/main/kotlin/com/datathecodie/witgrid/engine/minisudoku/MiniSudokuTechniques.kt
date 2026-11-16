@@ -41,11 +41,14 @@ object MiniSudokuGradeCodec {
     }
 }
 
-/** Pack difficulty bands use the hardest technique required by the puzzle. */
+/** Pack bands use the hardest technique required by the puzzle and a minimum number of placements. */
 object MiniSudokuPackBands {
+    /** Minimum placements in a generated level to keep it from collapsing into a trivial board. */
+    const val MINIMUM_HINT_STEP_COUNT: Int = 8
+
     /** Returns whether [grade] uses the technique level assigned to [pack]. */
     fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean {
-        if (grade.pack != pack) return false
+        if (grade.pack != pack || grade.stepCount < MINIMUM_HINT_STEP_COUNT) return false
         val expectedRank = when (pack) {
             Pack.EASY -> MiniSudokuTechniques.NAKED_SINGLE.difficultyRank
             Pack.MEDIUM -> MiniSudokuTechniques.HIDDEN_SINGLE.difficultyRank
