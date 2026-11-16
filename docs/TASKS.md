@@ -35,27 +35,27 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
 | A2 | Storage and saves | M | Codex | Claude | E1 | done |
-| A3 | App contracts, navigation, play controller | H | Codex | gpt-6.1-sol + human | A1, A2 | review |
-| A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | todo |
+| A3 | App contracts, navigation, play controller | H | Codex | gpt-6.1-sol + human | A1, A2 | done |
+| A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | active |
 | A5 | Crowns board | M | Claude | Codex | A4, CR2 | todo |
 | A6 | Binary board | M | Codex | Claude | A4, BI2 | todo |
 | A7 | Nonogram board | M | Claude | Codex | A4, NO2 | todo |
 | A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | todo |
-| A9 | Home and Game screens | M | Claude | Codex | A3 | todo |
+| A9 | Home and Game screens | M | Claude | Codex | A3 | ready |
 | A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | todo |
 | A11 | Hint and check UI | M | Codex | Claude | A10 | todo |
 | A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | todo |
 | A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | todo |
 | A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, B2 | todo |
 | **Phase 3 — Retention** |||||||
-| R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | todo |
+| R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | ready |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | todo |
 | R3 | Statistics screen | L | Claude | Codex | A2, A9 | todo |
-| R4 | Reminder notification | L | Codex | Claude | A3 | todo |
-| R5 | Settings screen | L | Claude | Codex | A1, A3 | todo |
+| R4 | Reminder notification | L | Codex | Claude | A3 | ready |
+| R5 | Settings screen | L | Claude | Codex | A1, A3 | ready |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
-| M1 | Monetisation policy logic | H | Codex | Claude | A2 | todo |
+| M1 | Monetisation policy logic | H | Codex | Claude | A2 | ready |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | todo |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | todo |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, A10, A11, R2 | todo |
