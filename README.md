@@ -28,7 +28,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 4 — Monetisation and data | 8 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **40** | **11** | **1** | **0** | **0** | **63 %** |
+| **Total** | **64** | **40** | **10** | **1** | **0** | **0** | **63 %** |
 
 ## Done
 
