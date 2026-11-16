@@ -233,7 +233,9 @@ One text line for each puzzle, in a gzip file for each game and pack:
 
 - Save the level state after each move. A crash or a closed app loses nothing.
 - Store for each level: state, elapsed time, hints used, completed flag, best time.
-- Store the streak and the freeze count with the device date. There is no server check.
+- One shared streak day is earned by completing any one of that local date's four daily puzzles. Completing more daily puzzles that date does not add another day.
+- Keep at most one free streak freeze. Refill it to one each local Monday; unused freezes do not accumulate. Automatically use it to cover one missed local day.
+- Store the streak and freeze state with the device date. There is no server check.
 
 ### 7.6 Hint logic
 
@@ -270,6 +272,8 @@ Default `levelsPerInterstitial`: Crowns 1, Nonogram 10x10 and larger 1, Binary 2
 Rules:
 - Each rewarded ad is the player's choice. The button states the reward before the ad starts.
 - Give the reward when the SDK reports it. Store the reward immediately, so that a killed app does not lose it.
+- Hint allowances are shared across all games. Spend a hint when useful advice is revealed; revealing the same hint again on an unchanged board does not spend another. An unavailable hint costs nothing. This also applies to the offline hint allowance.
+- A rewarded streak repair restores the most recent missed local day and must be completed within 48 hours after that day.
 
 ### 8.3 Offline behaviour
 
@@ -289,6 +293,8 @@ Rules:
 When a level fails or lives are gone, show two buttons:
 1. "Continue" — one rewarded ad, or free with Premium.
 2. "Restart" — always free, with no ad.
+
+For the four launch logic games, Continue grants one additional mistake and keeps the board as-is. Each later Continue grants one more mistake.
 
 The default of the mistake limit is a Remote Config key, so you can test "on by default" later.
 
