@@ -40,8 +40,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A5 | Crowns board | M | Claude | Codex | A4, CR2 | done |
 | A6 | Binary board | M | Codex | Claude | A4, BI2 | done |
 | A7 | Nonogram board | M | Claude | Codex | A4, NO2 | done |
-| A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | active |
-| A9 | Home and Game screens | M | Claude | Codex | A3 | ready |
+| A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | done |
+| A9 | Home and Game screens | M | Claude | Codex | A3 | active |
 | A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | ready |
 | A11 | Hint and check UI | M | Codex | Claude | A10 | todo |
 | A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | todo |
