@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 44 %** (27 of 61 task cards done; 1 more in progress)
+**Overall: about 44 %** (27 of 61 task cards done; 1 more in review)
 
 ```
 [##################----------------------]  44 %
@@ -19,16 +19,16 @@ _Last update: 16 Nov 2026_
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
 
-| Phase | Cards | Done | Active | Blocked | Progress |
-|---|---|---|---|---|---|
-| 0 — Setup | 5 | 4 | 0 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 21 | 0 | 0 | 91 % |
-| 2 — Core app | 14 | 2 | 1 | 0 | 14 % |
-| 3 — Retention | 6 | 0 | 0 | 0 | 0 % |
-| 4 — Monetisation and data | 8 | 0 | 0 | 0 | 0 % |
-| 5 — Closed test | 4 | 0 | 0 | 0 | 0 % |
-| 6 — Launch | 1 | 0 | 0 | 0 | 0 % |
-| **Total** | **61** | **27** | **1** | **0** | **44 %** |
+| Phase | Cards | Done | Active | Review | Blocked | Progress |
+|---|---|---|---|---|---|---|
+| 0 — Setup | 5 | 4 | 0 | 0 | 0 | 80 % |
+| 1 — Engine and puzzle bank | 23 | 21 | 0 | 0 | 0 | 91 % |
+| 2 — Core app | 14 | 2 | 0 | 1 | 0 | 14 % |
+| 3 — Retention | 6 | 0 | 0 | 0 | 0 | 0 % |
+| 4 — Monetisation and data | 8 | 0 | 0 | 0 | 0 | 0 % |
+| 5 — Closed test | 4 | 0 | 0 | 0 | 0 | 0 % |
+| 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 % |
+| **Total** | **61** | **27** | **0** | **1** | **0** | **44 %** |
 
 ## Done
 
@@ -64,13 +64,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
-## In progress
+## In progress and review
 
-| A3 | App contracts, navigation, play controller | Codex |
+| A3 | App contracts, navigation, play controller; code complete, awaiting human interface read | Codex |
 
 ## Next steps
 
-1. **Build the app contracts and play controller:** A3 is active. A4 follows A3, then the four game boards (A5–A8).
+1. **Review A3’s app contracts:** read `GameModule` and `PlayController`; then merge A3 and start A4. The four game boards (A5–A8) follow A4.
 2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
 4. **Launch bank generated:** 3,860 puzzles across 20 files; see [the bank report](docs/reports/bank-v1.md).
