@@ -12,10 +12,8 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
 import java.io.InputStream
-import java.util.zip.GZIPOutputStream
 
 class GameModuleTest {
     @Test
@@ -132,8 +130,8 @@ class GameModuleTest {
 
         private companion object {
             val files: Map<String, ByteArray> = mapOf(
-                "bank/crowns-easy.txt.gz" to gzip(easyLines),
-                "bank/crowns-daily.txt.gz" to gzip(dailyLines),
+                "bank/crowns-easy.txt.gz" to textFile(easyLines),
+                "bank/crowns-daily.txt.gz" to textFile(dailyLines),
             )
         }
     }
@@ -157,12 +155,7 @@ class GameModuleTest {
 
         fun dailyId(index: Int): String = "CR-DAILY-%03d".format(index)
 
-        fun gzip(lines: List<String>): ByteArray {
-            val bytes = ByteArrayOutputStream()
-            GZIPOutputStream(bytes).bufferedWriter(Charsets.UTF_8).use { writer ->
-                lines.forEach { line -> writer.write(line + "\n") }
-            }
-            return bytes.toByteArray()
-        }
+        fun textFile(lines: List<String>): ByteArray =
+            lines.joinToString(separator = "\n", postfix = "\n").toByteArray(Charsets.UTF_8)
     }
 }

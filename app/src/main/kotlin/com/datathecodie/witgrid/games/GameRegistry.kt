@@ -2,19 +2,18 @@ package com.datathecodie.witgrid.games
 
 import com.datathecodie.witgrid.engine.binary.BinaryEngine
 import com.datathecodie.witgrid.engine.binary.BinaryState
-import com.datathecodie.witgrid.engine.crowns.CrownsEngine
-import com.datathecodie.witgrid.engine.crowns.CrownsState
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuEngine
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.engine.nonogram.NonogramEngine
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
+import com.datathecodie.witgrid.games.crowns.CrownsGameModule
 
 object GameRegistry {
     /** Nonogram 5x5 levels are short, so their ads come every 2 levels (plan 8.1). */
     private const val SHORT_NONOGRAM_SIZE = 5
 
     val games: List<GameModule<*, *>> = listOf(
-        EngineGameModule(CrownsEngine, CrownsState::puzzle) { 1 },
+        CrownsGameModule,
         EngineGameModule(BinaryEngine, BinaryState::puzzle) { 2 },
         EngineGameModule(NonogramEngine, NonogramState::puzzle) { level ->
             if (level.size == SHORT_NONOGRAM_SIZE) 2 else 1

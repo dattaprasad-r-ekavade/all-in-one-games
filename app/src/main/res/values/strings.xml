@@ -3,6 +3,10 @@
     <string name="app_name">Witgrid</string>
     <string name="board_coming_soon">Board coming soon.</string>
     <string name="board_cell_accessibility_label">Row %1$d, column %2$d</string>
+    <string name="crowns_cell_accessibility_label">Row %1$d, column %2$d, region %3$s, %4$s</string>
+    <string name="crowns_cell_empty">empty</string>
+    <string name="crowns_cell_crossed">X mark</string>
+    <string name="crowns_cell_filled">crown</string>
     <string name="board_cell_clear_action">Clear cell</string>
     <string name="board_undo_action">Undo last action</string>
     <string name="screen_home">Home</string>
