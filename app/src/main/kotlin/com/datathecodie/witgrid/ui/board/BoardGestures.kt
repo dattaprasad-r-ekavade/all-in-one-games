@@ -15,6 +15,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 internal fun Modifier.boardGestureInput(
     gridSize: Int,
     haptics: BoardHaptics,
+    dragPaintEnabled: Boolean,
     onCellTap: (Cell) -> Unit,
     onDragPaint: (List<Cell>) -> Unit,
     onDragPreview: (List<Cell>) -> Unit,
@@ -28,7 +29,7 @@ internal fun Modifier.boardGestureInput(
     val latestLongPress = rememberUpdatedState(onLongPress)
     val latestUndo = rememberUpdatedState(onUndo)
 
-    return pointerInput(gridSize, haptics, viewConfiguration) {
+    return pointerInput(gridSize, haptics, dragPaintEnabled, viewConfiguration) {
         awaitEachGesture {
             val firstDown = awaitFirstDown(requireUnconsumed = false)
             firstDown.consume()
@@ -97,7 +98,13 @@ internal fun Modifier.boardGestureInput(
                     }
 
                     val primaryPointer = event.changes.firstOrNull { change -> change.id == firstDown.id }
-                    if (!isMultiTouch && !longPressHandled && hasMoved && startCell != null) {
+                    if (
+                        dragPaintEnabled &&
+                        !isMultiTouch &&
+                        !longPressHandled &&
+                        hasMoved &&
+                        startCell != null
+                    ) {
                         val currentCell = primaryPointer?.let { change ->
                             BoardGeometry.cellAt(
                                 change.position.x,
