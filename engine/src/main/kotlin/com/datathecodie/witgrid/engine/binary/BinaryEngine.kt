@@ -34,7 +34,7 @@ object BinaryEngine : GameEngine<BinaryPuzzle, BinaryState> {
 
     override fun grade(puzzle: BinaryPuzzle): Grade = BinaryTechniqueSolver.grade(puzzle)
 
-    override fun generate(rng: SplitMix64, pack: Pack): BinaryPuzzle = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): BinaryPuzzle = BinaryGenerator.generate(rng, pack)
 
     override fun encodeState(state: BinaryState): ByteArray = unavailable()
 

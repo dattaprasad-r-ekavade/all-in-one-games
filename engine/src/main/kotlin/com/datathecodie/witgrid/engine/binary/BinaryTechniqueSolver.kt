@@ -5,6 +5,7 @@ import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.core.Move
+import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.Technique
 
 /** Guess-free Binary deductions, deterministic hint selection and grading. */
@@ -24,16 +25,28 @@ object BinaryTechniqueSolver {
 
     /** Solves from the givens with the published techniques and returns the hardest-step grade. */
     fun grade(puzzle: BinaryPuzzle): Grade {
+        val pack = validateGradeInput(puzzle)
+        require(BinaryRules.countSolutions(puzzle, limit = 2) == 1) {
+            "Binary grading requires exactly one solution"
+        }
+        return gradeByTechniques(puzzle, pack)
+    }
+
+    /** Computes the technique grade without a solution-count search; callers validate uniqueness separately. */
+    internal fun gradeByTechniques(puzzle: BinaryPuzzle): Grade =
+        gradeByTechniques(puzzle, validateGradeInput(puzzle))
+
+    private fun validateGradeInput(puzzle: BinaryPuzzle): Pack {
         require(BinaryRules.isValidSolution(puzzle)) { "Binary grading requires a valid stored solution" }
         require(puzzle.givens.indices.all { index ->
             puzzle.givens[index] == null || puzzle.givens[index] == puzzle.solution[index]
         }) { "Binary givens must agree with the stored solution" }
-        require(BinaryRules.countSolutions(puzzle, limit = 2) == 1) {
-            "Binary grading requires exactly one solution"
-        }
         val pack = BinaryPackBands.packForSize(puzzle.size)
         require(puzzle.pack == pack) { "Binary pack must match its board size" }
+        return pack
+    }
 
+    private fun gradeByTechniques(puzzle: BinaryPuzzle, pack: Pack): Grade {
         var state = BinaryState.initial(puzzle)
         val visited = hashSetOf(state)
         var stepCount = 0
