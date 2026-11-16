@@ -28,6 +28,10 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | B2 | Generate the launch bank and report | L | Codex | Claude | B1, CR3, BI3, NO3, MS3 | done |
 | B3 | Bank validation in `check` and CI | L | Claude | Codex | B2, T0.2 | done |
 | H1 | Hand-test the bank | Human | — | — | B2 | ready |
+| CR5 | Crowns: no regions under 3 cells; unsigned IDs | L | Claude (Haiku) | Claude (Sonnet) | CR3 | active |
+| MS5 | Mini Sudoku Easy with 18–22 givens; unsigned IDs | L | Claude (Haiku) | Claude (Sonnet) | MS3 | active |
+| B4 | Unsigned level IDs for Binary and Nonogram | L | Claude (Haiku) | Claude (Sonnet) | BI3, NO3 | active |
+| B5 | Regenerate the launch bank and report v2 | L | Claude (Haiku) | Claude (Sonnet) | CR5, MS5, B4 | todo |
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
 | A2 | Storage and saves | M | Codex | Claude | E1 | done |
@@ -190,6 +194,38 @@ Tier L · Build Claude (`chore`) · Review Codex
 **Owns:** `bankgen/build.gradle.kts`, `bankgen/src/test/**`.
 **Do:** Make `./gradlew check` run the bank validation on the committed files.
 **Done when:** `./gradlew check` fails when one bank line is broken by hand, and passes again when it is restored.
+
+### Bank quality fixes (lead check of the Codex run, 16 Nov 2026)
+
+Found by the lead: every Crowns puzzle has 2–3 one-cell regions (free crowns) and ~2 two-cell regions, in all packs; Mini Sudoku Easy has 27.5 of 36 givens on average (Medium has 13); level IDs print negative numbers as `-hex`, which gives IDs like `MS-EASY--379dc9…`.
+
+**ID rule for CR5, MS5, B4:** make the ID hex with `rng.nextLong().toULong().toString(16).padStart(16, '0')`. Consume the RNG exactly as before, so the same seeds give the same puzzles. Add a test that IDs match `^[A-Z]{2}-[A-Z]+-[0-9a-f]{16}$`.
+
+### CR5 — Crowns: no regions under 3 cells
+Tier L · Build Claude (Haiku) · Review Claude (Sonnet)
+Plan: 6.1, 6.5.
+**Owns:** `engine/…/crowns/**` and its tests.
+**Do:** Change the region growth so every region has at least 3 cells, in every pack and size. Keep uniqueness and technique-solvability. Keep grade bands; adjust them only if a pack can no longer fill, and say so. Apply the ID rule.
+**Done when:** `./gradlew :engine:test` passes. A new test generates 10 puzzles for each pack with seed 1 and asserts the smallest region has ≥ 3 cells. Handoff lists the region-size histogram for those puzzles.
+
+### MS5 — Mini Sudoku Easy with 18–22 givens
+Tier L · Build Claude (Haiku) · Review Claude (Sonnet)
+Plan: 6.4.
+**Owns:** `engine/…/minisudoku/**` and its tests.
+**Do:** Easy keeps "naked single only", but removes givens until 18–22 remain (target about 20). Medium, Hard and Expert stay as they are. Apply the ID rule.
+**Done when:** `./gradlew :engine:test` passes. A test generates 10 Easy puzzles with seed 1 and asserts 18 ≤ givens ≤ 22, unique, naked-single solvable. Handoff gives the average givens for each pack.
+
+### B4 — Unsigned level IDs for Binary and Nonogram
+Tier L · Build Claude (Haiku) · Review Claude (Sonnet)
+**Owns:** `engine/…/binary/BinaryGenerator.kt`, `engine/…/nonogram/NonogramGenerator.kt`, their tests.
+**Do:** Apply the ID rule.
+**Done when:** `./gradlew :engine:test` passes.
+
+### B5 — Regenerate the launch bank and report v2
+Tier L · Build Claude (Haiku) · Review Claude (Sonnet)
+**Owns:** `app/src/main/assets/bank/**`, `docs/reports/bank-v2.md`.
+**Do:** Same counts and seeds as `docs/reports/bank-v1.md`. Run `validate --all` and `stats`. Report: Crowns region-size histogram, Mini Sudoku givens per pack, and a note on what changed from v1.
+**Done when:** `./gradlew check` passes. No ID contains `--`.
 
 ### H1 — Hand-test the bank (Human)
 Solve 20 puzzles of each game and pack on the PC or the first app build. Note the time and if any step needed a guess. Make bug cards for bad grades.
