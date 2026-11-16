@@ -202,6 +202,30 @@ class PlayControllerTest {
         assertEquals(100, secondSolve.bestTimeMillis)
     }
 
+    @Test
+    fun restartWhilePausedStaysPausedUntilResume() = runBlocking {
+        val repository = FakeProgressRepository()
+        val clock = FakeClock(60_000)
+        val controller = PlayController.open(testModule, testLevel, repository, clock)
+        clock.advance(500)
+        controller.pauseForBackground()
+
+        controller.restart()
+        clock.advance(5_000)
+        controller.refreshTimer()
+        assertEquals(0, controller.snapshot.value.elapsedTimeMillis)
+        assertEquals(0, repository.lastSaved().elapsedTimeMillis)
+
+        clock.advance(3_000)
+        controller.refreshTimer()
+        assertEquals(0, controller.snapshot.value.elapsedTimeMillis)
+
+        controller.resumeFromBackground()
+        clock.advance(250)
+        controller.refreshTimer()
+        assertEquals(250, controller.snapshot.value.elapsedTimeMillis)
+    }
+
     private fun FakeProgressRepository.lastSaved(): LevelProgress = requireNotNull(writes.lastOrNull())
 
     private data class TestPuzzle(val solution: List<Mark>)

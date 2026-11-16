@@ -110,11 +110,12 @@ class PlayController<P : Any, S : Any> private constructor(
 
     /**
      * Starts a new attempt at the level. Completion and best time are kept. A solve in the
-     * new attempt sends a new solved event.
+     * new attempt sends a new solved event. A paused timer stays paused until resume.
      */
     suspend fun restart() = mutationMutex.withLock {
         history = History(gameModule.newState(level))
-        timerState = TimerState(elapsedMillis = 0L, resumedAtMillis = clock.nowMillis())
+        val resumedAtMillis = if (timerState.resumedAtMillis == null) null else clock.nowMillis()
+        timerState = TimerState(elapsedMillis = 0L, resumedAtMillis = resumedAtMillis)
         hintsUsed = 0
         solvedEventSent = false
         persistCurrentState()
