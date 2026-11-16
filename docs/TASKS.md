@@ -36,13 +36,13 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
 | A2 | Storage and saves | M | Codex | Claude | E1 | done |
 | A3 | App contracts, navigation, play controller | H | Codex | gpt-6.1-sol + human | A1, A2 | done |
-| A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | active |
-| A5 | Crowns board | M | Claude | Codex | A4, CR2 | todo |
-| A6 | Binary board | M | Codex | Claude | A4, BI2 | todo |
-| A7 | Nonogram board | M | Claude | Codex | A4, NO2 | todo |
-| A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | todo |
+| A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | done |
+| A5 | Crowns board | M | Claude | Codex | A4, CR2 | active |
+| A6 | Binary board | M | Codex | Claude | A4, BI2 | ready |
+| A7 | Nonogram board | M | Claude | Codex | A4, NO2 | ready |
+| A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | ready |
 | A9 | Home and Game screens | M | Claude | Codex | A3 | ready |
-| A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | todo |
+| A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | ready |
 | A11 | Hint and check UI | M | Codex | Claude | A10 | todo |
 | A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | todo |
 | A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | todo |
@@ -270,7 +270,7 @@ Plan: 4 (layout, gestures, feedback).
 ### A5–A8 — Game boards
 Tier M · Build per index · Review the other family
 Plan: section 6 input row for the game.
-**Owns:** `app/…/games/<game>/**`.
+**Owns:** `app/…/games/<game>/**`, one module registration in `app/src/main/kotlin/com/datathecodie/witgrid/games/GameRegistry.kt`.
 **Do:** Implement the `GameModule` and `Board` for the game with the A4 kit. Use the input rules from the plan. Draw region letters/patterns when the setting is on. Register the module in `GameRegistry` (one line).
 **Done when:** `./gradlew check` passes. A Compose UI test plays the first bank puzzle to the solved event by applying the solution moves.
 
