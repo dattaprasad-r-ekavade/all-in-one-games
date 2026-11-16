@@ -284,7 +284,7 @@ Plan: 9 (Home, Game).
 ### A10 — Play toolbar, Result and Level failed screens
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 4 (layout, timer), 9 (Play, Result, Level failed).
-**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/result/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/result/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/games/nonogram/NonogramBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/minisudoku/MiniSudokuBoard.kt`.
 **Do:** Tools in the bottom third: undo, redo, mark mode, hint, check, timer (hideable). Nothing tappable in the top 15 %. Result: time, best time, "Next". Level failed: "Continue" and "Restart" (Continue is a placeholder until M5).
 **Done when:** `./gradlew check` passes.
 
