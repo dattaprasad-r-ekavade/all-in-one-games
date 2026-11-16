@@ -44,9 +44,9 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A9 | Home and Game screens | M | Claude | Codex | A3 | done |
 | A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | done |
 | A11 | Hint and check UI | M | Codex | Claude | A10 | done |
-| A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | active |
-| A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | ready |
-| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, B2 | ready |
+| A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | done |
+| A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | active |
+| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, A12, B2 | ready |
 | **Phase 3 — Retention** |||||||
 | R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | ready |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | todo |
@@ -306,6 +306,7 @@ Plan: 6.5 (first level), GDD onboarding row.
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 7.1 (Play rules).
 **Owns:** `app/…/MainActivity.kt`, `app/…/ui/layout/**`, window-size handling in screen files (list them in the handoff).
+**Do:** Draw edge-to-edge and apply system-bar and IME insets so controls remain usable. Preserve each screen's back action and integrate it with Android predictive back. Make Home, Game, Play, Result, Level failed, Calendar, Statistics and Settings responsive, with centered/constrained content at tablet width; keep puzzle boards large enough to play. Add or update previews for 360 dp and 840 dp widths. Do not add a new dependency.
 **Done when:** `./gradlew check` passes. Screens work at 360 dp phone and 840 dp tablet widths in previews.
 
 ### A14 — UI smoke tests

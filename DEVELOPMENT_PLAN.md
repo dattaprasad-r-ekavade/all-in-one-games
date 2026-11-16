@@ -100,7 +100,7 @@ Labels used in this plan:
 
 ## 6. The four launch games
 
-Level content for each game: 4 packs x 150 levels = 600 levels, plus 365 daily puzzles. Total for the app: 2,400 levels and 1,460 daily puzzles. The daily puzzle index is `days since a fixed date mod 365`, so the daily list never ends.
+Level content for each game: 4 packs x 150 levels = 600 regular levels, plus 365 daily puzzles. The app also has one guided intro level per game, outside the regular packs: 4 intro levels total. Overall content is 2,400 regular levels, 1,460 daily puzzles and 4 guided intro levels. The daily puzzle index is `days since a fixed date mod 365`, so the daily list never ends.
 
 ### 6.1 Crowns (rule set also known as Star Battle, one star)
 

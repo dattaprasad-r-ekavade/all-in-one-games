@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 63 %** (40 of 64 task cards done; 1 active)
+**Overall: about 64 %** (41 of 64 task cards done; 1 active)
 
 ```
-[#########################---------------]  63 %
+[##########################--------------]  64 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -23,12 +23,12 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 |---|---|---|---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
-| 2 - Core app | 14 | 11 | 2 | 1 | 0 | 0 | 79 % |
+| 2 - Core app | 14 | 12 | 1 | 1 | 0 | 0 | 86 % |
 | 3 - Retention | 6 | 0 | 4 | 0 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **40** | **10** | **1** | **0** | **0** | **63 %** |
+| **Total** | **64** | **41** | **9** | **1** | **0** | **0** | **64 %** |
 
 ## Done
 
@@ -68,25 +68,26 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | MS3 | Seeded Mini Sudoku generator randomizes valid 6×6 grids and clue layouts, retaining unique technique-solvable puzzles in each pack. Ten seed-1 puzzles per pack are unique, solve with hints, meet their grade band, and repeat deterministically; `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` with no blockers. |
 | MS4 | Independent hand-built tests cover 6×6 row, column and 2×3 box rules, capped solution counts, mistakes, notes and solved-state semantics. `:engine:test` and `check` pass. |
 | B1 | `bankgen` generate, validate and stats CLI with deterministic parallel generation, compressed atomic writes, daily pack checks and validation diagnostics. Fake-engine tests and `check` pass; reviewed with no blockers. |
-| B2 | Generated 150 levels per pack and 365 daily puzzles for each game: 3,860 puzzles in 20 files. `validate --all` and `stats` pass; the compressed bank is 198,145 bytes and the report includes seeds, timings and histograms. Independently reviewed with no blockers. |
+| B2 | Generated 150 levels per pack and 365 daily puzzles for each game: 3,860 puzzles in 20 files. A12 adds four guided intro puzzles. `validate --all` and `stats` pass; the compressed bank is 198,145 bytes and the report includes seeds, timings and histograms. Independently reviewed with no blockers. |
 | B3 | `bankgen validate --all` now runs during Gradle `check`. `check` failed when a bank line was corrupted and passed after restoring the file; reviewed with no blockers. |
 | CR5 | Crowns regions are at least 3 cells and level IDs use unsigned values; per-pack technique caps and size bounds are covered by tests. |
 | MS5 | Mini Sudoku Easy uses 18–22 givens; level IDs use unsigned values. |
 | B4 | Binary and Nonogram bank IDs use unsigned values. |
-| B5 | Regenerated bank v2 and report: all 3,860 puzzles validate; Crowns region sizes and Mini Sudoku givens are reported. `check` passes. |
+| B5 | Regenerated bank v2 and report: all 3,860 generated puzzles validate; Crowns region sizes and Mini Sudoku givens are reported. A12 intro assets bring `validate --all` to 3,864 puzzles across 24 files. `check` passes. |
+| A12 | Four guided intro puzzles, localized coach lines and fresh-install Continue targeting. Intros are validated with the bank; `check` and four connected tests pass. Independently reviewed; short-screen coach clipping was fixed and layout tests pass at 1×/2× font scale. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| A12 | Guided first level for each game | Claude |
+| A13 | Edge-to-edge, predictive back and tablet layout | Codex |
 
 ## Next steps
 
-1. **Build A12:** Guided first level for each game is active; A13 and A14 are ready.
+1. **Build A13:** Edge-to-edge, predictive back and tablet layout is active; A14 is ready.
 2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
-4. **Review the generated bank:** v2 contains 3,860 puzzles across 20 files; see [the v2 report](docs/reports/bank-v2.md).
+4. **Review the generated bank:** v2 contains 3,860 generated puzzles across 20 files, plus four guided intro puzzles; see [the v2 report](docs/reports/bank-v2.md).
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
