@@ -21,8 +21,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | E1 | Engine core contracts | H | Codex | Claude + human | T0.1 | done |
 | E2 | Engine test kit | L | Claude | Codex | E1 | done |
 | CR1–CR4 | Crowns lane | see lane table | | | E1 | done |
-| BI1–BI4 | Binary lane | see lane table | | | E1 | active |
-| NO1–NO4 | Nonogram lane | see lane table | | | E1 | ready |
+| BI1–BI4 | Binary lane | see lane table | | | E1 | done |
+| NO1–NO4 | Nonogram lane | see lane table | | | E1 | active |
 | MS1–MS4 | Mini Sudoku lane | see lane table | | | E1 | ready |
 | B1 | `bankgen` command-line tool | M | Codex | Claude | E1 | ready |
 | B2 | Generate the launch bank and report | L | Codex | Claude | B1, CR3, BI3, NO3, MS3 | todo |
