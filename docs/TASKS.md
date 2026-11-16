@@ -154,7 +154,7 @@ Each launch game is one lane of four cards. The lanes are independent. Run them 
 
 **Done when (each card):** `./gradlew :engine:test` passes. In addition:
 - x1: `countSolutions` returns 0, 1 and 2 on hand fixtures.
-- x2: `solveWithHints` solves all x1 fixtures. Every `HintStep` has a non-empty explanation of one sentence.
+- x2: `solveWithHints` solves the hand-made unique fixtures intended to be technique-solvable. Zero-solution and multiple-solution x1 fixtures are counter-only. A unique but technique-stuck fixture is rejected by `grade`. Every `HintStep` has a non-empty, one-sentence explanation.
 - x3: For each pack, seed 1 gives 10 puzzles. Each is unique, solved by the technique solver, and graded inside its pack band. The same seed gives the same puzzles on a second run.
 - x4: Tests compile and run. Failures that show real bugs are listed in the handoff, not fixed.
 
