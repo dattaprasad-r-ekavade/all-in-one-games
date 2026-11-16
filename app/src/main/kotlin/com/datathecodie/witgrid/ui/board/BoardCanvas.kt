@@ -38,6 +38,7 @@ fun BoardCanvas(
     solved: Boolean = false,
     reduceMotion: Boolean = false,
     hapticsEnabled: Boolean = true,
+    dragPaintEnabled: Boolean = true,
     drawCell: DrawBoardCell = { _, _ -> },
     onCellTap: (Cell) -> Unit,
     onDragPaint: (List<Cell>) -> Unit,
@@ -57,6 +58,7 @@ fun BoardCanvas(
     val gestureModifier = Modifier.boardGestureInput(
         gridSize = gridSize,
         haptics = haptics,
+        dragPaintEnabled = dragPaintEnabled,
         onCellTap = onCellTap,
         onDragPaint = onDragPaint,
         onDragPreview = { cells -> dragPreviewCells = cells.toSet() },

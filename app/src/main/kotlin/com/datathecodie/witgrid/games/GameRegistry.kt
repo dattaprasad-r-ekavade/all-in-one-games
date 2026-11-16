@@ -1,11 +1,10 @@
 package com.datathecodie.witgrid.games
 
-import com.datathecodie.witgrid.engine.binary.BinaryEngine
-import com.datathecodie.witgrid.engine.binary.BinaryState
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuEngine
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.engine.nonogram.NonogramEngine
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
+import com.datathecodie.witgrid.games.binary.BinaryGameModule
 import com.datathecodie.witgrid.games.crowns.CrownsGameModule
 
 object GameRegistry {
@@ -14,7 +13,7 @@ object GameRegistry {
 
     val games: List<GameModule<*, *>> = listOf(
         CrownsGameModule,
-        EngineGameModule(BinaryEngine, BinaryState::puzzle) { 2 },
+        BinaryGameModule,
         EngineGameModule(NonogramEngine, NonogramState::puzzle) { level ->
             if (level.size == SHORT_NONOGRAM_SIZE) 2 else 1
         },
