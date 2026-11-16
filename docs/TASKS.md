@@ -163,7 +163,7 @@ Each launch game is one lane of four cards. The lanes are independent. Run them 
 - MS1 must define the note/value policy: `SetDigit` on a cell clears that cell's notes.
 - Auto-X (Crowns), auto-cross (Nonogram) and auto-update notes (Mini Sudoku) are not engine work. The app emits them as extra absolute `Move`s in one `History` record per gesture.
 
-**Game lane progress (16 Nov 2026):** NO1–NO4 and MS1–MS2 are done; MS3 is the next active card.
+**Game lane progress (16 Nov 2026):** NO1–NO4 and MS1–MS3 are done; MS4 is the next active card.
 
 **CR1 lead-approved scope extension (16 Nov 2026):** CR1 also owns `engine/src/test/kotlin/com/datathecodie/witgrid/engine/RegistryTest.kt` so the first concrete engine can replace its registry stub. Update the shared test once to cover the registered Crowns implementation and remove the obsolete assumption that every lane must remain a stub. Later lanes keep changes in their game-local files and tests.
 
