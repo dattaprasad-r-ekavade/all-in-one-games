@@ -36,6 +36,30 @@ class BinaryRulesTest {
     }
 
     @Test
+    fun completeGivensRejectDuplicateLinesAndColumnTriples() {
+        val duplicateRows = listOf("001011", "001101", "110010", "010101", "101100", "110010")
+            .flatMap { row -> row.map(Char::digitToInt) }
+        val columnTriple = listOf("001011", "001101", "010011", "101100", "110010", "110100")
+            .flatMap { row -> row.map(Char::digitToInt) }
+        val invalidGrids = listOf(duplicateRows, transpose(duplicateRows), columnTriple, transpose(columnTriple))
+
+        invalidGrids.forEach { values ->
+            val puzzle = puzzle(givens = values)
+            assertFalse(BinaryRules.isValidSolution(puzzle, values))
+            assertEquals(0, BinaryRules.countSolutions(puzzle))
+        }
+    }
+
+    @Test
+    fun emptySixBySixGridHas4140SolutionsAndHonorsLargerCaps() {
+        val puzzle = puzzle()
+
+        assertEquals(3, BinaryRules.countSolutions(puzzle, limit = 3))
+        assertEquals(40, BinaryRules.countSolutions(puzzle, limit = 40))
+        assertEquals(4_140, BinaryRules.countSolutions(puzzle, limit = 4_141))
+    }
+
+    @Test
     fun mistakesReturnWrongCommittedSymbolsInRowMajorOrder() {
         val puzzle = puzzle(givens = List(36) { null })
         val state = BinaryState.initial(puzzle)
@@ -190,6 +214,10 @@ class BinaryRulesTest {
         return (0 until size).flatMap { row ->
             (0 until size).map { column -> (base[(row + column) % size] - '0') }
         }
+    }
+
+    private fun transpose(values: List<Int>): List<Int> = (0 until 36).map { index ->
+        values[(index % 6) * 6 + index / 6]
     }
 
     private companion object {

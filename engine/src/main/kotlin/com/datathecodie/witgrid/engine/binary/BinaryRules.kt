@@ -1,7 +1,6 @@
 package com.datathecodie.witgrid.engine.binary
 
 import com.datathecodie.witgrid.engine.core.Cell
-import com.datathecodie.witgrid.engine.core.Mark
 
 /** Binary grid validation, player feedback and capped solution counting. */
 object BinaryRules {
