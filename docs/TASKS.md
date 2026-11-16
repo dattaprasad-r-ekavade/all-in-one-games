@@ -30,7 +30,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H1 | Hand-test the bank | Human | — | — | B2 | ready |
 | CR5 | Crowns: no regions under 3 cells; unsigned IDs | L | Claude (Haiku) | Claude (Sonnet) | CR3 | active |
 | MS5 | Mini Sudoku Easy with 18–22 givens; unsigned IDs | L | Claude (Haiku) | Claude (Sonnet) | MS3 | active |
-| B4 | Unsigned level IDs for Binary and Nonogram | L | Claude (Haiku) | Claude (Sonnet) | BI3, NO3 | active |
+| B4 | Unsigned level IDs for Binary and Nonogram | L | Claude (Haiku) | Claude (Sonnet) | BI3, NO3 | done |
 | B5 | Regenerate the launch bank and report v2 | L | Claude (Haiku) | Claude (Sonnet) | CR5, MS5, B4 | todo |
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
