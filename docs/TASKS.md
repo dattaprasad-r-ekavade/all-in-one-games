@@ -368,10 +368,10 @@ Plan: 4 (accessibility).
 ### M1 — Monetisation policy logic
 Tier H · Build Codex (`gpt-6.1-sol`, high) · Review Claude
 Plan: 8.1–8.6.
-**Owns:** `app/…/domain/monetisation/**`, `app/…/domain/config/**`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/PlayController.kt`.
+**Owns:** `app/…/domain/monetisation/**`, `app/…/domain/config/**`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/PlayController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/AndroidManifest.xml`.
 **Do:** Plain Kotlin, no SDK code.
 - `InterstitialPolicy.shouldShow(...)` with every condition in 8.1.
-- `AllowanceLedger`: free hints each day, checks, continues, streak repairs, offline extra hints; Premium makes all unlimited. Hint allowances are shared across games. Spend when useful advice is revealed, but do not charge again for the same hint on an unchanged board; unavailable hints cost nothing. Rewards are stored atomically before the callback returns.
+- `AllowanceLedger`: shared free hints each local day, free checks in Easy, continues, streak repairs and offline extra hints; Premium removes allowance costs. Spend a hint when useful advice is revealed, but do not charge again for the same advice on an unchanged board; unavailable hints cost nothing. Persist allowance usage, reward balances and interstitial counters atomically before returning success. Wire the allowance into Play and provide its local-date and connectivity inputs without showing ads there.
 - Premium removes the ad or allowance cost for streak repair, but the same latest-uncovered-miss and 48-hour eligibility rules still apply.
 - `ConfigKeys` with every key and default in 8.6, behind a `Config` interface.
 **Done when:** `./gradlew :app:testDebugUnitTest` passes.
