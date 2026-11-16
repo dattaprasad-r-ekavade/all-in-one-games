@@ -27,11 +27,11 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | B1 | `bankgen` command-line tool | M | Codex | Claude | E1 | done |
 | B2 | Generate the launch bank and report | L | Codex | Claude | B1, CR3, BI3, NO3, MS3 | done |
 | B3 | Bank validation in `check` and CI | L | Claude | Codex | B2, T0.2 | done |
-| H1 | Hand-test the bank | Human | — | — | B2 | todo |
+| H1 | Hand-test the bank | Human | — | — | B2 | ready |
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
-| A2 | Storage and saves | M | Codex | Claude | E1 | active |
-| A3 | App contracts, navigation, play controller | H | Claude | Codex + human | A1, A2 | todo |
+| A2 | Storage and saves | M | Codex | Claude | E1 | done |
+| A3 | App contracts, navigation, play controller | H | Codex | gpt-6.1-sol + human | A1, A2 | active |
 | A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | todo |
 | A5 | Crowns board | M | Claude | Codex | A4, CR2 | todo |
 | A6 | Binary board | M | Codex | Claude | A4, BI2 | todo |
@@ -213,9 +213,9 @@ Plan: 7.1 (storage, backup), 7.5.
 **Done when:** `./gradlew :app:testDebugUnitTest` passes with Room in-memory tests. A save survives a repository re-creation.
 
 ### A3 — App contracts, navigation, play controller
-Tier H · Build Claude (`builder`) · Review Codex + human read
+Tier H · Build Codex (`gpt-6.1-sol`, high) · Review independent `gpt-6.1-sol` agent + human read
 Plan: 7.3, 9.
-**Owns:** `app/…/games/GameModule.kt`, `app/…/games/GameRegistry.kt`, `app/…/play/PlayController.kt`, `app/…/nav/**`, stub screens in `app/…/ui/screens/**`.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/GameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/GameRegistry.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/PlayController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/**`, stub screens in `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/**`, `app/src/main/kotlin/com/datathecodie/witgrid/MainActivity.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/AndroidManifest.xml`.
 **Do:**
 1. App-side `GameModule`: wraps one `GameEngine`, adds `levelsPerInterstitial` and `@Composable Board(state, onMove)`.
 2. `PlayController` (plain Kotlin, no Compose): loads a level from the bank, applies moves, undo and redo, timer that pauses in the background, saves after each move through `ProgressRepository`, emits a solved event. One gesture (including auto-X, auto-cross or note updates) and one hint "Apply" each make one `History` record. Undo history is not saved: after an app restart, undo starts empty (accepted for plan 7.5).

@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 43 %** (26 of 61 task cards done; 1 more in progress)
+**Overall: about 44 %** (27 of 61 task cards done; 1 more in progress)
 
 ```
-[#################-----------------------]  43 %
+[##################----------------------]  44 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -23,12 +23,12 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 |---|---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 23 | 21 | 0 | 0 | 91 % |
-| 2 — Core app | 14 | 1 | 1 | 0 | 7 % |
+| 2 — Core app | 14 | 2 | 1 | 0 | 14 % |
 | 3 — Retention | 6 | 0 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 % |
-| **Total** | **61** | **26** | **1** | **0** | **43 %** |
+| **Total** | **61** | **27** | **1** | **0** | **44 %** |
 
 ## Done
 
@@ -40,6 +40,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | T0.3 | Ads SDK decision: Google Mobile Ads **Next-Gen SDK** (`ads-mobile-sdk` 1.6.0 or later), AdMob only at launch. See [docs/decisions/ads-sdk.md](docs/decisions/ads-sdk.md). |
 | E1 | Engine contracts, deterministic SplitMix64, grid geometry, moves/history, bank-line codec and typed game stubs. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` with no blockers. |
 | A1 | Paper-and-ink themes, five colourways, eight tested region hues, Inter typography, spacing/type tokens and light/dark previews. App tests and `check` pass; `gpt-6.1-sol` approved with no blockers. The preview source compiled; a direct IDE screenshot was unavailable. |
+| A2 | Room level progress and DataStore player data, with cloud/device-transfer backup rules. `:app:testDebugUnitTest` and `check` pass; Room and DataStore persistence tests pass; reviewed by `gpt-6.1-sol` with no remaining blockers. |
 | E2 | ASCII-grid fixtures and generic engine test helpers for uniqueness, hint solving and deterministic generation. Six test-kit tests pass; `check` passes; reviewed by `gpt-6.1-sol` with no blockers. |
 | CR1 | Crowns puzzle/state model, bank codec, rule checks, mistake handling and capped solution counter exposed through `GameEngine`. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` after fixes. |
 | CR2 | Crowns technique solver, deterministic hints, one-sentence explanations, grade and size-based pack bands. `:engine:test` and `check` pass; reviewed and fixed by `gpt-6.1-sol`. |
@@ -65,11 +66,11 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## In progress
 
-| A2 | Storage and saves | Codex |
+| A3 | App contracts, navigation, play controller | Codex |
 
 ## Next steps
 
-1. **Implement app storage:** A2 now owns the dependency configuration and manifest backup references; A3 depends on A1 and A2, and A4 follows A3.
+1. **Build the app contracts and play controller:** A3 is active. A4 follows A3, then the four game boards (A5–A8).
 2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
 4. **Launch bank generated:** 3,860 puzzles across 20 files; see [the bank report](docs/reports/bank-v1.md).
