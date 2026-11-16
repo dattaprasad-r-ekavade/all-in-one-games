@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 10 %** (6 of 61 task cards done; no cards in progress)
+**Overall: about 10 %** (6 of 61 task cards done; 1 more in progress)
 
 ```
 [████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  10 %
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 1 | 0 | 4 % |
+| 1 — Engine and puzzle bank | 23 | 1 | 1 | 4 % |
 | 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **6** | **0** | **10 %** |
+| **Total** | **61** | **6** | **1** | **10 %** |
 
 ## Done
 
@@ -47,11 +47,11 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 | Card | Work | Agent |
 |---|---|---|
-No cards are currently active.
+| E2 | Engine test kit: ASCII fixture parser and reusable uniqueness, technique-solve and determinism assertions | Codex |
 
 ## Next steps
 
-1. **Start engine follow-up work:** E2, A2 and the CR1/BI1/NO1/MS1 game-model cards are ready. Keep to the workflow's three-agent concurrency limit.
+1. **Complete E2**, then use its test helpers for the CR1/BI1/NO1/MS1 game-model cards. A2 is also ready. Keep to the workflow's three-agent concurrency limit.
 2. **Wire the theme and core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
 3. **Build the puzzle bank** after the game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
 4. **Human tasks can start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
