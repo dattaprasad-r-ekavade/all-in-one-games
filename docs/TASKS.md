@@ -43,8 +43,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | done |
 | A9 | Home and Game screens | M | Claude | Codex | A3 | done |
 | A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | done |
-| A11 | Hint and check UI | M | Codex | Claude | A10 | active |
-| A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | ready |
+| A11 | Hint and check UI | M | Codex | Claude | A10 | done |
+| A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | active |
 | A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | ready |
 | A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, B2 | ready |
 | **Phase 3 — Retention** |||||||
@@ -298,8 +298,8 @@ Plan: 7.6, 8.2 (allowances come later in M4).
 ### A12 — Guided first level for each game
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 6.5 (first level), GDD onboarding row.
-**Owns:** `app/src/main/assets/bank/*-intro.txt`, `app/…/games/*/Intro.kt`, intro strings.
-**Do:** One small hand-made puzzle per game with one coach line each. Validate them with `bankgen validate`.
+**Owns:** `app/src/main/assets/bank/*-intro.txt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/GameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/binary/BinaryGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/binary/Intro.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/crowns/CrownsGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/crowns/Intro.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/minisudoku/MiniSudokuGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/minisudoku/Intro.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/nonogram/NonogramGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/nonogram/Intro.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameViewModel.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/res/values/strings.xml`, `bankgen/src/main/kotlin/com/datathecodie/witgrid/bankgen/BankgenService.kt`.
+**Do:** Add one small hand-made intro puzzle per game as the first Easy entry, with one coach line. Validate the raw `*-intro.txt` assets with `bankgen validate --all`. On a fresh install, each game's default Continue target is its intro; the next level after solving it is the regular Easy level.
 **Done when:** `./gradlew check` passes. A fresh install starts each game on its intro level.
 
 ### A13 — Edge-to-edge, predictive back, tablet layout
