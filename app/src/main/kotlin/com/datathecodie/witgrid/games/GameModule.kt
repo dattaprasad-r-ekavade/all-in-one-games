@@ -12,7 +12,6 @@ import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import java.io.InputStream
-import java.util.zip.GZIPInputStream
 
 /** Identifies one level. Daily levels come from the daily bank file, not from a pack. */
 data class LevelRef(
@@ -38,9 +37,9 @@ interface BankSource {
     fun open(path: String): InputStream
 }
 
-/** Reads bank assets from the app assets folder. */
+/** Reads packaged bank assets, whose `.gz` suffix Android removes after expanding the file. */
 class AssetBankSource(private val assets: AssetManager) : BankSource {
-    override fun open(path: String): InputStream = assets.open(path)
+    override fun open(path: String): InputStream = assets.open(path.removeSuffix(".gz"))
 }
 
 interface GameModule<P : Any, S : Any> {
@@ -86,7 +85,7 @@ interface GameModule<P : Any, S : Any> {
     fun stateMatchesLevel(level: GameLevel<P>, state: S): Boolean
 
     @Composable
-    fun Board(state: S, onMoves: (List<Move>) -> Unit)
+    fun Board(state: S, onMoves: (List<Move>) -> Unit, onUndo: () -> Unit)
 }
 
 /**
@@ -145,7 +144,8 @@ class EngineGameModule<P : Any, S : Any>(
     }
 
     @Composable
-    override fun Board(state: S, onMoves: (List<Move>) -> Unit) {
+    @Suppress("UNUSED_PARAMETER")
+    override fun Board(state: S, onMoves: (List<Move>) -> Unit, onUndo: () -> Unit) {
         Text(stringResource(R.string.board_coming_soon))
     }
 
@@ -155,10 +155,8 @@ class EngineGameModule<P : Any, S : Any>(
         }
 
     private fun readBankFile(path: String, bank: BankSource): List<BankEntry> =
-        bank.open(path).use { stream ->
-            GZIPInputStream(stream).bufferedReader(Charsets.UTF_8).useLines { lines ->
-                lines.map { raw -> BankEntry(raw, BankLine.decode(raw)) }.toList()
-            }
+        bank.open(path).bufferedReader(Charsets.UTF_8).useLines { lines ->
+            lines.map { raw -> BankEntry(raw, BankLine.decode(raw)) }.toList()
         }
 
     private fun bankName(ref: LevelRef): String =
