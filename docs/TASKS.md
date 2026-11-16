@@ -42,15 +42,15 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A7 | Nonogram board | M | Claude | Codex | A4, NO2 | done |
 | A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | done |
 | A9 | Home and Game screens | M | Claude | Codex | A3 | done |
-| A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | active |
-| A11 | Hint and check UI | M | Codex | Claude | A10 | todo |
-| A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | todo |
-| A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | todo |
-| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, B2 | todo |
+| A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | done |
+| A11 | Hint and check UI | M | Codex | Claude | A10 | active |
+| A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | ready |
+| A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | ready |
+| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, B2 | ready |
 | **Phase 3 — Retention** |||||||
 | R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | ready |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | todo |
-| R3 | Statistics screen | L | Claude | Codex | A2, A9 | todo |
+| R3 | Statistics screen | L | Claude | Codex | A2, A9 | ready |
 | R4 | Reminder notification | L | Codex | Claude | A3 | ready |
 | R5 | Settings screen | L | Claude | Codex | A1, A3 | ready |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
@@ -64,7 +64,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, H4 | todo |
 | **Phase 5 — Closed test** |||||||
-| S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | todo |
+| S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | ready |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | todo |
 | S3 | Release build configuration | M | Codex | Claude | M3, M6, M7 | todo |
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
@@ -291,7 +291,7 @@ Plan: 4 (layout, timer), 9 (Play, Result, Level failed).
 ### A11 — Hint and check UI
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 7.6, 8.2 (allowances come later in M4).
-**Owns:** `app/…/ui/screens/play/hint/**`, `app/…/play/HintController.kt`.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/hint/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/main/res/values/strings.xml`.
 **Do:** Hint: mistakes first, else `nextStep`; highlight cells, technique name, one-sentence explanation, "Apply" button. Check: flag wrong cells. A mistake hint has no `Technique`: use an app-side hint type (for example `sealed interface HintUi { Mistake; Step(HintStep) }`), not a fake technique. Use an `Allowance` interface with an "always allow" stub (M4 replaces it).
 **Done when:** `./gradlew check` passes. `HintController` has JVM tests.
 
