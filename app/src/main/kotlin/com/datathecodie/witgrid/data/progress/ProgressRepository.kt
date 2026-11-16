@@ -11,3 +11,7 @@ interface ProgressRepository {
 
     suspend fun deleteLevelProgress(gameId: String, levelId: String)
 }
+
+interface GameProgressSummaryRepository {
+    suspend fun getProgressForGame(gameId: String): List<LevelProgress>
+}

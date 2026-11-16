@@ -14,6 +14,9 @@ interface LevelProgressDao {
     @Query("SELECT * FROM level_progress WHERE gameId = :gameId AND levelId = :levelId")
     suspend fun get(gameId: String, levelId: String): LevelProgressEntity?
 
+    @Query("SELECT * FROM level_progress WHERE gameId = :gameId")
+    suspend fun getForGame(gameId: String): List<LevelProgressEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(progress: LevelProgressEntity)
 
