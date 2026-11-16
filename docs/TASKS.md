@@ -31,7 +31,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
 | A2 | Storage and saves | M | Codex | Claude | E1 | done |
-| A3 | App contracts, navigation, play controller | H | Codex | gpt-6.1-sol + human | A1, A2 | active |
+| A3 | App contracts, navigation, play controller | H | Codex | gpt-6.1-sol + human | A1, A2 | review |
 | A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | todo |
 | A5 | Crowns board | M | Claude | Codex | A4, CR2 | todo |
 | A6 | Binary board | M | Codex | Claude | A4, BI2 | todo |
