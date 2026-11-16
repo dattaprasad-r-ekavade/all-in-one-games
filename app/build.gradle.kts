@@ -9,7 +9,9 @@ kotlin {
 
 android {
     namespace = "com.datathecodie.witgrid"
-    compileSdk = 36
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
         applicationId = "com.datathecodie.witgrid"
