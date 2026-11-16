@@ -15,7 +15,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H0.1 | Accounts, legal, website | Human | — | — | — | ready |
 | H0.2 | Developer machine and repo setup | Human | — | — | — | done |
 | T0.1 | Gradle project with three modules | M | Claude | Codex | H0.2 | done |
-| T0.2 | GitHub Actions CI | L | Codex | Claude | T0.1 | active |
+| T0.2 | GitHub Actions CI | L | Codex | Claude | T0.1 | done |
 | T0.3 | Ads SDK decision memo | M | Claude | — (human decides) | — | done (Next-Gen) |
 | **Phase 1 — Engine and puzzle bank** |||||||
 | E1 | Engine core contracts | H | Codex | Claude + human | T0.1 | active |
