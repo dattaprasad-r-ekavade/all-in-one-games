@@ -37,9 +37,7 @@ object NonogramEngine : GameEngine<NonogramPuzzle, NonogramState> {
     override fun generate(rng: SplitMix64, pack: Pack): NonogramPuzzle =
         NonogramGenerator.generate(rng, pack)
 
-    override fun encodeState(state: NonogramState): ByteArray = unavailable()
+    override fun encodeState(state: NonogramState): ByteArray = NonogramStateCodec.encode(state)
 
-    override fun decodeState(bytes: ByteArray): NonogramState = unavailable()
-
-    private fun unavailable(): Nothing = throw NotImplementedError("NO")
+    override fun decodeState(bytes: ByteArray): NonogramState = NonogramStateCodec.decode(bytes)
 }

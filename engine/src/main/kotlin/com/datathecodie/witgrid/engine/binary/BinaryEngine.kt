@@ -36,9 +36,7 @@ object BinaryEngine : GameEngine<BinaryPuzzle, BinaryState> {
 
     override fun generate(rng: SplitMix64, pack: Pack): BinaryPuzzle = BinaryGenerator.generate(rng, pack)
 
-    override fun encodeState(state: BinaryState): ByteArray = unavailable()
+    override fun encodeState(state: BinaryState): ByteArray = BinaryStateCodec.encode(state)
 
-    override fun decodeState(bytes: ByteArray): BinaryState = unavailable()
-
-    private fun unavailable(): Nothing = throw NotImplementedError("BI")
+    override fun decodeState(bytes: ByteArray): BinaryState = BinaryStateCodec.decode(bytes)
 }
