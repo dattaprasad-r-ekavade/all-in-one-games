@@ -8,6 +8,10 @@ import com.datathecodie.witgrid.engine.core.SplitMix64
 object MiniSudokuGenerator {
     private const val MAX_GENERATION_ATTEMPTS = 500
 
+    /** Easy keeps 18 to 22 givens; removal stops at a random target in that range. */
+    private const val EASY_GIVEN_MIN = 18
+    private const val EASY_GIVEN_MAX = 22
+
     /** Builds one unique, technique-solvable puzzle in [pack], consuming randomness only from [rng]. */
     fun generate(rng: SplitMix64, pack: Pack): MiniSudokuPuzzle {
         val targetRank = targetRank(pack)
@@ -16,13 +20,19 @@ object MiniSudokuGenerator {
             val solution = generatedGrid.solution
             val givens = solution.map { it as Int? }.toMutableList()
             val retainedSourceCells = randomizedCluePattern(generatedGrid, pack, rng)
+            val easyGivenTarget = if (pack == Pack.EASY) {
+                EASY_GIVEN_MIN + rng.nextInt(EASY_GIVEN_MAX - EASY_GIVEN_MIN + 1)
+            } else {
+                0
+            }
             val removalOrder = generatedGrid.sourceCellAtOutput.indices.filter { outputIndex ->
-                generatedGrid.sourceCellAtOutput[outputIndex] !in retainedSourceCells
+                pack == Pack.EASY || generatedGrid.sourceCellAtOutput[outputIndex] !in retainedSourceCells
             }.toMutableList()
             shuffle(removalOrder, rng)
 
             var lastGrade: Grade? = null
             for (index in removalOrder) {
+                if (pack == Pack.EASY && givens.count { it != null } <= easyGivenTarget) break
                 val given = requireNotNull(givens[index])
                 givens[index] = null
                 val candidate = candidatePuzzle(givens, solution, pack)
@@ -40,6 +50,9 @@ object MiniSudokuGenerator {
             }
 
             val grade = lastGrade ?: return@repeat
+            if (pack == Pack.EASY && givens.count { it != null } > EASY_GIVEN_MAX) {
+                return@repeat
+            }
             if (!MiniSudokuPackBands.isGradeInPackBand(pack, grade)) {
                 return@repeat
             }
@@ -47,7 +60,7 @@ object MiniSudokuGenerator {
                 givens = givens,
                 solution = solution,
                 pack = pack,
-                id = "MS-${pack.name}-${rng.nextLong().toString(16)}",
+                id = "MS-${pack.name}-${rng.nextLong().toULong().toString(16).padStart(16, '0')}",
                 storedGrade = MiniSudokuGradeCodec.encode(grade),
             )
             check(MiniSudokuRules.countSolutions(puzzle, limit = 2) == 1) {
