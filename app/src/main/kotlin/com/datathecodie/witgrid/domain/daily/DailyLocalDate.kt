@@ -32,6 +32,9 @@ internal object DailyLocalDate {
         return nextLocalDayStart + REPAIR_WINDOW_MILLIS
     }
 
+    fun firstInstantOnOrAfterEpochDay(epochDay: Long, timeZone: TimeZone): Long =
+        firstInstantOnOrAfterLocalDate(epochDay, timeZone)
+
     private fun firstInstantOnOrAfterLocalDate(targetEpochDay: Long, timeZone: TimeZone): Long {
         val approximateUtcStart = targetEpochDay * MILLIS_PER_DAY
         var before = approximateUtcStart - THREE_DAYS_MILLIS

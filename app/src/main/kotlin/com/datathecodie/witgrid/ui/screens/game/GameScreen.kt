@@ -35,6 +35,7 @@ fun GameScreenRoute(
     onContinue: (LevelRef) -> Unit,
     onSelectPack: (LevelRef) -> Unit,
     onOpenDaily: () -> Unit,
+    dailyCompletedToday: Boolean = false,
     onHome: () -> Unit,
 ) {
     val viewModel = remember(gameId, levelRefsByPack, progressRepository) {
@@ -48,6 +49,7 @@ fun GameScreenRoute(
         onContinue = onContinue,
         onSelectPack = onSelectPack,
         onOpenDaily = onOpenDaily,
+        dailyCompletedToday = dailyCompletedToday,
         onHome = onHome,
     )
 }
@@ -58,6 +60,7 @@ fun GameScreen(
     onContinue: (LevelRef) -> Unit,
     onSelectPack: (LevelRef) -> Unit,
     onOpenDaily: () -> Unit,
+    dailyCompletedToday: Boolean = false,
     onHome: () -> Unit,
 ) {
     AdaptiveScreen {
@@ -74,7 +77,11 @@ fun GameScreen(
             )
 
             OutlinedButton(onClick = onOpenDaily, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.game_daily_entry))
+                Text(
+                    stringResource(
+                        if (dailyCompletedToday) R.string.game_daily_entry_completed else R.string.game_daily_entry,
+                    ),
+                )
             }
 
             val continueLevelRef = state.continueLevelRef

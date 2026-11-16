@@ -66,6 +66,32 @@ class DailyStreakPolicy(
         return StreakTransition(updated, reconciled.freezeUsed)
     }
 
+    /** Removes a previously persisted miss when completion history proves that date was solved. */
+    fun restoreCompletedMiss(current: StreakData, completedEpochDay: Long): StreakData {
+        if (current.latestMissedEpochDay != completedEpochDay) return current
+
+        val lastActivity = current.lastActivityEpochDay
+        val previousActivity = current.latestMissedPreviousActivityEpochDay
+        val previousStreakDays = current.latestMissedPreviousStreakDays
+        val restoredDays = when {
+            lastActivity == null -> previousStreakDays
+            lastActivity < completedEpochDay -> {
+                if (previousActivity == completedEpochDay - 1 && previousActivity == lastActivity) {
+                    previousStreakDays
+                } else {
+                    0
+                }
+            }
+
+            lastActivity == completedEpochDay -> current.currentDays
+            previousActivity == completedEpochDay - 1 ->
+                previousStreakDays + (lastActivity - previousActivity).toInt()
+
+            else -> current.currentDays + 1
+        }
+        return current.copy(currentDays = restoredDays).withoutRepairableMiss()
+    }
+
     /**
      * Returns the latest eligible miss only when the caller has reconciled and persisted current
      * date effects. This prevents showing a rewarded repair when a free freeze should apply.

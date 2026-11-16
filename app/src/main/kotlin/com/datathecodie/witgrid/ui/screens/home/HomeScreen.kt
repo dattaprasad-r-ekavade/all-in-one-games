@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
+import com.datathecodie.witgrid.data.settings.StreakData
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
@@ -30,6 +31,8 @@ fun HomeScreenRoute(
     gameIds: List<String>,
     levelRefsByGame: Map<String, List<LevelRef>>,
     progressRepository: GameProgressSummaryRepository,
+    streak: StreakData,
+    completedDailyGamesToday: Int,
     onSelectGame: (String) -> Unit,
     onOpenCalendar: () -> Unit,
     onOpenStatistics: () -> Unit,
@@ -43,6 +46,8 @@ fun HomeScreenRoute(
 
     HomeScreen(
         state = state,
+        streak = streak,
+        completedDailyGamesToday = completedDailyGamesToday,
         onSelectGame = onSelectGame,
         onOpenCalendar = onOpenCalendar,
         onOpenStatistics = onOpenStatistics,
@@ -53,6 +58,8 @@ fun HomeScreenRoute(
 @Composable
 fun HomeScreen(
     state: HomeUiState,
+    streak: StreakData = StreakData(),
+    completedDailyGamesToday: Int = 0,
     onSelectGame: (String) -> Unit,
     onOpenCalendar: () -> Unit,
     onOpenStatistics: () -> Unit,
@@ -97,16 +104,26 @@ fun HomeScreen(
                 }
             }
 
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(onClick = onOpenCalendar, modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(stringResource(R.string.screen_daily_puzzle), style = MaterialTheme.typography.titleMedium)
-                    Text(stringResource(R.string.home_daily_status), style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        stringResource(R.string.home_daily_status, completedDailyGamesToday.coerceIn(0, DAILY_GAME_COUNT)),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                 }
             }
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(stringResource(R.string.home_streak_status), style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        stringResource(
+                            R.string.home_streak_status,
+                            streak.currentDays,
+                            streak.freezesAvailable,
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                 }
             }
 
@@ -148,3 +165,5 @@ private fun gameNameResource(gameId: String): Int = when (gameId) {
     "minisudoku" -> R.string.game_minisudoku
     else -> R.string.game_unknown
 }
+
+private const val DAILY_GAME_COUNT = 4
