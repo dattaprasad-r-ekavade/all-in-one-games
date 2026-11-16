@@ -8,36 +8,36 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 
-/**
- * BI lane placeholder. Unit types deliberately promise no puzzle or state model;
- * the lane replaces them with its own immutable types when implementing its rules.
- */
-object BinaryEngine : GameEngine<Unit, Unit> {
+/** Binary rules and bank model exposed through the shared engine contract. */
+object BinaryEngine : GameEngine<BinaryPuzzle, BinaryState> {
     override val id: String = "binary"
 
-    override fun decodePuzzle(line: String): Unit = unavailable()
+    override fun decodePuzzle(line: String): BinaryPuzzle = BinaryCodec.decode(line)
 
-    override fun encodePuzzle(puzzle: Unit): String = unavailable()
+    override fun encodePuzzle(puzzle: BinaryPuzzle): String = BinaryCodec.encode(puzzle)
 
-    override fun initialState(puzzle: Unit): Unit = unavailable()
+    override fun initialState(puzzle: BinaryPuzzle): BinaryState = BinaryState.initial(puzzle)
 
-    override fun applyMove(state: Unit, move: Move): Unit = unavailable()
+    override fun applyMove(state: BinaryState, move: Move): BinaryState = state.withMove(move)
 
-    override fun isSolved(puzzle: Unit, state: Unit): Boolean = unavailable()
+    override fun isSolved(puzzle: BinaryPuzzle, state: BinaryState): Boolean =
+        BinaryRules.isSolved(puzzle, state)
 
-    override fun mistakes(puzzle: Unit, state: Unit): List<Cell> = unavailable()
+    override fun mistakes(puzzle: BinaryPuzzle, state: BinaryState): List<Cell> =
+        BinaryRules.mistakes(puzzle, state)
 
-    override fun countSolutions(puzzle: Unit, limit: Int): Int = unavailable()
+    override fun countSolutions(puzzle: BinaryPuzzle, limit: Int): Int =
+        BinaryRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: Unit, state: Unit): HintStep? = unavailable()
+    override fun nextStep(puzzle: BinaryPuzzle, state: BinaryState): HintStep? = unavailable()
 
-    override fun grade(puzzle: Unit): Grade = unavailable()
+    override fun grade(puzzle: BinaryPuzzle): Grade = unavailable()
 
-    override fun generate(rng: SplitMix64, pack: Pack): Unit = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): BinaryPuzzle = unavailable()
 
-    override fun encodeState(state: Unit): ByteArray = unavailable()
+    override fun encodeState(state: BinaryState): ByteArray = unavailable()
 
-    override fun decodeState(bytes: ByteArray): Unit = unavailable()
+    override fun decodeState(bytes: ByteArray): BinaryState = unavailable()
 
     private fun unavailable(): Nothing = throw NotImplementedError("BI")
 }
