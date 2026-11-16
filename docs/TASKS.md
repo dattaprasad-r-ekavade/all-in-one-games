@@ -263,7 +263,7 @@ Plan: 7.3, 9.
 ### A4 — Board canvas kit and gestures
 Tier H · Build Claude (`builder`) · Review Codex
 Plan: 4 (layout, gestures, feedback).
-**Owns:** `app/…/ui/board/**`.
+**Owns:** `app/…/ui/board/**`, `app/src/main/res/values/strings.xml` (localized cell accessibility labels).
 **Do:** A reusable Compose Canvas grid: cell hit-testing, tap, drag-paint path, long-press, two-finger tap. Haptic tick (light and strong), haptics switch. Completion wave animation with reduce-motion support. Grid fills width with 16 dp margins.
 **Done when:** `./gradlew check` passes. Hit-testing and drag-path logic have JVM tests. A demo board in a preview responds to all gestures.
 
