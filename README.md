@@ -11,24 +11,24 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 44 %** (27 of 61 task cards done; 1 more in review)
+**Overall: about 48 %** (31 of 64 task cards done; 2 active)
 
 ```
-[##################----------------------]  44 %
+[###################---------------------]  48 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
 
-| Phase | Cards | Done | Active | Review | Blocked | Progress |
-|---|---|---|---|---|---|---|
-| 0 — Setup | 5 | 4 | 0 | 0 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 21 | 0 | 0 | 0 | 91 % |
-| 2 — Core app | 14 | 2 | 0 | 1 | 0 | 14 % |
-| 3 — Retention | 6 | 0 | 0 | 0 | 0 | 0 % |
-| 4 — Monetisation and data | 8 | 0 | 0 | 0 | 0 | 0 % |
-| 5 — Closed test | 4 | 0 | 0 | 0 | 0 | 0 % |
-| 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **61** | **27** | **0** | **1** | **0** | **44 %** |
+| Phase | Cards | Done | Ready | Active | Review | Blocked | Progress |
+|---|---|---|---|---|---|---|---|
+| 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
+| 1 — Engine and puzzle bank | 26 | 24 | 1 | 1 | 0 | 0 | 92 % |
+| 2 — Core app | 14 | 3 | 1 | 1 | 0 | 0 | 21 % |
+| 3 — Retention | 6 | 0 | 3 | 0 | 0 | 0 | 0 % |
+| 4 — Monetisation and data | 8 | 0 | 1 | 0 | 0 | 0 | 0 % |
+| 5 — Closed test | 4 | 0 | 0 | 0 | 0 | 0 | 0 % |
+| 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
+| **Total** | **64** | **31** | **7** | **2** | **0** | **0** | **48 %** |
 
 ## Done
 
@@ -41,6 +41,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | E1 | Engine contracts, deterministic SplitMix64, grid geometry, moves/history, bank-line codec and typed game stubs. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` with no blockers. |
 | A1 | Paper-and-ink themes, five colourways, eight tested region hues, Inter typography, spacing/type tokens and light/dark previews. App tests and `check` pass; `gpt-6.1-sol` approved with no blockers. The preview source compiled; a direct IDE screenshot was unavailable. |
 | A2 | Room level progress and DataStore player data, with cloud/device-transfer backup rules. `:app:testDebugUnitTest` and `check` pass; Room and DataStore persistence tests pass; reviewed by `gpt-6.1-sol` with no remaining blockers. |
+| A3 | Game module and bank contracts, Compose navigation and screens, serialized play/save controller, and versioned state codecs for all four engines. App, engine, and full `check` gates pass; reviewed by `gpt-6.1-sol` and human-approved. |
 | E2 | ASCII-grid fixtures and generic engine test helpers for uniqueness, hint solving and deterministic generation. Six test-kit tests pass; `check` passes; reviewed by `gpt-6.1-sol` with no blockers. |
 | CR1 | Crowns puzzle/state model, bank codec, rule checks, mistake handling and capped solution counter exposed through `GameEngine`. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` after fixes. |
 | CR2 | Crowns technique solver, deterministic hints, one-sentence explanations, grade and size-based pack bands. `:engine:test` and `check` pass; reviewed and fixed by `gpt-6.1-sol`. |
@@ -61,19 +62,24 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | B1 | `bankgen` generate, validate and stats CLI with deterministic parallel generation, compressed atomic writes, daily pack checks and validation diagnostics. Fake-engine tests and `check` pass; reviewed with no blockers. |
 | B2 | Generated 150 levels per pack and 365 daily puzzles for each game: 3,860 puzzles in 20 files. `validate --all` and `stats` pass; the compressed bank is 198,145 bytes and the report includes seeds, timings and histograms. Independently reviewed with no blockers. |
 | B3 | `bankgen validate --all` now runs during Gradle `check`. `check` failed when a bank line was corrupted and passed after restoring the file; reviewed with no blockers. |
+| CR5 | Crowns regions are at least 3 cells and level IDs use unsigned values; per-pack technique caps and size bounds are covered by tests. |
+| MS5 | Mini Sudoku Easy uses 18–22 givens; level IDs use unsigned values. |
+| B4 | Binary and Nonogram bank IDs use unsigned values. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
-## In progress and review
+## In progress
 
-| A3 | App contracts, navigation, play controller; code complete, awaiting human interface read | Codex |
+| A4 | Board canvas kit and gestures | Codex |
+| B5 | Regenerate the launch bank and report v2 | Claude |
 
 ## Next steps
 
-1. **Review A3’s app contracts:** read `GameModule` and `PlayController`; then merge A3 and start A4. The four game boards (A5–A8) follow A4.
-2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
-3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
-4. **Launch bank generated:** 3,860 puzzles across 20 files; see [the bank report](docs/reports/bank-v1.md).
+1. **Build A4:** reusable board canvas, hit testing, gestures, haptics, and completion feedback. A5–A8 depend on this kit.
+2. **Regenerate the bank:** B5 is active; validate the new bank and publish its v2 report.
+3. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
+4. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
+5. **Launch bank generated:** 3,860 puzzles across 20 files; see [the bank report](docs/reports/bank-v1.md).
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
