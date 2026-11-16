@@ -29,7 +29,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | B3 | Bank validation in `check` and CI | L | Claude | Codex | B2, T0.2 | todo |
 | H1 | Hand-test the bank | Human | — | — | B2 | todo |
 | **Phase 2 — Core app** |||||||
-| A1 | Theme and design tokens | M | Claude | Codex | T0.1 | active |
+| A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
 | A2 | Storage and saves | M | Codex | Claude | E1 | todo |
 | A3 | App contracts, navigation, play controller | H | Claude | Codex + human | A1, A2 | todo |
 | A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | todo |

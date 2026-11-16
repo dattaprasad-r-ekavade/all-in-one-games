@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 8 %** (5 of 61 task cards done; 1 more in progress)
+**Overall: about 10 %** (6 of 61 task cards done; no cards in progress)
 
 ```
-[███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  8 %
+[████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  10 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -23,12 +23,12 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 23 | 1 | 0 | 4 % |
-| 2 — Core app | 14 | 0 | 1 | 0 % |
+| 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **5** | **1** | **8 %** |
+| **Total** | **61** | **6** | **0** | **10 %** |
 
 ## Done
 
@@ -39,6 +39,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | T0.2 | GitHub Actions CI: the `build` job runs `./gradlew check :app:assembleDebug` on each push and pull request to `main`. |
 | T0.3 | Ads SDK decision: Google Mobile Ads **Next-Gen SDK** (`ads-mobile-sdk` 1.6.0 or later), AdMob only at launch. See [docs/decisions/ads-sdk.md](docs/decisions/ads-sdk.md). |
 | E1 | Engine contracts, deterministic SplitMix64, grid geometry, moves/history, bank-line codec and typed game stubs. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` with no blockers. |
+| A1 | Paper-and-ink themes, five colourways, eight tested region hues, Inter typography, spacing/type tokens and light/dark previews. App tests and `check` pass; `gpt-6.1-sol` approved with no blockers. The preview source compiled; a direct IDE screenshot was unavailable. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
@@ -46,12 +47,12 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 | Card | Work | Agent |
 |---|---|---|
-| A1 | Theme: paper and ink, dark mode, 5 colourways, 8 region colours, Inter font | Claude `builder` (Sonnet) |
+No cards are currently active.
 
 ## Next steps
 
-1. **Finish A1 review** and inspect the light and dark theme previews. Theme wiring into the manifest and activity is part of A3.
-2. **Start engine follow-up work** now that E1 is complete: E2, A2 and the CR1/BI1/NO1/MS1 game-model cards. Keep to the workflow's three-agent concurrency limit.
+1. **Start engine follow-up work:** E2, A2 and the CR1/BI1/NO1/MS1 game-model cards are ready. Keep to the workflow's three-agent concurrency limit.
+2. **Wire the theme and core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
 3. **Build the puzzle bank** after the game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
 4. **Human tasks can start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
 
