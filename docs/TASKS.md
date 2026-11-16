@@ -30,7 +30,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H1 | Hand-test the bank | Human | — | — | B2 | todo |
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
-| A2 | Storage and saves | M | Codex | Claude | E1 | blocked |
+| A2 | Storage and saves | M | Codex | Claude | E1 | active |
 | A3 | App contracts, navigation, play controller | H | Claude | Codex + human | A1, A2 | todo |
 | A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | todo |
 | A5 | Crowns board | M | Claude | Codex | A4, CR2 | todo |
@@ -208,7 +208,7 @@ Plan: 4 (art table).
 ### A2 — Storage and saves
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 7.1 (storage, backup), 7.5.
-**Owns:** `app/…/data/**`, `app/src/main/res/xml/backup_rules.xml`, `data_extraction_rules.xml`.
+**Owns:** `app/…/data/**`, `app/src/main/res/xml/backup_rules.xml`, `data_extraction_rules.xml`, `gradle/libs.versions.toml`, `app/build.gradle.kts`.
 **Do:** Room tables for level progress (state bytes, elapsed time, hints used, completed, best time). DataStore for settings, streak, freeze count, Premium flag, reward balances. A `ProgressRepository` interface. Auto Backup rules that include both.
 **Done when:** `./gradlew :app:testDebugUnitTest` passes with Room in-memory tests. A save survives a repository re-creation.
 
