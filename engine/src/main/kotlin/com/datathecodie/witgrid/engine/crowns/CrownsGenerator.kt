@@ -6,34 +6,21 @@ import com.datathecodie.witgrid.engine.core.SplitMix64
 /** Deterministic random flood-fill generator for unique, technique-solvable Crowns puzzles. */
 object CrownsGenerator {
     private const val MAX_PUZZLE_ATTEMPTS = 20_000
+    private const val MIN_REGION_CELLS = 3
+    private const val MAX_REFINE_MOVES = 3_000
+    private const val SOLUTION_COUNT_CAP = 8
+    private const val PLACEHOLDER_ID = "CR-SEARCH"
 
     /** Builds one puzzle in [pack], consuming randomness only from [rng]. */
     fun generate(rng: SplitMix64, pack: Pack): CrownsPuzzle {
         val size = boardSize(rng, pack)
         repeat(MAX_PUZZLE_ATTEMPTS) {
             val solution = randomCrownLayout(size, rng) ?: return@repeat
-            val regions = randomRegions(size, solution, rng) ?: return@repeat
-            val candidate = CrownsPuzzle(
-                id = "CR-${pack.name}-${rng.nextLong().toString(16)}",
-                size = size,
-                regions = regions,
-                solutionColumns = solution,
-                pack = pack,
-                storedGrade = "pending",
-            )
-            val grade = try {
-                CrownsTechniqueSolver.grade(candidate)
-            } catch (_: IllegalArgumentException) {
-                return@repeat
-            }
-            return CrownsPuzzle(
-                id = candidate.id,
-                size = candidate.size,
-                regions = candidate.regions,
-                solutionColumns = candidate.solutionColumns,
-                pack = candidate.pack,
-                storedGrade = CrownsGradeCodec.encode(grade),
-            )
+            val initialRegions = randomRegions(size, solution, rng) ?: return@repeat
+            val regions = refineToUnique(size, solution, initialRegions, pack, rng) ?: return@repeat
+            val id = "CR-${pack.name}-${rng.nextLong().toULong().toString(16).padStart(16, '0')}"
+            val grade = CrownsTechniqueSolver.grade(puzzleFor(id, size, regions, solution, pack, "pending"))
+            return puzzleFor(id, size, regions, solution, pack, CrownsGradeCodec.encode(grade))
         }
         throw IllegalStateException("Could not generate a technique-solvable Crowns puzzle after $MAX_PUZZLE_ATTEMPTS attempts")
     }
@@ -70,7 +57,6 @@ object CrownsGenerator {
 
     private fun randomRegions(size: Int, solution: List<Int>, rng: SplitMix64): List<Int>? {
         val cellCount = size * size
-        val capacities = regionCapacities(size, rng)
         val regions = IntArray(cellCount) { -1 }
         val counts = IntArray(size)
         for (region in 0 until size) {
@@ -81,23 +67,17 @@ object CrownsGenerator {
 
         var assignedCount = size
         while (assignedCount < cellCount) {
-            val frontiers = arrayOfNulls<List<Int>>(size)
-            val growableRegions = ArrayList<Int>()
-            for (region in 0 until size) {
-                if (counts[region] >= capacities[region]) continue
-                val frontier = frontierCells(size, region, regions)
-                if (frontier.isEmpty()) return null
-                frontiers[region] = frontier
-                growableRegions += region
-            }
-            if (growableRegions.isEmpty()) return null
-
-            val fewestOptions = growableRegions.minOf { requireNotNull(frontiers[it]).size }
-            val urgentRegions = growableRegions.filter { requireNotNull(frontiers[it]).size == fewestOptions }
-            val region = urgentRegions[rng.nextInt(urgentRegions.size)]
-            val frontier = requireNotNull(frontiers[region])
-            val cell = frontier[rng.nextInt(frontier.size)]
-            regions[cell] = region
+            val frontiers = (0 until size).map { frontierCells(size, it, regions) }
+            // A region below the minimum with no free neighbour is boxed in, so this layout is rejected.
+            if ((0 until size).any { counts[it] < MIN_REGION_CELLS && frontiers[it].isEmpty() }) return null
+            val growable = (0 until size).filter { frontiers[it].isNotEmpty() && counts[it] < maxRegionCells(size) }
+            if (growable.isEmpty()) return null
+            // Small regions grow first, so they reach the minimum before neighbours box them in.
+            val smallRegions = growable.filter { counts[it] < MIN_REGION_CELLS }
+            val pool = smallRegions.ifEmpty { growable }
+            val region = pool[rng.nextInt(pool.size)]
+            val frontier = frontiers[region]
+            regions[frontier[rng.nextInt(frontier.size)]] = region
             counts[region]++
             assignedCount++
         }
@@ -105,23 +85,101 @@ object CrownsGenerator {
         return regions.toList()
     }
 
-    private fun regionCapacities(size: Int, rng: SplitMix64): IntArray {
-        val capacities = IntArray(size)
-        val regionIds = (0 until size).toMutableList()
-        shuffle(regionIds, rng)
-        // Small connected regions create opening line deductions for the no-givens solver.
-        val singletonCount = maxOf(2, size / 3)
-        val pairCount = maxOf(2, size / 3)
-        regionIds.take(singletonCount).forEach { capacities[it] = 1 }
-        regionIds.drop(singletonCount).take(pairCount).forEach { capacities[it] = 2 }
-        val remainingRegions = regionIds.drop(singletonCount + pairCount).toMutableList()
-        val remainingCells = size * size - singletonCount - pairCount * 2
-        val baseCapacity = remainingCells / remainingRegions.size
-        val extraCells = remainingCells % remainingRegions.size
-        remainingRegions.forEach { capacities[it] = baseCapacity }
-        shuffle(remainingRegions, rng)
-        for (index in 0 until extraCells) capacities[remainingRegions[index]]++
-        return capacities
+    /**
+     * Moves border cells between neighbouring regions until the puzzle has one solution
+     * that the techniques solve within the pack's k-regions cap. Crown cells stay in their regions. A move that
+     * keeps every region connected, within the size limits, is kept when it
+     * does not add solutions, so the walk stays among unique layouts once it finds one.
+     */
+    private fun refineToUnique(
+        size: Int,
+        solution: List<Int>,
+        initialRegions: List<Int>,
+        pack: Pack,
+        rng: SplitMix64,
+    ): List<Int>? {
+        val crownCells = solution.indices.map { row -> row * size + solution[row] }.toSet()
+        var regions = initialRegions.toIntArray()
+        var solutions = countSolutions(size, regions, solution, pack)
+        repeat(MAX_REFINE_MOVES) {
+            if (solutions == 1 && meetsTechniqueCap(size, regions, solution, pack)) return regions.toList()
+            val cell = rng.nextInt(regions.size)
+            if (cell in crownCells) return@repeat
+            val neighbourRegions = orthogonalNeighbours(cell, size).map { regions[it] }.filter { it != regions[cell] }
+            if (neighbourRegions.isEmpty()) return@repeat
+            val moved = regions.copyOf()
+            moved[cell] = neighbourRegions[rng.nextInt(neighbourRegions.size)]
+            if (!allRegionsValid(size, moved)) return@repeat
+            val movedSolutions = countSolutions(size, moved, solution, pack)
+            if (movedSolutions <= solutions) {
+                regions = moved
+                solutions = movedSolutions
+            }
+        }
+        return null
+    }
+
+    private fun puzzleFor(
+        id: String,
+        size: Int,
+        regions: List<Int>,
+        solution: List<Int>,
+        pack: Pack,
+        storedGrade: String,
+    ): CrownsPuzzle = CrownsPuzzle(
+        id = id,
+        size = size,
+        regions = regions,
+        solutionColumns = solution,
+        pack = pack,
+        storedGrade = storedGrade,
+    )
+
+    /** True when the techniques solve the puzzle and use no more k-regions steps than [pack] allows. */
+    private fun meetsTechniqueCap(size: Int, regions: IntArray, solution: List<Int>, pack: Pack): Boolean {
+        val puzzle = puzzleFor(PLACEHOLDER_ID, size, regions.toList(), solution, pack, "pending")
+        val steps = try {
+            CrownsStepCounter.countSteps(puzzle)
+        } catch (_: IllegalArgumentException) {
+            null
+        } catch (_: IllegalStateException) {
+            null
+        } ?: return false
+        return (steps[CrownsTechniques.K_REGIONS_K_LINES.id] ?: 0) <= maxKRegionsSteps(pack)
+    }
+
+    /** Easy must avoid k-regions steps, Medium and Hard allow a few, Expert has no cap. */
+    private fun maxKRegionsSteps(pack: Pack): Int = when (pack) {
+        Pack.EASY -> 0
+        Pack.MEDIUM -> 1
+        Pack.HARD -> 2
+        Pack.EXPERT -> Int.MAX_VALUE
+    }
+
+    /** Regions may not exceed size * 5 / 2 cells, which keeps any one region from taking most of the board. */
+    private fun maxRegionCells(size: Int): Int = size * 5 / 2
+
+    private fun countSolutions(size: Int, regions: IntArray, solution: List<Int>, pack: Pack): Int =
+        CrownsRules.countSolutions(
+            puzzleFor(PLACEHOLDER_ID, size, regions.toList(), solution, pack, "pending"),
+            limit = SOLUTION_COUNT_CAP,
+        )
+
+    private fun allRegionsValid(size: Int, regions: IntArray): Boolean {
+        for (region in 0 until size) {
+            val cells = regions.indices.filter { regions[it] == region }
+            if (cells.size < MIN_REGION_CELLS || cells.size > maxRegionCells(size)) return false
+            val reached = mutableSetOf(cells.first())
+            val queue = ArrayDeque(listOf(cells.first()))
+            while (queue.isNotEmpty()) {
+                val cell = queue.removeFirst()
+                orthogonalNeighbours(cell, size)
+                    .filter { regions[it] == region && reached.add(it) }
+                    .forEach(queue::addLast)
+            }
+            if (reached.size != cells.size) return false
+        }
+        return true
     }
 
     private fun frontierCells(size: Int, region: Int, regions: IntArray): List<Int> =
