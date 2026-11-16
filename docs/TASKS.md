@@ -158,6 +158,11 @@ Each launch game is one lane of four cards. The lanes are independent. Run them 
 - x3: For each pack, seed 1 gives 10 puzzles. Each is unique, solved by the technique solver, and graded inside its pack band. The same seed gives the same puzzles on a second run.
 - x4: Tests compile and run. Failures that show real bugs are listed in the handoff, not fixed.
 
+**Lane rules from the E1 review (16 Nov 2026):**
+- x1 KDoc must define what `mistakes()` counts for the game. Crowns: is an X on a crown cell a mistake? Nonogram: is an X on a filled cell a mistake? (Recommended: yes for both, so "check" and the mistake limit catch it.)
+- MS1 must define the note/value policy: `SetDigit` on a cell clears that cell's notes.
+- Auto-X (Crowns), auto-cross (Nonogram) and auto-update notes (Mini Sudoku) are not engine work. The app emits them as extra absolute `Move`s in one `History` record per gesture.
+
 ### B1 — `bankgen` command-line tool
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 6, 7.2, 7.4.
@@ -209,8 +214,9 @@ Plan: 7.3, 9.
 **Owns:** `app/…/games/GameModule.kt`, `app/…/games/GameRegistry.kt`, `app/…/play/PlayController.kt`, `app/…/nav/**`, stub screens in `app/…/ui/screens/**`.
 **Do:**
 1. App-side `GameModule`: wraps one `GameEngine`, adds `levelsPerInterstitial` and `@Composable Board(state, onMove)`.
-2. `PlayController` (plain Kotlin, no Compose): loads a level from the bank, applies moves, undo and redo, timer that pauses in the background, saves after each move through `ProgressRepository`, emits a solved event.
-3. Navigation: Home → Game → Play → Result / Level failed; Calendar, Statistics, Settings. Stub screens show their name.
+2. `PlayController` (plain Kotlin, no Compose): loads a level from the bank, applies moves, undo and redo, timer that pauses in the background, saves after each move through `ProgressRepository`, emits a solved event. One gesture (including auto-X, auto-cross or note updates) and one hint "Apply" each make one `History` record. Undo history is not saved: after an app restart, undo starts empty (accepted for plan 7.5).
+3. Set `android:theme="@style/Theme.Witgrid"` in the manifest and wrap `MainActivity` content in `WitgridTheme` (from A1). The manifest and `MainActivity.kt` are in Owns for this step.
+4. Navigation: Home → Game → Play → Result / Level failed; Calendar, Statistics, Settings. Stub screens show their name.
 **Done when:** `./gradlew check` passes. `PlayController` has JVM tests with a fake engine and a fake repository. The human has read the interfaces.
 
 ### A4 — Board canvas kit and gestures
@@ -245,7 +251,7 @@ Plan: 4 (layout, timer), 9 (Play, Result, Level failed).
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 7.6, 8.2 (allowances come later in M4).
 **Owns:** `app/…/ui/screens/play/hint/**`, `app/…/play/HintController.kt`.
-**Do:** Hint: mistakes first, else `nextStep`; highlight cells, technique name, one-sentence explanation, "Apply" button. Check: flag wrong cells. Use an `Allowance` interface with an "always allow" stub (M4 replaces it).
+**Do:** Hint: mistakes first, else `nextStep`; highlight cells, technique name, one-sentence explanation, "Apply" button. Check: flag wrong cells. A mistake hint has no `Technique`: use an app-side hint type (for example `sealed interface HintUi { Mistake; Step(HintStep) }`), not a fake technique. Use an `Allowance` interface with an "always allow" stub (M4 replaces it).
 **Done when:** `./gradlew check` passes. `HintController` has JVM tests.
 
 ### A12 — Guided first level for each game
