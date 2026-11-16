@@ -29,7 +29,7 @@ object BinaryGenerator {
         }
         check(acceptedRemovals > 0) { "Binary generator could not remove any givens" }
 
-        val id = "BI-${pack.name}-${rng.nextLong().toString(16)}"
+        val id = "BI-${pack.name}-${rng.nextLong().toULong().toString(16).padStart(16, '0')}"
         val finalPuzzle = BinaryPuzzle(
             id = id,
             size = size,
