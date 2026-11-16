@@ -28,10 +28,10 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | B2 | Generate the launch bank and report | L | Codex | Claude | B1, CR3, BI3, NO3, MS3 | done |
 | B3 | Bank validation in `check` and CI | L | Claude | Codex | B2, T0.2 | done |
 | H1 | Hand-test the bank | Human | — | — | B2 | ready |
-| CR5 | Crowns: no regions under 3 cells; unsigned IDs | L | Claude (Haiku) | Claude (Sonnet) | CR3 | active |
+| CR5 | Crowns: no regions under 3 cells; unsigned IDs | L | Claude (Haiku) | Claude (Sonnet) | CR3 | done |
 | MS5 | Mini Sudoku Easy with 18–22 givens; unsigned IDs | L | Claude (Haiku) | Claude (Sonnet) | MS3 | done |
 | B4 | Unsigned level IDs for Binary and Nonogram | L | Claude (Haiku) | Claude (Sonnet) | BI3, NO3 | done |
-| B5 | Regenerate the launch bank and report v2 | L | Claude (Haiku) | Claude (Sonnet) | CR5, MS5, B4 | todo |
+| B5 | Regenerate the launch bank and report v2 | L | Claude (Haiku) | Claude (Sonnet) | CR5, MS5, B4 | active |
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
 | A2 | Storage and saves | M | Codex | Claude | E1 | done |
