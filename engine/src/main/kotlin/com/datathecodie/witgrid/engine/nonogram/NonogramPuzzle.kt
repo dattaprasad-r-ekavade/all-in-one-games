@@ -74,18 +74,17 @@ object NonogramPackBands {
     }
 
     /**
-     * Returns whether a grade fits the launch band. Easy uses Overlap in at most two passes;
-     * Medium allows Edge rules in at most four; Hard needs Line by line in at least two passes;
-     * Expert needs Line by line in at least four. Hard and Expert size bands distinguish the two.
+     * Returns whether a grade fits the launch band. Easy and Medium finish in at most two passes;
+     * Hard needs Line by line in at least three passes, and Expert needs it in at least four.
+     * The plan-defined board sizes distinguish Easy from Medium and Hard from Expert.
      */
     fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean {
         if (grade.pack != pack) return false
         val hardestRank = grade.hardestTechnique?.difficultyRank ?: 0
         val linePasses = grade.stepCount
         return when (pack) {
-            Pack.EASY -> hardestRank == 0 && linePasses in 1..2
-            Pack.MEDIUM -> hardestRank in 0..1 && linePasses in 1..4
-            Pack.HARD -> hardestRank == 2 && linePasses >= 2
+            Pack.EASY, Pack.MEDIUM -> linePasses in 1..2
+            Pack.HARD -> hardestRank == 2 && linePasses >= 3
             Pack.EXPERT -> hardestRank == 2 && linePasses >= 4
         }
     }

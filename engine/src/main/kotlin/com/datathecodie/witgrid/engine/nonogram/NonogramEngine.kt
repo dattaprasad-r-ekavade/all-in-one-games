@@ -34,7 +34,8 @@ object NonogramEngine : GameEngine<NonogramPuzzle, NonogramState> {
 
     override fun grade(puzzle: NonogramPuzzle): Grade = NonogramTechniqueSolver.grade(puzzle)
 
-    override fun generate(rng: SplitMix64, pack: Pack): NonogramPuzzle = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): NonogramPuzzle =
+        NonogramGenerator.generate(rng, pack)
 
     override fun encodeState(state: NonogramState): ByteArray = unavailable()
 

@@ -177,7 +177,17 @@ class NonogramTechniqueSolverTest {
     }
 
     @Test
-    fun gradingRejectsOnePassTenByTenPuzzlesAssignedToHard() {
+    fun gradingUsesPassCountsToSeparateOnePassAndMultiPassBands() {
+        for (pack in listOf(Pack.EASY, Pack.MEDIUM)) {
+            val size = NonogramPackBands.sizeForPack(pack)
+            val oneFillRows = listOf("1" + "0".repeat(size - 1)) +
+                List(size - 1) { "0".repeat(size) }
+            val grade = NonogramEngine.grade(puzzle(oneFillRows, pack))
+
+            assertEquals(1, grade.stepCount)
+            assertTrue(NonogramPackBands.isGradeInPackBand(pack, grade))
+        }
+
         val size = 10
         val oneFillRows = listOf("1" + "0".repeat(size - 1)) +
             List(size - 1) { "0".repeat(size) }
