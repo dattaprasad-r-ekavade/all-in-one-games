@@ -36,7 +36,6 @@ import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.ui.screens.SettingsScreen
-import com.datathecodie.witgrid.ui.screens.StatisticsScreen
 import com.datathecodie.witgrid.ui.screens.calendar.CalendarScreenRoute
 import com.datathecodie.witgrid.ui.screens.failed.LevelFailedScreen
 import com.datathecodie.witgrid.ui.screens.game.GameScreenRoute
@@ -45,6 +44,7 @@ import com.datathecodie.witgrid.ui.screens.play.PlayScreenRoute
 import com.datathecodie.witgrid.ui.screens.play.PlayPersistenceScope
 import com.datathecodie.witgrid.ui.screens.result.ResultScreenRoute
 import com.datathecodie.witgrid.ui.screens.result.nextResultLevel
+import com.datathecodie.witgrid.ui.screens.stats.StatisticsScreenRoute
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -266,7 +266,13 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 },
                 onHome = navigator::returnHome,
             )
-            AppDestination.Statistics -> StatisticsScreen(onHome = navigator::returnHome)
+            AppDestination.Statistics -> StatisticsScreenRoute(
+                gameIds = GameRegistry.games.map { it.id },
+                levelRefsByGame = levelRefsByGame,
+                progressRepository = progressRepository,
+                dailyPuzzleCompletionRepository = dailyCompletionRepository,
+                onHome = navigator::returnHome,
+            )
             AppDestination.Settings -> SettingsScreen(onHome = navigator::returnHome)
         }
     }
