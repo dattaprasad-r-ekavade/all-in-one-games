@@ -32,7 +32,7 @@ object CrownsEngine : GameEngine<CrownsPuzzle, CrownsState> {
 
     override fun grade(puzzle: CrownsPuzzle): Grade = CrownsTechniqueSolver.grade(puzzle)
 
-    override fun generate(rng: SplitMix64, pack: Pack): CrownsPuzzle = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): CrownsPuzzle = CrownsGenerator.generate(rng, pack)
 
     override fun encodeState(state: CrownsState): ByteArray = unavailable()
 
