@@ -41,8 +41,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A6 | Binary board | M | Codex | Claude | A4, BI2 | done |
 | A7 | Nonogram board | M | Claude | Codex | A4, NO2 | done |
 | A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | done |
-| A9 | Home and Game screens | M | Claude | Codex | A3 | active |
-| A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | ready |
+| A9 | Home and Game screens | M | Claude | Codex | A3 | done |
+| A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | active |
 | A11 | Hint and check UI | M | Codex | Claude | A10 | todo |
 | A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | todo |
 | A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | todo |
@@ -284,7 +284,7 @@ Plan: 9 (Home, Game).
 ### A10 — Play toolbar, Result and Level failed screens
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 4 (layout, timer), 9 (Play, Result, Level failed).
-**Owns:** `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/result/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
 **Do:** Tools in the bottom third: undo, redo, mark mode, hint, check, timer (hideable). Nothing tappable in the top 15 %. Result: time, best time, "Next". Level failed: "Continue" and "Restart" (Continue is a placeholder until M5).
 **Done when:** `./gradlew check` passes.
 

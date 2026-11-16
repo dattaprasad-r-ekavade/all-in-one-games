@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 58 %** (37 of 64 task cards done; 1 active)
+**Overall: about 59 %** (38 of 64 task cards done; 1 active)
 
 ```
-[#######################-----------------]  58 %
+[########################----------------]  59 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -23,12 +23,12 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 |---|---|---|---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
-| 2 — Core app | 14 | 8 | 1 | 1 | 0 | 0 | 57 % |
+| 2 - Core app | 14 | 9 | 0 | 1 | 0 | 0 | 64 % |
 | 3 — Retention | 6 | 0 | 3 | 0 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **37** | **7** | **1** | **0** | **0** | **58 %** |
+| **Total** | **64** | **38** | **6** | **1** | **0** | **0** | **59 %** |
 
 ## Done
 
@@ -47,6 +47,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | A6 | Binary board with A/B tap cycling, long-press clearing, immutable givens, accessible row/column labels, and drag disabled. Emulator tests cover the first bank solve and touch behavior; reviewer fixed dense-grid text sizing; full `check` passes. |
 | A7 | Nonogram board with row and column clues, Fill/X modes, drag painting, long-press clearing, and optional auto-cross. Emulator tests solve the first bank puzzle and verify drag plus dense 15×15 clues at 2× font scale; independent review and `check` pass. |
 | A8 | Mini Sudoku board with cell selection, digit palette, notes mode, auto-note removal, and clear action. Strong 2×3 box separators, mode-aware TalkBack actions, solve and clear tests, and full `check` pass. |
+| A9 | Home and Game screens with real progress cards, four pack entries, daily puzzle entry and Continue. Daily and streak placeholders stay localized; bank loading runs off the main thread. Seven A9 tests and full check pass; reviewed by gpt-6.1-sol with no blockers. |
 | E2 | ASCII-grid fixtures and generic engine test helpers for uniqueness, hint solving and deterministic generation. Six test-kit tests pass; `check` passes; reviewed by `gpt-6.1-sol` with no blockers. |
 | CR1 | Crowns puzzle/state model, bank codec, rule checks, mistake handling and capped solution counter exposed through `GameEngine`. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` after fixes. |
 | CR2 | Crowns technique solver, deterministic hints, one-sentence explanations, grade and size-based pack bands. `:engine:test` and `check` pass; reviewed and fixed by `gpt-6.1-sol`. |
@@ -76,15 +77,14 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## In progress
 
-| A9 | Home and Game screens | Codex |
+| A10 | Play toolbar, Result and Level failed screens | Codex |
 
 ## Next steps
 
-1. **Build A9:** Home and Game screens are active; A10 is ready after the shared navigation and board work.
-2. **Build app screens:** A9 and A10 are ready after A3 and A4.
-3. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
-4. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
-5. **Review the generated bank:** v2 contains 3,860 puzzles across 20 files; see [the v2 report](docs/reports/bank-v2.md).
+1. **Build A10:** Play toolbar, Result and Level failed screens are active; A11 follows after A10.
+2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
+3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
+4. **Review the generated bank:** v2 contains 3,860 puzzles across 20 files; see [the v2 report](docs/reports/bank-v2.md).
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
