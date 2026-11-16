@@ -37,8 +37,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A2 | Storage and saves | M | Codex | Claude | E1 | done |
 | A3 | App contracts, navigation, play controller | H | Codex | gpt-6.1-sol + human | A1, A2 | done |
 | A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | done |
-| A5 | Crowns board | M | Claude | Codex | A4, CR2 | active |
-| A6 | Binary board | M | Codex | Claude | A4, BI2 | ready |
+| A5 | Crowns board | M | Claude | Codex | A4, CR2 | done |
+| A6 | Binary board | M | Codex | Claude | A4, BI2 | active |
 | A7 | Nonogram board | M | Claude | Codex | A4, NO2 | ready |
 | A8 | Mini Sudoku board | M | Codex | Claude | A4, MS2 | ready |
 | A9 | Home and Game screens | M | Claude | Codex | A3 | ready |
