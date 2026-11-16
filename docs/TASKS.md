@@ -45,8 +45,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A10 | Play toolbar, Result and Level failed screens | M | Claude | Codex | A3, A4 | done |
 | A11 | Hint and check UI | M | Codex | Claude | A10 | done |
 | A12 | Guided first level for each game | L | Claude | Codex | A5, A6, A7, A8 | done |
-| A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | active |
-| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, A12, B2 | ready |
+| A13 | Edge-to-edge, predictive back, tablet layout | M | Codex | Claude | A9, A10 | done |
+| A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, A12, A13, B2 | active |
 | **Phase 3 — Retention** |||||||
 | R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | ready |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | todo |
