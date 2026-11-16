@@ -1,11 +1,11 @@
 package com.datathecodie.witgrid.ui.screens.play
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -77,6 +77,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     onRestartRequestConsumed: (Long) -> Unit,
     onSolved: (LevelSolvedEvent) -> Unit,
     onBack: () -> Unit,
+    onRegisterBackAction: ((suspend () -> Unit) -> Unit) = {},
 ) {
     val introCoachLineResourceId = levelRef.introCoachLineResourceId
     val introCoachLine = if (introCoachLineResourceId == null) {
@@ -152,7 +153,22 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 onBack()
             }
         }
-        BackHandler(onBack = leave)
+        DisposableEffect(controller) {
+            onRegisterBackAction {
+                try {
+                    interactionMutex.withLock {
+                        controller.pauseForBackground()
+                        onBack()
+                    }
+                    saveFailed = false
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    saveFailed = true
+                }
+            }
+            onDispose { onRegisterBackAction { onBack() } }
+        }
         DisposableEffect(lifecycleOwner, controller) {
             val observer = LifecycleEventObserver { _, event ->
                 when (event) {
@@ -352,76 +368,172 @@ internal fun PlayScreenLayout(
     var timerVisible by remember(levelRef) { mutableStateOf(true) }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val contentWidth = maxWidth.coerceAtMost(MAX_PLAY_CONTENT_WIDTH)
+        val useLandscapeTools = maxWidth >= MIN_LANDSCAPE_WIDTH &&
+            maxWidth > maxHeight &&
+            maxHeight <= MAX_LANDSCAPE_HEIGHT
         val headerHeight = maxHeight * PLAY_HEADER_FRACTION
         val toolbarHeight = maxHeight * TOOLBAR_FRACTION
-        Column(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.fillMaxWidth().height(headerHeight).padding(16.dp),
-            ) {
-                Text(stringResource(gameNameResource(levelRef.gameId)), style = MaterialTheme.typography.titleLarge)
-            }
+        Column(
+            modifier = Modifier
+                .width(contentWidth)
+                .fillMaxHeight()
+                .align(Alignment.TopCenter),
+        ) {
+            PlayHeader(levelRef, headerHeight)
 
-            BoxWithConstraints(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentAlignment = Alignment.Center,
-            ) {
-                val boardSize = minOf(maxWidth, maxHeight)
-                if (introCoachLine == null) {
-                    // Keep the board square inside its available height, including on short screens.
-                    Box(modifier = Modifier.width(boardSize)) { board() }
-                } else {
-                    // Let larger text scroll above the board instead of shrinking its touch targets.
-                    Column(
-                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+            if (useLandscapeTools) {
+                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    BoxWithConstraints(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            introCoachLine,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Box(modifier = Modifier.size(boardSize)) { board() }
+                        val boardSize = minOf(maxWidth, maxHeight)
+                        Box(modifier = Modifier.width(boardSize)) { board() }
                     }
-                }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth().height(toolbarHeight)
-                    .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                gameControls()
-                if (saveFailed) {
-                    Text(stringResource(R.string.play_save_failed), color = MaterialTheme.colorScheme.error)
-                }
-                statusMessage?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                if (timerVisible) {
-                    Text(
-                        stringResource(R.string.play_elapsed_time, formatDuration(elapsedTimeMillis)),
-                        style = MaterialTheme.typography.titleMedium,
+                    PlayControls(
+                        modifier = Modifier
+                            .width(minOf(LANDSCAPE_CONTROLS_WIDTH, contentWidth * LANDSCAPE_CONTROLS_FRACTION))
+                            .fillMaxHeight(),
+                        elapsedTimeMillis = elapsedTimeMillis,
+                        canUndo = canUndo,
+                        canRedo = canRedo,
+                        saveFailed = saveFailed,
+                        introCoachLine = introCoachLine,
+                        showCoachLine = true,
+                        statusMessage = statusMessage,
+                        hintOperationPending = hintOperationPending,
+                        timerVisible = timerVisible,
+                        gameControls = gameControls,
+                        onUndo = onUndo,
+                        onRedo = onRedo,
+                        onToggleTimer = { timerVisible = !timerVisible },
+                        onRequestHint = onRequestHint,
+                        onCheck = onCheck,
+                        onBack = onBack,
                     )
                 }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    TextButton(onClick = onUndo, enabled = canUndo) {
-                        Text(stringResource(R.string.button_undo))
-                    }
-                    TextButton(onClick = onRedo, enabled = canRedo) {
-                        Text(stringResource(R.string.button_redo))
-                    }
-                    TextButton(onClick = { timerVisible = !timerVisible }) {
-                        Text(stringResource(if (timerVisible) R.string.button_hide_timer else R.string.button_show_timer))
+            } else {
+                BoxWithConstraints(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val boardSize = minOf(maxWidth, maxHeight)
+                    if (introCoachLine == null) {
+                        // Keep the board square inside its available height, including on short screens.
+                        Box(modifier = Modifier.width(boardSize)) { board() }
+                    } else {
+                        // Let larger text scroll above the board instead of shrinking its touch targets.
+                        Column(
+                            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text(
+                                introCoachLine,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Box(modifier = Modifier.size(boardSize)) { board() }
+                        }
                     }
                 }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    TextButton(onClick = onRequestHint, enabled = !hintOperationPending) {
-                        Text(stringResource(R.string.button_hint))
-                    }
-                    TextButton(onClick = onCheck, enabled = !hintOperationPending) {
-                        Text(stringResource(R.string.button_check))
-                    }
-                    TextButton(onClick = onBack) { Text(stringResource(R.string.button_back)) }
-                }
+
+                PlayControls(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(toolbarHeight),
+                    elapsedTimeMillis = elapsedTimeMillis,
+                    canUndo = canUndo,
+                    canRedo = canRedo,
+                    saveFailed = saveFailed,
+                    introCoachLine = introCoachLine,
+                    showCoachLine = false,
+                    statusMessage = statusMessage,
+                    hintOperationPending = hintOperationPending,
+                    timerVisible = timerVisible,
+                    gameControls = gameControls,
+                    onUndo = onUndo,
+                    onRedo = onRedo,
+                    onToggleTimer = { timerVisible = !timerVisible },
+                    onRequestHint = onRequestHint,
+                    onCheck = onCheck,
+                    onBack = onBack,
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun PlayHeader(levelRef: LevelRef, height: androidx.compose.ui.unit.Dp) {
+    Column(modifier = Modifier.fillMaxWidth().height(height).padding(16.dp)) {
+        Text(stringResource(gameNameResource(levelRef.gameId)), style = MaterialTheme.typography.titleLarge)
+    }
+}
+
+@Composable
+private fun PlayControls(
+    modifier: Modifier,
+    elapsedTimeMillis: Long,
+    canUndo: Boolean,
+    canRedo: Boolean,
+    saveFailed: Boolean,
+    introCoachLine: String?,
+    showCoachLine: Boolean,
+    statusMessage: String?,
+    hintOperationPending: Boolean,
+    timerVisible: Boolean,
+    gameControls: @Composable () -> Unit,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    onToggleTimer: () -> Unit,
+    onRequestHint: () -> Unit,
+    onCheck: () -> Unit,
+    onBack: () -> Unit,
+) {
+    Column(
+        modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (showCoachLine) {
+            introCoachLine?.let { line ->
+                Text(
+                    line,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        gameControls()
+        if (saveFailed) {
+            Text(stringResource(R.string.play_save_failed), color = MaterialTheme.colorScheme.error)
+        }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+        if (timerVisible) {
+            Text(
+                stringResource(R.string.play_elapsed_time, formatDuration(elapsedTimeMillis)),
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            TextButton(onClick = onUndo, enabled = canUndo) {
+                Text(stringResource(R.string.button_undo))
+            }
+            TextButton(onClick = onRedo, enabled = canRedo) {
+                Text(stringResource(R.string.button_redo))
+            }
+            TextButton(onClick = onToggleTimer) {
+                Text(stringResource(if (timerVisible) R.string.button_hide_timer else R.string.button_show_timer))
+            }
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            TextButton(onClick = onRequestHint, enabled = !hintOperationPending) {
+                Text(stringResource(R.string.button_hint))
+            }
+            TextButton(onClick = onCheck, enabled = !hintOperationPending) {
+                Text(stringResource(R.string.button_check))
+            }
+            TextButton(onClick = onBack) { Text(stringResource(R.string.button_back)) }
         }
     }
 }
@@ -472,6 +584,11 @@ private fun gameNameResource(gameId: String): Int = when (gameId) {
 
 private const val PLAY_HEADER_FRACTION = 0.15f
 private const val TOOLBAR_FRACTION = 1f / 3f
+private const val LANDSCAPE_CONTROLS_FRACTION = 0.36f
+private val LANDSCAPE_CONTROLS_WIDTH = 288.dp
+private val MIN_LANDSCAPE_WIDTH = 600.dp
+private val MAX_LANDSCAPE_HEIGHT = 600.dp
+private val MAX_PLAY_CONTENT_WIDTH = 1_200.dp
 private const val MILLIS_PER_SECOND = 1_000L
 private const val SECONDS_PER_MINUTE = 60L
 private const val TIMER_REFRESH_MILLIS = 1_000L

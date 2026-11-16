@@ -25,6 +25,7 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
 fun GameScreenRoute(
@@ -59,64 +60,66 @@ fun GameScreen(
     onOpenDaily: () -> Unit,
     onHome: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            stringResource(R.string.screen_game, stringResource(gameNameResource(state.gameId))),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-
-        OutlinedButton(onClick = onOpenDaily, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.game_daily_entry))
-        }
-
-        val continueLevelRef = state.continueLevelRef
-        Button(
-            onClick = { continueLevelRef?.let(onContinue) },
-            enabled = !state.isLoading && continueLevelRef != null,
-            modifier = Modifier.fillMaxWidth(),
+    AdaptiveScreen {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.button_continue))
-        }
+            Text(
+                stringResource(R.string.screen_game, stringResource(gameNameResource(state.gameId))),
+                style = MaterialTheme.typography.headlineMedium,
+            )
 
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            state.packs.forEach { packProgress ->
-                val nextLevelRef = packProgress.nextLevelRef
-                Card(
-                    onClick = { nextLevelRef?.let(onSelectPack) },
-                    enabled = nextLevelRef != null,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+            OutlinedButton(onClick = onOpenDaily, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.game_daily_entry))
+            }
+
+            val continueLevelRef = state.continueLevelRef
+            Button(
+                onClick = { continueLevelRef?.let(onContinue) },
+                enabled = !state.isLoading && continueLevelRef != null,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.button_continue))
+            }
+
+            if (state.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                state.packs.forEach { packProgress ->
+                    val nextLevelRef = packProgress.nextLevelRef
+                    Card(
+                        onClick = { nextLevelRef?.let(onSelectPack) },
+                        enabled = nextLevelRef != null,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(
-                            text = stringResource(packNameResource(packProgress.pack)),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.game_pack_progress,
-                                packProgress.completedLevels,
-                                packProgress.totalLevels,
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(
+                                text = stringResource(packNameResource(packProgress.pack)),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.game_pack_progress,
+                                    packProgress.completedLevels,
+                                    packProgress.totalLevels,
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        OutlinedButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.button_home))
+            OutlinedButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.button_home))
+            }
         }
     }
 }

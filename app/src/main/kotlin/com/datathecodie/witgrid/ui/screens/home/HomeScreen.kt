@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
 fun HomeScreenRoute(
@@ -57,77 +58,79 @@ fun HomeScreen(
     onOpenStatistics: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(stringResource(R.string.screen_home), style = MaterialTheme.typography.headlineMedium)
+    AdaptiveScreen {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(stringResource(R.string.screen_home), style = MaterialTheme.typography.headlineMedium)
 
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else {
-            state.games.forEach { game ->
-                Card(
-                    onClick = { onSelectGame(game.gameId) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+            if (state.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                state.games.forEach { game ->
+                    Card(
+                        onClick = { onSelectGame(game.gameId) },
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(
-                            text = stringResource(gameNameResource(game.gameId)),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.home_progress,
-                                game.completedLevels,
-                                game.totalLevels,
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(
+                                text = stringResource(gameNameResource(game.gameId)),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.home_progress,
+                                    game.completedLevels,
+                                    game.totalLevels,
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.screen_daily_puzzle), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.home_daily_status), style = MaterialTheme.typography.bodyMedium)
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.screen_daily_puzzle), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.home_daily_status), style = MaterialTheme.typography.bodyMedium)
+                }
             }
-        }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.home_streak_status), style = MaterialTheme.typography.bodyMedium)
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.home_streak_status), style = MaterialTheme.typography.bodyMedium)
+                }
             }
-        }
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = stringResource(R.string.home_premium_row),
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyLarge,
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.home_premium_row),
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+
+            TextButtonRow(
+                label = stringResource(R.string.screen_calendar),
+                onClick = onOpenCalendar,
+            )
+            TextButtonRow(
+                label = stringResource(R.string.screen_statistics),
+                onClick = onOpenStatistics,
+            )
+            TextButtonRow(
+                label = stringResource(R.string.screen_settings),
+                onClick = onOpenSettings,
             )
         }
-
-        TextButtonRow(
-            label = stringResource(R.string.screen_calendar),
-            onClick = onOpenCalendar,
-        )
-        TextButtonRow(
-            label = stringResource(R.string.screen_statistics),
-            onClick = onOpenStatistics,
-        )
-        TextButtonRow(
-            label = stringResource(R.string.screen_settings),
-            onClick = onOpenSettings,
-        )
     }
 }
 

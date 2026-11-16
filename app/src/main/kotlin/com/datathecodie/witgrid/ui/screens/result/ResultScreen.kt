@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.progress.ProgressRepository
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
 fun ResultScreenRoute(
@@ -54,32 +55,34 @@ fun ResultScreen(
     onNext: () -> Unit,
     onHome: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(stringResource(R.string.screen_result), style = MaterialTheme.typography.headlineMedium)
-        if (elapsedTimeMillis == null) {
-            CircularProgressIndicator()
-        } else {
-            Text(
-                stringResource(R.string.result_time, formatDuration(elapsedTimeMillis)),
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                bestTimeMillis?.let { stringResource(R.string.result_best_time, formatDuration(it)) }
-                    ?: stringResource(R.string.result_no_best_time),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-        Button(onClick = onNext, enabled = elapsedTimeMillis != null) {
-            Text(stringResource(R.string.button_next))
-        }
-        OutlinedButton(onClick = onHome) {
-            Text(stringResource(R.string.button_home))
+    AdaptiveScreen {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(stringResource(R.string.screen_result), style = MaterialTheme.typography.headlineMedium)
+            if (elapsedTimeMillis == null) {
+                CircularProgressIndicator()
+            } else {
+                Text(
+                    stringResource(R.string.result_time, formatDuration(elapsedTimeMillis)),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Text(
+                    bestTimeMillis?.let { stringResource(R.string.result_best_time, formatDuration(it)) }
+                        ?: stringResource(R.string.result_no_best_time),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            Button(onClick = onNext, enabled = elapsedTimeMillis != null) {
+                Text(stringResource(R.string.button_next))
+            }
+            OutlinedButton(onClick = onHome) {
+                Text(stringResource(R.string.button_home))
+            }
         }
     }
 }

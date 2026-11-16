@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
 fun HomeScreen(
@@ -103,14 +104,16 @@ private fun SimpleStubScreen(titleResource: Int, onHome: () -> Unit) {
 
 @Composable
 private fun ScreenColumn(content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        content = content,
-    )
+    AdaptiveScreen {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
+    }
 }
 
 private fun gameNameResource(gameId: String): Int = when (gameId) {
