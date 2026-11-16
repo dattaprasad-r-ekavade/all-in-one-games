@@ -42,6 +42,7 @@ Do task $Task from docs/TASKS.md, and only that task.
 Read AGENTS.md first and obey it. Then read the plan sections that the task card names.
 Change only the files in the card's Owns line.
 Run every 'Done when' command. Continue until all pass, or until you are blocked.
+Always add --no-daemon to Gradle commands (a daemon started in the sandbox breaks later builds outside it).
 Commit on the current branch with the message '${Task}: <summary>'.
 End with the handoff note from AGENTS.md section 7.
 $Extra
@@ -61,6 +62,7 @@ if ($Agent -eq 'codex') {
         -C $wt `
         --add-dir $gradleHome `
         --add-dir (Join-Path $repo '.git') `
+        --add-dir $env:ANDROID_HOME `
         -o $handoff `
         -
 } else {
