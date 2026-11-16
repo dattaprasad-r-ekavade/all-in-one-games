@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 43 %** (26 of 61 task cards done; 1 more in progress)
+**Overall: about 43 %** (26 of 61 task cards done; 1 blocked)
 
 ```
 [#################-----------------------]  43 %
@@ -19,16 +19,16 @@ _Last update: 16 Nov 2026_
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
 
-| Phase | Cards | Done | Active | Progress |
-|---|---|---|---|---|
-| 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 21 | 0 | 91 % |
-| 2 — Core app | 14 | 1 | 1 | 7 % |
-| 3 — Retention | 6 | 0 | 0 | 0 % |
-| 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
-| 5 — Closed test | 4 | 0 | 0 | 0 % |
-| 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **26** | **1** | **43 %** |
+| Phase | Cards | Done | Active | Blocked | Progress |
+|---|---|---|---|---|---|
+| 0 — Setup | 5 | 4 | 0 | 0 | 80 % |
+| 1 — Engine and puzzle bank | 23 | 21 | 0 | 0 | 91 % |
+| 2 — Core app | 14 | 1 | 0 | 1 | 7 % |
+| 3 — Retention | 6 | 0 | 0 | 0 | 0 % |
+| 4 — Monetisation and data | 8 | 0 | 0 | 0 | 0 % |
+| 5 — Closed test | 4 | 0 | 0 | 0 | 0 % |
+| 6 — Launch | 1 | 0 | 0 | 0 | 0 % |
+| **Total** | **61** | **26** | **0** | **1** | **43 %** |
 
 ## Done
 
@@ -63,13 +63,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
-## In progress
+## Blocked
 
-| A2 | Storage and saves | Codex |
+| A2 | Storage and saves | Its Owns line excludes `gradle/libs.versions.toml` and `app/build.gradle.kts`, which are required to configure Room and DataStore. |
 
 ## Next steps
 
-1. **Start app storage:** A2 is active; A3 depends on A1 and A2, and A4 follows A3. Theme wiring into the manifest and activity is part of A3.
+1. **Unblock app storage:** expand A2 Owns to include `gradle/libs.versions.toml` and `app/build.gradle.kts`; A3 depends on A1 and A2, and A4 follows A3.
 2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
 4. **Launch bank generated:** 3,860 puzzles across 20 files; see [the bank report](docs/reports/bank-v1.md).
