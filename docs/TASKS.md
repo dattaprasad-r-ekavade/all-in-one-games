@@ -50,7 +50,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 3 — Retention** |||||||
 | R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | done |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | done |
-| R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | ready |
+| R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | active |
 | R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | todo |
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
