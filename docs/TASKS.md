@@ -20,7 +20,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 1 — Engine and puzzle bank** |||||||
 | E1 | Engine core contracts | H | Codex | Claude + human | T0.1 | done |
 | E2 | Engine test kit | L | Claude | Codex | E1 | done |
-| CR1–CR4 | Crowns lane | see lane table | | | E1 | ready |
+| CR1–CR4 | Crowns lane | see lane table | | | E1 | active |
 | BI1–BI4 | Binary lane | see lane table | | | E1 | todo |
 | NO1–NO4 | Nonogram lane | see lane table | | | E1 | todo |
 | MS1–MS4 | Mini Sudoku lane | see lane table | | | E1 | todo |
