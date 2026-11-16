@@ -55,6 +55,7 @@ fun NonogramBoard(
     onUndo: () -> Unit,
     options: NonogramBoardOptions = LocalNonogramBoardOptions.current,
     modifier: Modifier = Modifier,
+    layout: (@Composable (board: @Composable () -> Unit, controls: @Composable () -> Unit) -> Unit)? = null,
 ) {
     var mode by remember(state.puzzle.id) { mutableStateOf(NonogramMarkMode.FILL) }
     val puzzle = state.puzzle
@@ -70,7 +71,7 @@ fun NonogramBoard(
         clues == puzzle.columnClues[index]
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    val controlsContent: @Composable () -> Unit = {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -89,6 +90,8 @@ fun NonogramBoard(
             )
         }
 
+    }
+    val boardContent: @Composable () -> Unit = {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val maxClueCount = maxOf(
                 puzzle.rowClues.maxOf { clues -> clues.size },
@@ -156,6 +159,14 @@ fun NonogramBoard(
                 }
             }
         }
+    }
+    if (layout == null) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            controlsContent()
+            boardContent()
+        }
+    } else {
+        layout(boardContent, controlsContent)
     }
 }
 

@@ -52,6 +52,7 @@ fun MiniSudokuBoard(
     onUndo: () -> Unit,
     options: MiniSudokuBoardOptions = LocalMiniSudokuBoardOptions.current,
     modifier: Modifier = Modifier,
+    layout: (@Composable (board: @Composable () -> Unit, controls: @Composable () -> Unit) -> Unit)? = null,
 ) {
     var selectedCellIndex by remember(state.puzzle.id) { mutableStateOf<Int?>(null) }
     var notesMode by remember(state.puzzle.id) { mutableStateOf(false) }
@@ -64,7 +65,7 @@ fun MiniSudokuBoard(
     val givenStyle = NumberStyles.cell.copy(color = colors.ink)
     val noteStyle = NumberStyles.clue.copy(color = colors.ink)
 
-    Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    val boardContent: @Composable () -> Unit = {
         BoardCanvas(
             gridSize = puzzle.size,
             cellDescription = { cell ->
@@ -110,6 +111,8 @@ fun MiniSudokuBoard(
             onUndo = onUndo,
         )
 
+    }
+    val controlsContent: @Composable () -> Unit = {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.screenMargin),
             horizontalArrangement = Arrangement.Center,
@@ -178,6 +181,14 @@ fun MiniSudokuBoard(
                 }
             }
         }
+    }
+    if (layout == null) {
+        Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            boardContent()
+            controlsContent()
+        }
+    } else {
+        layout(boardContent, controlsContent)
     }
 }
 
