@@ -50,7 +50,7 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Merge the three active cards.** Each one gets a review from the other agent family. You read the E1 interfaces before merge.
+1. **Merge the two active cards.** Each one gets a review from the other agent family. You read the E1 interfaces before merge.
 2. **Start the four game streams** (Crowns, Binary, Nonogram, Mini Sudoku) in parallel after E1. Also start E2 (engine test kit) and A2 (storage).
 3. **Build the puzzle bank** (B1 to B3): 600 levels and 365 daily puzzles for each game.
 4. **Human tasks to start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
