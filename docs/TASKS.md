@@ -26,11 +26,11 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | MS1–MS4 | Mini Sudoku lane | see lane table | | | E1 | done |
 | B1 | `bankgen` command-line tool | M | Codex | Claude | E1 | done |
 | B2 | Generate the launch bank and report | L | Codex | Claude | B1, CR3, BI3, NO3, MS3 | done |
-| B3 | Bank validation in `check` and CI | L | Claude | Codex | B2, T0.2 | active |
+| B3 | Bank validation in `check` and CI | L | Claude | Codex | B2, T0.2 | done |
 | H1 | Hand-test the bank | Human | — | — | B2 | todo |
 | **Phase 2 — Core app** |||||||
 | A1 | Theme and design tokens | M | Claude | Codex | T0.1 | done |
-| A2 | Storage and saves | M | Codex | Claude | E1 | ready |
+| A2 | Storage and saves | M | Codex | Claude | E1 | active |
 | A3 | App contracts, navigation, play controller | H | Claude | Codex + human | A1, A2 | todo |
 | A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | todo |
 | A5 | Crowns board | M | Claude | Codex | A4, CR2 | todo |
@@ -163,7 +163,7 @@ Each launch game is one lane of four cards. The lanes are independent. Run them 
 - MS1 must define the note/value policy: `SetDigit` on a cell clears that cell's notes.
 - Auto-X (Crowns), auto-cross (Nonogram) and auto-update notes (Mini Sudoku) are not engine work. The app emits them as extra absolute `Move`s in one `History` record per gesture.
 
-**Game lane progress (16 Nov 2026):** NO1–NO4 and MS1–MS4 are done; B3 is the active bank card.
+**Game lane progress (16 Nov 2026):** NO1–NO4 and MS1–MS4 are done; B1–B3 are complete and H1 is ready for hand-testing.
 
 **CR1 lead-approved scope extension (16 Nov 2026):** CR1 also owns `engine/src/test/kotlin/com/datathecodie/witgrid/engine/RegistryTest.kt` so the first concrete engine can replace its registry stub. Update the shared test once to cover the registered Crowns implementation and remove the obsolete assumption that every lane must remain a stub. Later lanes keep changes in their game-local files and tests.
 

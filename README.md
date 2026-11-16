@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 41 %** (25 of 61 task cards done; 1 more in progress)
+**Overall: about 43 %** (26 of 61 task cards done; 1 more in progress)
 
 ```
-[################------------------------]  41 %
+[#################-----------------------]  43 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 20 | 1 | 87 % |
-| 2 — Core app | 14 | 1 | 0 | 7 % |
+| 1 — Engine and puzzle bank | 23 | 21 | 0 | 91 % |
+| 2 — Core app | 14 | 1 | 1 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **25** | **1** | **41 %** |
+| **Total** | **61** | **26** | **1** | **43 %** |
 
 ## Done
 
@@ -59,17 +59,18 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | MS4 | Independent hand-built tests cover 6×6 row, column and 2×3 box rules, capped solution counts, mistakes, notes and solved-state semantics. `:engine:test` and `check` pass. |
 | B1 | `bankgen` generate, validate and stats CLI with deterministic parallel generation, compressed atomic writes, daily pack checks and validation diagnostics. Fake-engine tests and `check` pass; reviewed with no blockers. |
 | B2 | Generated 150 levels per pack and 365 daily puzzles for each game: 3,860 puzzles in 20 files. `validate --all` and `stats` pass; the compressed bank is 198,145 bytes and the report includes seeds, timings and histograms. Independently reviewed with no blockers. |
+| B3 | `bankgen validate --all` now runs during Gradle `check`. `check` failed when a bank line was corrupted and passed after restoring the file; reviewed with no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| B3 | Bank validation in `check` and CI | Codex |
+| A2 | Storage and saves | Codex |
 
 ## Next steps
 
-1. **Finish the puzzle bank:** B3 is active to wire validation into `check` and CI; H1 then hand-tests the generated bank.
-2. **Start app storage:** A2 is ready; A3 depends on A1 and A2, and A4 follows A3. Theme wiring into the manifest and activity is part of A3.
+1. **Start app storage:** A2 is active; A3 depends on A1 and A2, and A4 follows A3. Theme wiring into the manifest and activity is part of A3.
+2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
 4. **Launch bank generated:** 3,860 puzzles across 20 files; see [the bank report](docs/reports/bank-v1.md).
 
