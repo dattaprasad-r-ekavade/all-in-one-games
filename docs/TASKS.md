@@ -14,11 +14,11 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 0 — Setup** |||||||
 | H0.1 | Accounts, legal, website | Human | — | — | — | ready |
 | H0.2 | Developer machine and repo setup | Human | — | — | — | ready |
-| T0.1 | Gradle project with three modules | M | Claude | Codex | H0.2 | todo |
-| T0.2 | GitHub Actions CI | L | Codex | Claude | T0.1 | todo |
+| T0.1 | Gradle project with three modules | M | Claude | Codex | H0.2 | done |
+| T0.2 | GitHub Actions CI | L | Codex | Claude | T0.1 | ready |
 | T0.3 | Ads SDK decision memo | M | Claude | — (human decides) | — | done (Next-Gen) |
 | **Phase 1 — Engine and puzzle bank** |||||||
-| E1 | Engine core contracts | H | Codex | Claude + human | T0.1 | todo |
+| E1 | Engine core contracts | H | Codex | Claude + human | T0.1 | ready |
 | E2 | Engine test kit | L | Claude | Codex | E1 | todo |
 | CR1–CR4 | Crowns lane | see lane table | | | E1 | todo |
 | BI1–BI4 | Binary lane | see lane table | | | E1 | todo |
@@ -29,7 +29,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | B3 | Bank validation in `check` and CI | L | Claude | Codex | B2, T0.2 | todo |
 | H1 | Hand-test the bank | Human | — | — | B2 | todo |
 | **Phase 2 — Core app** |||||||
-| A1 | Theme and design tokens | M | Claude | Codex | T0.1 | todo |
+| A1 | Theme and design tokens | M | Claude | Codex | T0.1 | ready |
 | A2 | Storage and saves | M | Codex | Claude | E1 | todo |
 | A3 | App contracts, navigation, play controller | H | Claude | Codex + human | A1, A2 | todo |
 | A4 | Board canvas kit and gestures | H | Claude | Codex | A3 | todo |

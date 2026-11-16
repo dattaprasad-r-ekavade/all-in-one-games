@@ -469,7 +469,7 @@ Release about one game each 2 to 3 weeks. Each new game is a store update and a 
 4. GDD section 7 is missing from the PDF.
 5. Nonogram: abstract patterns at launch, or delay for picture puzzles.
 6. Minimum Android version (proposal: API 24).
-7. JDK version for the selected AGP 9.x (you have JDK 17). Settle in task T0.1.
+7. ~~JDK version~~ — settled in T0.1: AGP 9.5.1 works with JDK 17. Versions: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk 37, targetSdk 36, minSdk 24, JUnit 6.1.3.
 8. Codex sandbox flags for Gradle (`network_access`, `--add-dir ~/.gradle`) on your Codex version. Settle at the first Codex task.
 
 ## 16. Build method: AI agents
