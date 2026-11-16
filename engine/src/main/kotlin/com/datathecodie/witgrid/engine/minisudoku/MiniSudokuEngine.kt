@@ -29,9 +29,10 @@ object MiniSudokuEngine : GameEngine<MiniSudokuPuzzle, MiniSudokuState> {
     override fun countSolutions(puzzle: MiniSudokuPuzzle, limit: Int): Int =
         MiniSudokuRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: MiniSudokuPuzzle, state: MiniSudokuState): HintStep? = unavailable()
+    override fun nextStep(puzzle: MiniSudokuPuzzle, state: MiniSudokuState): HintStep? =
+        MiniSudokuTechniqueSolver.nextStep(puzzle, state)
 
-    override fun grade(puzzle: MiniSudokuPuzzle): Grade = unavailable()
+    override fun grade(puzzle: MiniSudokuPuzzle): Grade = MiniSudokuTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): MiniSudokuPuzzle = unavailable()
 
