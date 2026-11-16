@@ -166,7 +166,7 @@ Native Kotlin + Jetpack Compose. Versions are as reported on 16 Nov 2026. **[Ver
 | Language and build | Kotlin 2.4.x, Android Gradle Plugin 9.5.x, Gradle 9.6 |
 | UI | Jetpack Compose (BOM 2026.09 or later), Compose Canvas for grids |
 | Target | Target API 36 (required for new apps). Min API 24 is my suggestion. |
-| Ads | Google Mobile Ads SDK, AdMob only at launch |
+| Ads | Google Mobile Ads Next-Gen SDK (`ads-mobile-sdk` 1.6.0 or later), AdMob only at launch, behind the `AdService` interface |
 | Consent | Google UMP SDK 4.x |
 | Purchase | Play Billing Library 9.x (`billing-ktx`) |
 | Storage | Room for level progress, DataStore for settings, streak and the Premium flag |
@@ -174,7 +174,7 @@ Native Kotlin + Jetpack Compose. Versions are as reported on 16 Nov 2026. **[Ver
 | Reminder | AlarmManager or WorkManager with a local notification |
 | Data | Firebase Analytics, Crashlytics, Remote Config (Firebase BoM 35.x) |
 
-**Open choice [Verify]:** Google now labels `play-services-ads` as "Legacy" and offers the Next-Gen SDK (`ads-mobile-sdk`). Select one in phase 0. Check that the mediation adapters you will need later support the SDK you select.
+**Decision (16 Nov 2026):** Next-Gen SDK. Reasons and sources: `docs/decisions/ads-sdk.md`. Legacy `play-services-ads` is deprecated on 30 Jun 2027 [Verify]. Before you add mediation, check adapter support: AppLovin MAX and Chartboost do not support Next-Gen yet [Verify]; Unity LevelPlay does.
 
 **Play rules that affect the build [Verify]**
 - Edge-to-edge display is mandatory at API 36. Predictive back is on by default.
@@ -273,7 +273,7 @@ Rules:
 
 ### 8.3 Offline behaviour
 
-- A preloaded AdMob ad expires after one hour [Verify]. Preload one interstitial and one rewarded ad when a connection is available.
+- Preload one interstitial and one rewarded ad when a connection is available. Drop a preloaded ad after one hour. Google documents this expiry only for the Legacy SDK, so the app enforces it itself. Make the reward grant idempotent.
 - With no connection and no loaded ad: skip the interstitial with no message.
 - With no connection, the player gets `offline_free_hints_per_day` extra hints (default 3). After that, the hint button shows the Premium offer.
 - Never block play because of the connection.
@@ -464,7 +464,7 @@ Release about one game each 2 to 3 weeks. Each new game is a store update and a 
 ## 15. Open items
 
 1. Official trademark check of "Witgrid".
-2. Ads SDK choice: Legacy or Next-Gen.
+2. ~~Ads SDK choice~~ — decided 16 Nov 2026: Next-Gen (`docs/decisions/ads-sdk.md`).
 3. Public developer details on Play for an account that earns money.
 4. GDD section 7 is missing from the PDF.
 5. Nonogram: abstract patterns at launch, or delay for picture puzzles.
