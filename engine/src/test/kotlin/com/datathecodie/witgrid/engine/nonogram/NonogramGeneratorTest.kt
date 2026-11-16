@@ -51,6 +51,16 @@ class NonogramGeneratorTest {
         }
     }
 
+    @Test
+    fun generatedIdsUseUnsignedSixteenDigitHex() {
+        val idPattern = Regex("^NO-[A-Z]+-[0-9a-f]{16}$")
+        for (pack in Pack.entries) {
+            generateBatch(pack).forEach { puzzle ->
+                assertTrue(idPattern.matches(puzzle.id), "Unexpected Nonogram ID: ${puzzle.id}")
+            }
+        }
+    }
+
     private fun generateBatch(pack: Pack): List<NonogramPuzzle> {
         val rng = SplitMix64(1L)
         return List(10) { NonogramEngine.generate(rng, pack) }

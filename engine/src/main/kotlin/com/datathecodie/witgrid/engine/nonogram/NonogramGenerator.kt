@@ -31,7 +31,7 @@ object NonogramGenerator {
                 return@repeat
             }
             return NonogramPuzzle(
-                id = "NO-${pack.name}-${rng.nextLong().toString(16)}",
+                id = "NO-${pack.name}-${rng.nextLong().toULong().toString(16).padStart(16, '0')}",
                 size = candidate.size,
                 rowClues = candidate.rowClues,
                 columnClues = candidate.columnClues,

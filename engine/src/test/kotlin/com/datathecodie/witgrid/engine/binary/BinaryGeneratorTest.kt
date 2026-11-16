@@ -50,6 +50,16 @@ class BinaryGeneratorTest {
         }
     }
 
+    @Test
+    fun generatedIdsUseUnsignedSixteenDigitHex() {
+        val idPattern = Regex("^BI-[A-Z]+-[0-9a-f]{16}$")
+        for (pack in Pack.entries) {
+            generateBatch(pack).forEach { puzzle ->
+                assertTrue(idPattern.matches(puzzle.id), "Unexpected Binary ID: ${puzzle.id}")
+            }
+        }
+    }
+
     private fun generateBatch(pack: Pack): List<BinaryPuzzle> {
         val rng = SplitMix64(1L)
         return List(10) { BinaryEngine.generate(rng, pack) }
