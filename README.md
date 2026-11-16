@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 11 %** (7 of 61 task cards done; no cards in progress)
+**Overall: about 11 %** (7 of 61 task cards done; 1 more in progress)
 
 ```
 [████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  11 %
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 2 | 0 | 9 % |
+| 1 — Engine and puzzle bank | 23 | 2 | 1 | 9 % |
 | 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **7** | **0** | **11 %** |
+| **Total** | **61** | **7** | **1** | **11 %** |
 
 ## Done
 
@@ -46,11 +46,11 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## In progress
 
-No cards are currently active.
+| CR1 | Crowns puzzle/state model, bank payload and capped solution counter | Codex |
 
 ## Next steps
 
-1. **Start the four game-model cards** (CR1, BI1, NO1, MS1) and A2. E2's test kit is ready for independent lane tests. Keep to the workflow's three-agent concurrency limit.
+1. **Complete CR1**, then start the other game-model cards (BI1, NO1, MS1) and A2. E2's test kit is ready for independent lane tests. Keep to the workflow's three-agent concurrency limit.
 2. **Wire the theme and core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
 3. **Build the puzzle bank** after the game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
 4. **Human tasks can start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
