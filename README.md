@@ -9,12 +9,12 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 ## Progress
 
-_Last update: 16 Nov 2026_
+_Last update: 17 Nov 2026_
 
-**Overall: about 53 %** (34 of 64 task cards done; 1 active)
+**Overall: about 55 %** (35 of 64 task cards done; 1 active)
 
 ```
-[#####################-------------------]  53 %
+[######################------------------]  55 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -23,12 +23,12 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 |---|---|---|---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
-| 2 — Core app | 14 | 5 | 4 | 1 | 0 | 0 | 36 % |
+| 2 — Core app | 14 | 6 | 3 | 1 | 0 | 0 | 43 % |
 | 3 — Retention | 6 | 0 | 3 | 0 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **34** | **10** | **1** | **0** | **0** | **53 %** |
+| **Total** | **64** | **35** | **9** | **1** | **0** | **0** | **55 %** |
 
 ## Done
 
@@ -44,6 +44,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | A3 | Game module and bank contracts, Compose navigation and screens, serialized play/save controller, and versioned state codecs for all four engines. App, engine, and full `check` gates pass; reviewed by `gpt-6.1-sol` and human-approved. |
 | A4 | Responsive board canvas, hit testing, drag interpolation, tap/long-press/two-finger undo, haptics, reduce-motion completion wave, localized cell semantics, and an interactive preview. Geometry tests and full `check` pass; reviewed with all findings fixed. |
 | A5 | Crowns board with tap cycle, X drag, grouped Auto-X, optional region cues, mark/region-aware TalkBack labels, and explicit region borders. JVM gesture/undo tests and a real-touch first-bank solve test pass; reviewed by `gpt-6.1-sol`; full `check` passes. |
+| A6 | Binary board with A/B tap cycling, long-press clearing, immutable givens, accessible row/column labels, and drag disabled. Emulator tests cover the first bank solve and touch behavior; reviewer fixed dense-grid text sizing; full `check` passes. |
 | E2 | ASCII-grid fixtures and generic engine test helpers for uniqueness, hint solving and deterministic generation. Six test-kit tests pass; `check` passes; reviewed by `gpt-6.1-sol` with no blockers. |
 | CR1 | Crowns puzzle/state model, bank codec, rule checks, mistake handling and capped solution counter exposed through `GameEngine`. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` after fixes. |
 | CR2 | Crowns technique solver, deterministic hints, one-sentence explanations, grade and size-based pack bands. `:engine:test` and `check` pass; reviewed and fixed by `gpt-6.1-sol`. |
@@ -73,11 +74,11 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## In progress
 
-| A6 | Binary board | Codex |
+| A7 | Nonogram board | Codex |
 
 ## Next steps
 
-1. **Build A6:** the Binary board is active; A7–A8 are ready and follow the shared canvas kit.
+1. **Build A7:** the Nonogram board is active; A8 is ready and follows the shared canvas kit.
 2. **Build app screens:** A9 and A10 are ready after A3 and A4.
 3. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 4. **Complete human setup:** H0.1 covers accounts, legal setup and the website.
