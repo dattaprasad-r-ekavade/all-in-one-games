@@ -1,0 +1,33 @@
+# Gradle / Android
+.gradle/
+build/
+**/build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.kotlin/
+
+# Secrets: never commit
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+service-account*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent local files
+.claude/settings.local.json
+.claude/worktrees/
