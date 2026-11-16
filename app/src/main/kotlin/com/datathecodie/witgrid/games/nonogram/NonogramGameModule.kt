@@ -12,6 +12,7 @@ import com.datathecodie.witgrid.games.GameModule
 object NonogramGameModule : GameModule<NonogramPuzzle, NonogramState> by EngineGameModule(
     engine = NonogramEngine,
     puzzleOf = NonogramState::puzzle,
+    intro = Intro.definition,
     interstitialRule = { level -> if (level.size == SHORT_NONOGRAM_SIZE) 2 else 1 },
 ) {
     @Composable

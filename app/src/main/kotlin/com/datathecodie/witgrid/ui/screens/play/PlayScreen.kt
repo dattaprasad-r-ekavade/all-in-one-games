@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -77,6 +78,12 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     onSolved: (LevelSolvedEvent) -> Unit,
     onBack: () -> Unit,
 ) {
+    val introCoachLineResourceId = levelRef.introCoachLineResourceId
+    val introCoachLine = if (introCoachLineResourceId == null) {
+        null
+    } else {
+        stringResource(introCoachLineResourceId)
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
     val controllerState = remember(levelRef) { mutableStateOf<PlayController<P, S>?>(null) }
     var loadFailed by remember(levelRef) { mutableStateOf(false) }
@@ -259,6 +266,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 canUndo = snapshot.canUndo,
                 canRedo = snapshot.canRedo,
                 saveFailed = saveFailed,
+                introCoachLine = introCoachLine,
                 statusMessage = statusMessage,
                 hintOperationPending = hintOperationPending,
                 board = board,
@@ -330,6 +338,7 @@ internal fun PlayScreenLayout(
     canUndo: Boolean,
     canRedo: Boolean,
     saveFailed: Boolean,
+    introCoachLine: String?,
     statusMessage: String?,
     hintOperationPending: Boolean,
     board: @Composable () -> Unit,
@@ -356,8 +365,24 @@ internal fun PlayScreenLayout(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
-                // Keep the board square inside its available height, including on short screens.
-                Box(modifier = Modifier.width(minOf(maxWidth, maxHeight))) { board() }
+                val boardSize = minOf(maxWidth, maxHeight)
+                if (introCoachLine == null) {
+                    // Keep the board square inside its available height, including on short screens.
+                    Box(modifier = Modifier.width(boardSize)) { board() }
+                } else {
+                    // Let larger text scroll above the board instead of shrinking its touch targets.
+                    Column(
+                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            introCoachLine,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Box(modifier = Modifier.size(boardSize)) { board() }
+                    }
+                }
             }
 
             Column(

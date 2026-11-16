@@ -12,6 +12,7 @@ import com.datathecodie.witgrid.games.GameModule
 object MiniSudokuGameModule : GameModule<MiniSudokuPuzzle, MiniSudokuState> by EngineGameModule(
     engine = MiniSudokuEngine,
     puzzleOf = MiniSudokuState::puzzle,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable

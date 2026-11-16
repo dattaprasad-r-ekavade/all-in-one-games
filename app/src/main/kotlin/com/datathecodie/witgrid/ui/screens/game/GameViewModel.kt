@@ -36,6 +36,7 @@ class GameViewModel(
         val unfinishedSavedIds = progress.filterNot { it.completed }.map { it.levelId }.toSet()
         val orderedRefs = Pack.entries.flatMap { levelRefsByPack[it].orEmpty() }
         val continueLevelRef = orderedRefs.firstOrNull { it.levelId in unfinishedSavedIds }
+            ?: orderedRefs.firstOrNull { it.isIntro && it.levelId !in completedLevelIds }
             ?: orderedRefs.firstOrNull { it.levelId !in completedLevelIds }
             ?: orderedRefs.firstOrNull()
         val packs = Pack.entries.map { pack ->

@@ -12,6 +12,7 @@ import com.datathecodie.witgrid.games.GameModule
 object BinaryGameModule : GameModule<BinaryPuzzle, BinaryState> by EngineGameModule(
     engine = BinaryEngine,
     puzzleOf = BinaryState::puzzle,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable

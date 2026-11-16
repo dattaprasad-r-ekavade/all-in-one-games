@@ -1,5 +1,6 @@
 package com.datathecodie.witgrid.games
 
+import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.engine.core.BankLine
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
@@ -23,6 +24,24 @@ class GameModuleTest {
 
         assertEquals(easyIds, refs.map { it.levelId })
         assertTrue(refs.all { it.pack == Pack.EASY && !it.daily && it.gameId == "crowns" })
+    }
+
+    @Test
+    fun introIsFirstEasyLevelLoadsFromRawAssetAndLeadsToRegularEasyLevel() {
+        val bank = FakeBankSource()
+        val module = crownsIntroModule()
+
+        val refs = module.levelRefs(Pack.EASY, bank)
+        val introRef = refs.first()
+        val level = module.loadLevel(introRef, bank)
+
+        assertTrue(introRef.isIntro)
+        assertEquals("CR-INTRO-TEST", introRef.levelId)
+        assertEquals(R.string.intro_coach_crowns, introRef.introCoachLineResourceId)
+        assertEquals(6, level.size)
+        assertEquals(listOf("bank/crowns-intro.txt"), bank.openedPaths.filter { it.endsWith("-intro.txt") })
+        assertEquals(refs[1], module.nextLevelRef(introRef, bank))
+        assertEquals(easyIds, refs.drop(1).map { it.levelId })
     }
 
     @Test
@@ -115,6 +134,13 @@ class GameModuleTest {
 
     private val crownsModule = EngineGameModule(CrownsEngine, CrownsState::puzzle) { 1 }
 
+    private fun crownsIntroModule() = EngineGameModule(
+        engine = CrownsEngine,
+        puzzleOf = CrownsState::puzzle,
+        intro = GameIntro("CR-INTRO-TEST", R.string.intro_coach_crowns),
+        interstitialRule = { 1 },
+    )
+
     /**
      * Builds a small Crowns bank in memory. Lines come from seeded generation, so the test
      * does not depend on the committed bank, which card B5 regenerates.
@@ -131,6 +157,7 @@ class GameModuleTest {
         private companion object {
             val files: Map<String, ByteArray> = mapOf(
                 "bank/crowns-easy.txt.gz" to textFile(easyLines),
+                "bank/crowns-intro.txt" to textFile(listOf(introLine)),
                 "bank/crowns-daily.txt.gz" to textFile(dailyLines),
             )
         }
@@ -142,6 +169,7 @@ class GameModuleTest {
         val easyLines: List<String> = listOf(11L, 12L, 13L).map { seed ->
             CrownsCodec.encode(CrownsEngine.generate(SplitMix64(seed), Pack.EASY))
         }
+        val introLine: String = BankLine.decode(easyLines.first()).copy(id = "CR-INTRO-TEST").encode()
         val easyIds: List<String> = easyLines.map { BankLine.decode(it).id }
 
         // Daily lines are copies of one generated MEDIUM line with new IDs, so the file has 365 days.

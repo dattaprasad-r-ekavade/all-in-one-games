@@ -1,6 +1,7 @@
 package com.datathecodie.witgrid.games
 
 import android.content.res.AssetManager
+import androidx.annotation.StringRes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -19,10 +20,29 @@ data class LevelRef(
     val levelId: String,
     val pack: Pack,
     val daily: Boolean = false,
+    @StringRes val introCoachLineResourceId: Int? = null,
 ) {
     init {
         require(gameId.isNotBlank()) { "Game ID must not be blank" }
         require(levelId.isNotBlank()) { "Level ID must not be blank" }
+        require(!daily || introCoachLineResourceId == null) {
+            "Daily levels cannot carry an intro coach line"
+        }
+        require(introCoachLineResourceId == null || introCoachLineResourceId != 0) {
+            "Intro coach line must use a valid string resource"
+        }
+    }
+
+    val isIntro: Boolean get() = introCoachLineResourceId != null
+}
+
+data class GameIntro(
+    val levelId: String,
+    @StringRes val coachLineResourceId: Int,
+) {
+    init {
+        require(levelId.isNotBlank()) { "Intro level ID must not be blank" }
+        require(coachLineResourceId != 0) { "Intro coach line must use a valid string resource" }
     }
 }
 
@@ -37,7 +57,7 @@ interface BankSource {
     fun open(path: String): InputStream
 }
 
-/** Reads packaged bank assets, whose `.gz` suffix Android removes after expanding the file. */
+/** Reads compressed puzzle banks and raw intro text assets packaged beside them. */
 class AssetBankSource(private val assets: AssetManager) : BankSource {
     override fun open(path: String): InputStream = assets.open(path.removeSuffix(".gz"))
 }
@@ -49,7 +69,7 @@ interface GameModule<P : Any, S : Any> {
     /** Finished levels between two interstitial ads for [level] (plan 8.1). */
     fun levelsPerInterstitial(level: GameLevel<P>): Int
 
-    /** All levels of [pack], in bank order. */
+    /** All levels of [pack], in bank order; an intro is first in Easy when the game has one. */
     fun levelRefs(pack: Pack, bank: BankSource): List<LevelRef>
 
     fun firstLevelRef(pack: Pack, bank: BankSource): LevelRef
@@ -96,6 +116,7 @@ interface GameModule<P : Any, S : Any> {
 class EngineGameModule<P : Any, S : Any>(
     override val engine: GameEngine<P, S>,
     private val puzzleOf: (S) -> P,
+    private val intro: GameIntro? = null,
     private val interstitialRule: (GameLevel<P>) -> Int,
 ) : GameModule<P, S> {
     private class BankEntry(val raw: String, val bankLine: BankLine)
@@ -111,8 +132,24 @@ class EngineGameModule<P : Any, S : Any>(
     override fun levelsPerInterstitial(level: GameLevel<P>): Int =
         interstitialRule(level).also { require(it > 0) { "Interstitial interval must be positive" } }
 
-    override fun levelRefs(pack: Pack, bank: BankSource): List<LevelRef> =
-        bankEntries(bankAssetPath(pack), bank).map { entry -> LevelRef(id, entry.bankLine.id, pack) }
+    override fun levelRefs(pack: Pack, bank: BankSource): List<LevelRef> {
+        val packRefs = bankEntries(bankAssetPath(pack), bank).map { entry ->
+            LevelRef(id, entry.bankLine.id, pack)
+        }
+        if (pack != Pack.EASY || intro == null) return packRefs
+
+        val introEntry = introBankEntry(bank)
+        require(packRefs.none { it.levelId == introEntry.bankLine.id }) {
+            "Intro level ID ${introEntry.bankLine.id} is already used in the Easy bank"
+        }
+        val introRef = LevelRef(
+            gameId = id,
+            levelId = introEntry.bankLine.id,
+            pack = Pack.EASY,
+            introCoachLineResourceId = intro.coachLineResourceId,
+        )
+        return listOf(introRef) + packRefs
+    }
 
     override fun firstLevelRef(pack: Pack, bank: BankSource): LevelRef =
         levelRefs(pack, bank).firstOrNull()
@@ -137,9 +174,27 @@ class EngineGameModule<P : Any, S : Any>(
 
     override fun loadLevel(ref: LevelRef, bank: BankSource): GameLevel<P> {
         require(ref.gameId == id) { "Level belongs to ${ref.gameId}, not $id" }
-        val path = if (ref.daily) dailyAssetPath() else bankAssetPath(ref.pack)
+        val path = when {
+            ref.daily -> dailyAssetPath()
+            ref.isIntro -> {
+                val definition = requireNotNull(intro) { "Game $id has no intro level" }
+                require(ref.pack == Pack.EASY && ref.levelId == definition.levelId) {
+                    "Level ${ref.levelId} is not the configured intro for $id"
+                }
+                require(ref.introCoachLineResourceId == definition.coachLineResourceId) {
+                    "Intro coach line does not match the configured intro for $id"
+                }
+                introAssetPath()
+            }
+            else -> bankAssetPath(ref.pack)
+        }
         val entry = bankEntries(path, bank).firstOrNull { it.bankLine.id == ref.levelId }
             ?: throw NoSuchElementException("Level ${ref.levelId} is not in the ${bankName(ref)}")
+        if (ref.isIntro) {
+            require(entry.bankLine.pack == Pack.EASY) { "Intro level ${ref.levelId} must use the Easy pack" }
+        } else if (!ref.daily) {
+            require(entry.bankLine.pack == ref.pack) { "Level ${ref.levelId} does not use the ${ref.pack} pack" }
+        }
         return GameLevel(ref, entry.bankLine.size, engine.decodePuzzle(entry.raw))
     }
 
@@ -154,16 +209,34 @@ class EngineGameModule<P : Any, S : Any>(
             parsedBankFiles.getOrPut(path) { readBankFile(path, bank) }
         }
 
+    private fun introBankEntry(bank: BankSource): BankEntry {
+        val definition = requireNotNull(intro)
+        val entries = bankEntries(introAssetPath(), bank)
+        require(entries.size == 1) { "Intro bank for $id must contain exactly one puzzle" }
+        val entry = entries.single()
+        require(entry.bankLine.id == definition.levelId) {
+            "Intro bank for $id must use level ID ${definition.levelId}"
+        }
+        require(entry.bankLine.pack == Pack.EASY) { "Intro bank for $id must use the Easy pack" }
+        return entry
+    }
+
     private fun readBankFile(path: String, bank: BankSource): List<BankEntry> =
         bank.open(path).bufferedReader(Charsets.UTF_8).useLines { lines ->
             lines.map { raw -> BankEntry(raw, BankLine.decode(raw)) }.toList()
         }
 
     private fun bankName(ref: LevelRef): String =
-        if (ref.daily) "daily bank" else "${ref.pack} pack"
+        when {
+            ref.daily -> "daily bank"
+            ref.isIntro -> "intro bank"
+            else -> "${ref.pack} pack"
+        }
 
     private fun bankAssetPath(pack: Pack): String =
         "bank/$id-${pack.name.lowercase()}.txt.gz"
+
+    private fun introAssetPath(): String = "bank/$id-intro.txt"
 
     private fun dailyAssetPath(): String = "bank/$id-daily.txt.gz"
 }

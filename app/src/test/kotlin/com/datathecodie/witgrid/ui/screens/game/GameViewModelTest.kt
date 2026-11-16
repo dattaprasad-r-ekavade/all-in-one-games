@@ -10,6 +10,32 @@ import org.junit.jupiter.api.Test
 
 class GameViewModelTest {
     @Test
+    fun aNewGameContinuesToItsIntroAndThenTheFirstUnfinishedLevel() = runBlocking {
+        val intro = LevelRef("binary", "BI-INTRO-01", Pack.EASY, introCoachLineResourceId = 1)
+        val easy = LevelRef("binary", "easy-001", Pack.EASY)
+        val viewModel = GameViewModel(
+            gameId = "binary",
+            levelRefsByPack = mapOf(Pack.EASY to listOf(intro, easy)),
+            progressRepository = FakeProgressSummaryRepository(emptyList()),
+        )
+
+        viewModel.refresh()
+
+        assertEquals(intro, viewModel.state.value.continueLevelRef)
+        assertEquals(intro, viewModel.state.value.packs.first().nextLevelRef)
+
+        val completedIntroViewModel = GameViewModel(
+            gameId = "binary",
+            levelRefsByPack = mapOf(Pack.EASY to listOf(intro, easy)),
+            progressRepository = FakeProgressSummaryRepository(listOf(progress(intro.levelId, completed = true))),
+        )
+
+        completedIntroViewModel.refresh()
+
+        assertEquals(easy, completedIntroViewModel.state.value.continueLevelRef)
+    }
+
+    @Test
     fun refreshCountsByPackAndChoosesFirstUnfinishedLevel() = runBlocking {
         val easyFirst = LevelRef("binary", "easy-001", Pack.EASY)
         val easySecond = LevelRef("binary", "easy-002", Pack.EASY)

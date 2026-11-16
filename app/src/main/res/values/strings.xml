@@ -97,4 +97,8 @@
     <string name="game_nonogram">Nonogram</string>
     <string name="game_minisudoku">Mini Sudoku</string>
     <string name="game_unknown">Game</string>
+    <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally.</string>
+    <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
+    <string name="intro_coach_nonogram">A clue gives the length of a filled run; a 5 fills the whole column.</string>
+    <string name="intro_coach_minisudoku">Each row, column, and 2 by 3 box uses digits 1 through 6 once; fill the cell with only one possible digit.</string>
 </resources>

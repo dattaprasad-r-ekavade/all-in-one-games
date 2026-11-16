@@ -13,6 +13,7 @@ import com.datathecodie.witgrid.data.progress.LevelProgress
 import com.datathecodie.witgrid.data.progress.ProgressRepository
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
+import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 import java.util.concurrent.atomic.AtomicBoolean
@@ -29,6 +30,20 @@ import org.junit.runner.RunWith
 class PlayScreenRouteTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun eachGameStartsWithItsIntroReference() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val bank = AssetBankSource(context.assets)
+
+        GameRegistry.games.forEach { module ->
+            val introRef = module.firstLevelRef(Pack.EASY, bank)
+
+            assertTrue("${module.id} Easy first level should be an intro", introRef.isIntro)
+            assertTrue(introRef.introCoachLineResourceId != null)
+            assertEquals(introRef, module.loadLevel(introRef, bank).ref)
+        }
+    }
 
     @Test
     fun miniSudokuModesAndSolveWorkThroughPlayRouteWithControlsInBottomThird() {
@@ -59,6 +74,7 @@ class PlayScreenRouteTest {
             composeRule.onAllNodes(hasContentDescription("Row 1, column 1,", substring = true))
                 .fetchSemanticsNodes().isNotEmpty()
         }
+        composeRule.onNodeWithText(context.getString(R.string.intro_coach_minisudoku)).assertExists()
 
         val root = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
         val notes = composeRule.onNodeWithText(context.getString(R.string.minisudoku_mode_notes))

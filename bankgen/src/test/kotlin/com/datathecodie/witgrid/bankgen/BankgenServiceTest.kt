@@ -106,6 +106,42 @@ class BankgenServiceTest {
     }
 
     @Test
+    fun validationIncludesOneRawEasyIntroPuzzle() {
+        val bankDirectory = temporaryDirectory.resolve("intro-bank")
+        Files.createDirectories(bankDirectory)
+        val line = fakeGame().generateLine(18, Pack.EASY)
+        Files.writeString(bankDirectory.resolve("fake-intro.txt"), "$line\n", Charsets.UTF_8)
+
+        val report = service(bankDirectory).validateAll()
+        val stats = StringBuilder()
+        service(bankDirectory).printStats(stats)
+
+        assertEquals(1, report.puzzleCount)
+        assertEquals("fake-intro.txt", report.files.single().name)
+        assertEquals(Pack.EASY, report.files.single().pack)
+        assertTrue(stats.contains("fake-intro.txt: 1 puzzles"))
+    }
+
+    @Test
+    fun validationRequiresExactlyOnePuzzleInEachRawIntroFile() {
+        val bankDirectory = temporaryDirectory.resolve("multiple-intro-puzzles")
+        Files.createDirectories(bankDirectory)
+        val game = fakeGame()
+        val lines = listOf(18L, 19L).map { seed -> game.generateLine(seed, Pack.EASY) }
+        Files.writeString(
+            bankDirectory.resolve("fake-intro.txt"),
+            lines.joinToString(separator = "\n", postfix = "\n"),
+            Charsets.UTF_8,
+        )
+
+        val failure = org.junit.jupiter.api.Assertions.assertThrows(BankValidationException::class.java) {
+            service(bankDirectory).validateAll()
+        }
+
+        assertTrue(failure.message.orEmpty().contains("exactly one puzzle"))
+    }
+
+    @Test
     fun validationRejectsDuplicatePuzzleContentWithDifferentIds() {
         val bankDirectory = temporaryDirectory.resolve("duplicates")
         Files.createDirectories(bankDirectory)

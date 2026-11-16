@@ -12,6 +12,7 @@ import com.datathecodie.witgrid.games.GameModule
 object CrownsGameModule : GameModule<CrownsPuzzle, CrownsState> by EngineGameModule(
     engine = CrownsEngine,
     puzzleOf = CrownsState::puzzle,
+    intro = Intro.definition,
     interstitialRule = { 1 },
 ) {
     @Composable

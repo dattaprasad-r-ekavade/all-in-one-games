@@ -73,11 +73,15 @@ internal class BankgenService(
     fun validateAll(): ValidationReport {
         require(Files.isDirectory(bankDirectory)) { "Bank directory does not exist: $bankDirectory" }
         val files = Files.list(bankDirectory).use { paths ->
-            paths.filter { Files.isRegularFile(it) && it.fileName.toString().endsWith(BANK_FILE_SUFFIX) }
+            paths.filter {
+                Files.isRegularFile(it) &&
+                    (it.fileName.toString().endsWith(BANK_FILE_SUFFIX) ||
+                        it.fileName.toString().endsWith(INTRO_FILE_SUFFIX))
+            }
                 .sorted()
                 .toList()
         }
-        require(files.isNotEmpty()) { "No $BANK_FILE_SUFFIX files found in $bankDirectory" }
+        require(files.isNotEmpty()) { "No bank files found in $bankDirectory" }
 
         val seenIds = HashSet<String>()
         val seenPuzzles = HashSet<String>()
@@ -86,8 +90,11 @@ internal class BankgenService(
             val game = requireNotNull(gamesById[info.gameId]) {
                 "No registered game engine for '${info.gameId}'"
             }
-            val lines = readGzipLines(path)
+            val lines = if (info.isIntro) readTextLines(path) else readGzipLines(path)
             require(lines.isNotEmpty()) { "Bank file ${path.fileName} is empty" }
+            if (info.isIntro && lines.size != 1) {
+                throw BankValidationException("Intro file ${path.fileName} must contain exactly one puzzle")
+            }
             if (info.pack == null) {
                 require(lines.size == DAILY_PUZZLE_COUNT) {
                     "Daily file ${path.fileName} must contain $DAILY_PUZZLE_COUNT puzzles"
@@ -179,6 +186,11 @@ internal class BankgenService(
     }
 
     private fun bankFileInfo(fileName: String): BankFileInfo {
+        if (fileName.endsWith(INTRO_FILE_SUFFIX)) {
+            val gameId = fileName.removeSuffix(INTRO_FILE_SUFFIX)
+            require(gameId.isNotBlank()) { "Invalid intro file name '$fileName'" }
+            return BankFileInfo(gameId, Pack.EASY, isIntro = true)
+        }
         require(fileName.endsWith(BANK_FILE_SUFFIX)) { "Unsupported bank file '$fileName'" }
         val stem = fileName.removeSuffix(BANK_FILE_SUFFIX)
         val delimiter = stem.lastIndexOf('-')
@@ -190,7 +202,13 @@ internal class BankgenService(
                 "Invalid pack in bank file '$fileName'"
             }
         }
-        return BankFileInfo(gameId, pack)
+        return BankFileInfo(gameId, pack, isIntro = false)
+    }
+
+    private fun readTextLines(path: Path): List<String> = try {
+        Files.newBufferedReader(path, StandardCharsets.UTF_8).use(BufferedReader::readLines)
+    } catch (failure: IOException) {
+        throw BankValidationException("Could not read bank file ${path.fileName}: ${failure.message}", failure)
     }
 
     private fun readGzipLines(path: Path): List<String> = try {
@@ -222,11 +240,12 @@ internal class BankgenService(
         }
     }
 
-    private data class BankFileInfo(val gameId: String, val pack: Pack?)
+    private data class BankFileInfo(val gameId: String, val pack: Pack?, val isIntro: Boolean)
 
     companion object {
         const val DAILY_PUZZLE_COUNT: Int = 365
         private const val BANK_FILE_SUFFIX = ".txt.gz"
+        private const val INTRO_FILE_SUFFIX = "-intro.txt"
     }
 }
 
