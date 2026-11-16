@@ -5,6 +5,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 import com.datathecodie.witgrid.engine.crowns.CrownsCodec
 import com.datathecodie.witgrid.engine.crowns.CrownsEngine
+import com.datathecodie.witgrid.engine.crowns.CrownsState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -100,7 +101,7 @@ class GameModuleTest {
 
     @Test
     fun interstitialRuleMustBePositive() {
-        val module = EngineGameModule(CrownsEngine) { 0 }
+        val module = EngineGameModule(CrownsEngine, CrownsState::puzzle) { 0 }
         val bank = FakeBankSource()
         val level = crownsModule.loadLevel(crownsModule.dailyRef(0, bank), bank)
 
@@ -114,7 +115,7 @@ class GameModuleTest {
         return module.levelsPerInterstitial(level)
     }
 
-    private val crownsModule = EngineGameModule(CrownsEngine) { 1 }
+    private val crownsModule = EngineGameModule(CrownsEngine, CrownsState::puzzle) { 1 }
 
     /**
      * Builds a small Crowns bank in memory. Lines come from seeded generation, so the test

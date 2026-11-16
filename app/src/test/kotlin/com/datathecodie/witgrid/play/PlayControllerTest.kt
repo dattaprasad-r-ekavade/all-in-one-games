@@ -21,9 +21,11 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
@@ -226,6 +228,171 @@ class PlayControllerTest {
         assertEquals(250, controller.snapshot.value.elapsedTimeMillis)
     }
 
+    @Test
+    fun undoAndRedoEachSaveTheRestoredState() = runBlocking {
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(testModule, testLevel, repository, FakeClock(10_000))
+        controller.applyGesture(solvingMoves())
+        assertEquals(1, repository.writes.size)
+
+        assertTrue(controller.undo())
+        assertEquals(2, repository.writes.size)
+        assertEquals(List(2) { Mark.EMPTY }, savedMarks(repository))
+
+        assertTrue(controller.redo())
+        assertEquals(3, repository.writes.size)
+        assertEquals(List(2) { Mark.FILLED }, savedMarks(repository))
+    }
+
+    @Test
+    fun solvedEventFiresOncePerAttempt() = runBlocking {
+        val controller = PlayController.open(testModule, testLevel, FakeProgressRepository(), FakeClock(10_000))
+        controller.applyGesture(solvingMoves())
+        assertNotNull(withTimeoutOrNull(NO_EVENT_WAIT_MILLIS) { controller.solvedEvents.first() })
+
+        controller.undo()
+        controller.applyGesture(solvingMoves())
+        assertNull(withTimeoutOrNull(NO_EVENT_WAIT_MILLIS) { controller.solvedEvents.first() })
+
+        controller.restart()
+        controller.applyGesture(solvingMoves())
+        assertNotNull(withTimeoutOrNull(NO_EVENT_WAIT_MILLIS) { controller.solvedEvents.first() })
+    }
+
+    @Test
+    fun mistakesMadeCountsNewWrongEntriesOnly() = runBlocking {
+        val controller = PlayController.open(testModule, testLevel, FakeProgressRepository(), FakeClock(10_000))
+        controller.applyMove(Move.SetMark(Cell(0), Mark.CROSSED))
+        assertEquals(1, controller.snapshot.value.mistakesMade)
+        controller.applyMove(Move.SetMark(Cell(1), Mark.CROSSED))
+        assertEquals(2, controller.snapshot.value.mistakesMade)
+
+        controller.applyMove(Move.SetMark(Cell(0), Mark.FILLED))
+        assertEquals(2, controller.snapshot.value.mistakesMade)
+        controller.undo()
+        controller.redo()
+        assertEquals(2, controller.snapshot.value.mistakesMade)
+
+        controller.restart()
+        assertEquals(0, controller.snapshot.value.mistakesMade)
+    }
+
+    @Test
+    fun solvedBoardStopsTheTimer() = runBlocking {
+        val clock = FakeClock(10_000)
+        val controller = PlayController.open(testModule, testLevel, FakeProgressRepository(), clock)
+        clock.advance(250)
+        controller.applyGesture(solvingMoves())
+
+        clock.advance(5_000)
+        controller.refreshTimer()
+        assertEquals(250, controller.snapshot.value.elapsedTimeMillis)
+
+        controller.undo()
+        clock.advance(100)
+        controller.refreshTimer()
+        assertEquals(350, controller.snapshot.value.elapsedTimeMillis)
+    }
+
+    @Test
+    fun undoOutOfSolvedBoardStaysStoppedWhileInBackground() = runBlocking {
+        val clock = FakeClock(10_000)
+        val controller = PlayController.open(testModule, testLevel, FakeProgressRepository(), clock)
+        clock.advance(250)
+        controller.applyGesture(solvingMoves())
+        controller.pauseForBackground()
+        controller.undo()
+
+        clock.advance(1_000)
+        controller.refreshTimer()
+        assertEquals(250, controller.snapshot.value.elapsedTimeMillis)
+
+        controller.resumeFromBackground()
+        clock.advance(100)
+        controller.refreshTimer()
+        assertEquals(350, controller.snapshot.value.elapsedTimeMillis)
+    }
+
+    @Test
+    fun recordHintUseCountsAHintWithoutChangingTheBoard() = runBlocking {
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(testModule, testLevel, repository, FakeClock(50))
+
+        controller.recordHintUse()
+
+        assertEquals(1, controller.snapshot.value.hintsUsed)
+        assertEquals(1, repository.lastSaved().hintsUsed)
+        assertEquals(List(2) { Mark.EMPTY }, controller.snapshot.value.state.marks)
+        assertFalse(controller.snapshot.value.canUndo)
+    }
+
+    @Test
+    fun appliedHintIsSavedWithItsStateAndCount() = runBlocking {
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(testModule, testLevel, repository, FakeClock(50))
+        val hint = requireNotNull(controller.nextHint())
+
+        assertTrue(controller.applyHint(hint))
+
+        assertEquals(1, controller.snapshot.value.hintsUsed)
+        assertEquals(1, repository.lastSaved().hintsUsed)
+        assertEquals(listOf(Mark.FILLED, Mark.EMPTY), savedMarks(repository))
+    }
+
+    @Test
+    fun unreadableSaveStartsAFreshAttemptAndKeepsCompletion() = runBlocking {
+        val repository = FakeProgressRepository()
+        repository.saveLevelProgress(
+            savedProgress(stateBytes = byteArrayOf(9), completed = true, bestTimeMillis = 3_000),
+        )
+
+        val controller = PlayController.open(testModule, testLevel, repository, FakeClock(30_000))
+
+        val snapshot = controller.snapshot.value
+        assertEquals(List(2) { Mark.EMPTY }, snapshot.state.marks)
+        assertEquals(0, snapshot.elapsedTimeMillis)
+        assertEquals(0, snapshot.hintsUsed)
+        assertTrue(snapshot.completed)
+        assertEquals(3_000, snapshot.bestTimeMillis)
+    }
+
+    @Test
+    fun saveForAnotherPuzzleStartsAFreshAttempt() = runBlocking {
+        val repository = FakeProgressRepository()
+        val otherPuzzleState = TestState(
+            TestPuzzle(listOf(Mark.FILLED, Mark.CROSSED)),
+            listOf(Mark.FILLED, Mark.EMPTY),
+        )
+        repository.saveLevelProgress(savedProgress(stateBytes = TestEngine.encodeState(otherPuzzleState)))
+
+        val controller = PlayController.open(testModule, testLevel, repository, FakeClock(30_000))
+
+        assertEquals(List(2) { Mark.EMPTY }, controller.snapshot.value.state.marks)
+        assertFalse(controller.snapshot.value.completed)
+    }
+
+    private fun solvingMoves() = listOf(
+        Move.SetMark(Cell(0), Mark.FILLED),
+        Move.SetMark(Cell(1), Mark.FILLED),
+    )
+
+    private fun savedMarks(repository: FakeProgressRepository): List<Mark> =
+        TestEngine.decodeState(repository.lastSaved().stateBytes).marks
+
+    private fun savedProgress(
+        stateBytes: ByteArray,
+        completed: Boolean = false,
+        bestTimeMillis: Long? = null,
+    ) = LevelProgress(
+        gameId = testModule.id,
+        levelId = testLevel.ref.levelId,
+        stateBytes = stateBytes,
+        elapsedTimeMillis = 4_500,
+        hintsUsed = 2,
+        completed = completed,
+        bestTimeMillis = bestTimeMillis,
+    )
+
     private fun FakeProgressRepository.lastSaved(): LevelProgress = requireNotNull(writes.lastOrNull())
 
     private data class TestPuzzle(val solution: List<Mark>)
@@ -237,7 +404,8 @@ class PlayControllerTest {
 
         override fun decodePuzzle(line: String) = TestPuzzle(List(2) { Mark.FILLED })
 
-        override fun encodePuzzle(puzzle: TestPuzzle) = "test|2|..|FF|EASY|fixture"
+        override fun encodePuzzle(puzzle: TestPuzzle) =
+            puzzle.solution.joinToString(separator = ",") { it.name }
 
         override fun initialState(puzzle: TestPuzzle) = TestState(puzzle, List(puzzle.solution.size) { Mark.EMPTY })
 
@@ -359,7 +527,8 @@ class PlayControllerTest {
     }
 
     private companion object {
-        val testModule = EngineGameModule(TestEngine) { 1 }
+        const val NO_EVENT_WAIT_MILLIS = 100L
+        val testModule = EngineGameModule(TestEngine, TestState::puzzle) { 1 }
         val testLevel = GameLevel(
             ref = LevelRef(TestEngine.id, "test-easy-001", Pack.EASY),
             size = 2,

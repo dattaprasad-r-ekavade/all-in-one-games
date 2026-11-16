@@ -2,6 +2,7 @@ package com.datathecodie.witgrid.play
 
 import com.datathecodie.witgrid.data.progress.LevelProgress
 import com.datathecodie.witgrid.data.progress.ProgressRepository
+import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.History
 import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Move
@@ -18,13 +19,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * What the play screen shows. [mistakesMade] counts new wrong entries in this attempt. It is
+ * kept in memory only, so a reopened level starts at 0. M5 owns its persistence and the
+ * "level failed" signal built on it.
+ */
 data class PlaySnapshot<S : Any>(
     val state: S,
     val canUndo: Boolean,
     val canRedo: Boolean,
     val elapsedTimeMillis: Long,
     val hintsUsed: Int,
-    val mistakes: List<com.datathecodie.witgrid.engine.core.Cell>,
+    val mistakes: List<Cell>,
+    val mistakesMade: Int,
     val solved: Boolean,
     val completed: Boolean,
     val bestTimeMillis: Long?,
@@ -57,6 +64,7 @@ class PlayController<P : Any, S : Any> private constructor(
 ) {
     private data class TimerState(
         val elapsedMillis: Long,
+        // Null while the timer is stopped: paused in background or frozen on a solved board.
         val resumedAtMillis: Long?,
     )
 
@@ -65,9 +73,11 @@ class PlayController<P : Any, S : Any> private constructor(
     @Volatile
     private var timerState = TimerState(
         elapsedMillis = restoredProgress?.elapsedTimeMillis ?: 0L,
-        resumedAtMillis = clock.nowMillis(),
+        resumedAtMillis = if (gameModule.isSolved(level, initialState)) null else clock.nowMillis(),
     )
+    private var backgroundPaused = false
     private var hintsUsed = restoredProgress?.hintsUsed ?: 0
+    private var mistakesMade = 0
     private var completed = restoredProgress?.completed ?: false
     private var bestTimeMillis = restoredProgress?.bestTimeMillis
     private var solvedEventSent = completed
@@ -94,14 +104,25 @@ class PlayController<P : Any, S : Any> private constructor(
 
     suspend fun applyGesture(moves: List<Move>): Boolean = mutationMutex.withLock {
         if (moves.isEmpty()) return@withLock false
+        val mistakesBefore = gameModule.findMistakes(level, history.present).toSet()
         val nextState = gameModule.applyMoves(history.present, moves)
-        saveHistory(history.record(nextState), hintsUsed)
+        val newMistakes = gameModule.findMistakes(level, nextState).count { it !in mistakesBefore }
+        saveHistory(history.record(nextState), hintsUsed, newMistakes)
     }
 
     suspend fun applyHint(hint: HintStep): Boolean = mutationMutex.withLock {
         if (gameModule.nextHint(level, history.present) != hint) return@withLock false
         val nextState = gameModule.applyMoves(history.present, hint.moves)
         saveHistory(history.record(nextState), hintsUsed + 1)
+    }
+
+    /**
+     * Counts a hint that is not a [HintStep], such as a mistake hint. The board does not change.
+     */
+    suspend fun recordHintUse() = mutationMutex.withLock {
+        hintsUsed += 1
+        persistCurrentState()
+        publishSnapshot()
     }
 
     suspend fun undo(): Boolean = mutationMutex.withLock { saveHistory(history.undo(), hintsUsed) }
@@ -114,9 +135,10 @@ class PlayController<P : Any, S : Any> private constructor(
      */
     suspend fun restart() = mutationMutex.withLock {
         history = History(gameModule.newState(level))
-        val resumedAtMillis = if (timerState.resumedAtMillis == null) null else clock.nowMillis()
-        timerState = TimerState(elapsedMillis = 0L, resumedAtMillis = resumedAtMillis)
+        val now = clock.nowMillis()
+        timerState = TimerState(elapsedMillis = 0L, resumedAtMillis = runningAt(now))
         hintsUsed = 0
+        mistakesMade = 0
         solvedEventSent = false
         persistCurrentState()
         publishSnapshot()
@@ -125,11 +147,8 @@ class PlayController<P : Any, S : Any> private constructor(
     suspend fun pauseForBackground() {
         val pauseRequestedAtMillis = clock.nowMillis()
         mutationMutex.withLock {
-            val currentTimerState = timerState
-            val resumedAtMillis = currentTimerState.resumedAtMillis ?: return@withLock
-            val elapsedAtPause = currentTimerState.elapsedMillis +
-                (pauseRequestedAtMillis - resumedAtMillis).coerceAtLeast(0L)
-            timerState = TimerState(elapsedAtPause, null)
+            backgroundPaused = true
+            setTimerRunning(running = false, atMillis = pauseRequestedAtMillis)
             try {
                 persistCurrentState()
             } finally {
@@ -139,19 +158,24 @@ class PlayController<P : Any, S : Any> private constructor(
     }
 
     suspend fun resumeFromBackground() = mutationMutex.withLock {
-        val currentTimerState = timerState
-        if (currentTimerState.resumedAtMillis != null) return@withLock
-        timerState = currentTimerState.copy(resumedAtMillis = clock.nowMillis())
+        backgroundPaused = false
+        val now = clock.nowMillis()
+        setTimerRunning(running = runningAt(now) != null, atMillis = now)
         publishSnapshot()
     }
 
-    private suspend fun saveHistory(nextHistory: History<S>, nextHintsUsed: Int): Boolean {
+    private suspend fun saveHistory(
+        nextHistory: History<S>,
+        nextHintsUsed: Int,
+        newMistakes: Int = 0,
+    ): Boolean {
         if (nextHistory === history) return false
 
+        val now = clock.nowMillis()
         val nextState = nextHistory.present
         val nowSolved = gameModule.isSolved(level, nextState)
         val nextCompleted = completed || nowSolved
-        val elapsed = currentElapsedTimeMillis()
+        val elapsed = elapsedAt(timerState, now)
         val nextBestTime = if (nowSolved) {
             bestTimeMillis?.let { minOf(it, elapsed) } ?: elapsed
         } else {
@@ -170,8 +194,11 @@ class PlayController<P : Any, S : Any> private constructor(
         progressRepository.saveLevelProgress(save)
         history = nextHistory
         hintsUsed = nextHintsUsed
+        mistakesMade += newMistakes
         completed = nextCompleted
         bestTimeMillis = nextBestTime
+        // A solved board stops the clock. Undo out of it restarts the clock unless the app is paused.
+        setTimerRunning(running = !backgroundPaused && !nowSolved, atMillis = now)
         publishSnapshot()
 
         if (nowSolved && !solvedEventSent) {
@@ -203,11 +230,21 @@ class PlayController<P : Any, S : Any> private constructor(
         )
     }
 
-    private fun currentElapsedTimeMillis(): Long {
-        val currentTimerState = timerState
-        val resumedAt = currentTimerState.resumedAtMillis ?: return currentTimerState.elapsedMillis
-        return currentTimerState.elapsedMillis + (clock.nowMillis() - resumedAt).coerceAtLeast(0L)
+    /** Returns the start of a running timer at [atMillis], or null when the timer must stay stopped. */
+    private fun runningAt(atMillis: Long): Long? =
+        atMillis.takeUnless { backgroundPaused || gameModule.isSolved(level, history.present) }
+
+    private fun setTimerRunning(running: Boolean, atMillis: Long) {
+        val elapsed = elapsedAt(timerState, atMillis)
+        timerState = TimerState(elapsedMillis = elapsed, resumedAtMillis = if (running) atMillis else null)
     }
+
+    private fun elapsedAt(timer: TimerState, atMillis: Long): Long {
+        val resumedAt = timer.resumedAtMillis ?: return timer.elapsedMillis
+        return timer.elapsedMillis + (atMillis - resumedAt).coerceAtLeast(0L)
+    }
+
+    private fun currentElapsedTimeMillis(): Long = elapsedAt(timerState, clock.nowMillis())
 
     private fun createSnapshot(): PlaySnapshot<S> {
         val state = history.present
@@ -218,6 +255,7 @@ class PlayController<P : Any, S : Any> private constructor(
             elapsedTimeMillis = currentElapsedTimeMillis(),
             hintsUsed = hintsUsed,
             mistakes = gameModule.findMistakes(level, state),
+            mistakesMade = mistakesMade,
             solved = gameModule.isSolved(level, state),
             completed = completed,
             bestTimeMillis = bestTimeMillis,
@@ -237,16 +275,34 @@ class PlayController<P : Any, S : Any> private constructor(
         ): PlayController<P, S> {
             require(level.ref.gameId == gameModule.id) { "Level belongs to another game" }
             val savedProgress = progressRepository.getLevelProgress(gameModule.id, level.ref.levelId)
-            val initialState = savedProgress?.let { gameModule.decodeState(it.stateBytes) }
-                ?: gameModule.newState(level)
+            val restoredState = savedProgress?.let { restoreStateOrNull(gameModule, level, it.stateBytes) }
+            // A save that cannot be used starts a fresh attempt. Completion and best time are kept.
+            val restoredProgress = when {
+                savedProgress == null || restoredState != null -> savedProgress
+                else -> savedProgress.copy(elapsedTimeMillis = 0L, hintsUsed = 0)
+            }
             return PlayController(
                 gameModule = gameModule,
                 level = level,
                 progressRepository = progressRepository,
                 clock = clock,
-                initialState = initialState,
-                restoredProgress = savedProgress,
+                initialState = restoredState ?: gameModule.newState(level),
+                restoredProgress = restoredProgress,
             )
+        }
+
+        /**
+         * Returns the saved state, or null when the save is corrupt, from another version,
+         * or holds a different puzzle than [level]. A bad save must not block play (plan rule 7).
+         */
+        private fun <P : Any, S : Any> restoreStateOrNull(
+            gameModule: GameModule<P, S>,
+            level: GameLevel<P>,
+            stateBytes: ByteArray,
+        ): S? = try {
+            gameModule.decodeState(stateBytes).takeIf { state -> gameModule.stateMatchesLevel(level, state) }
+        } catch (exception: Exception) {
+            null
         }
     }
 }

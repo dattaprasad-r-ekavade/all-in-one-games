@@ -22,8 +22,15 @@ object MiniSudokuStateCodec {
         val digits = ArrayList<Int?>(cellCount)
         val notes = ArrayList<Int>(cellCount)
         repeat(cellCount) {
-            digits += input.readUnsignedByte().takeIf { digit -> digit != 0 }
-            notes += input.readUnsignedByte()
+            val digit = input.readUnsignedByte()
+            val note = input.readUnsignedByte()
+            // Check the bytes here, so a bad save fails with a clear message, not a state rule.
+            require(digit <= MINI_SUDOKU_SIZE) { "Mini Sudoku save has a digit outside 0 through 6" }
+            require(note and MINI_SUDOKU_NOTE_MASK == note) {
+                "Mini Sudoku save has note bits above digit 6"
+            }
+            digits += digit.takeIf { it != 0 }
+            notes += note
         }
         MiniSudokuState(puzzle, digits, notes)
     }

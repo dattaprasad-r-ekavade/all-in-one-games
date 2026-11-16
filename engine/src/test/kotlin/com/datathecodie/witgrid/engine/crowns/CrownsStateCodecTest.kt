@@ -31,6 +31,15 @@ class CrownsStateCodecTest {
         }
     }
 
+    @Test
+    fun rejectsAnUnknownMarkOrdinal() {
+        val encoded = CrownsEngine.encodeState(CrownsState.initial(puzzle()))
+        // Marks are the final bytes of the save, one per cell, so the last byte is a mark.
+        val unknownMark = encoded.copyOf().apply { this[lastIndex] = Mark.entries.size.toByte() }
+
+        assertThrows(IllegalArgumentException::class.java) { CrownsEngine.decodeState(unknownMark) }
+    }
+
     private fun puzzle() = CrownsPuzzle(
         id = "CR-STATE-6",
         size = 6,

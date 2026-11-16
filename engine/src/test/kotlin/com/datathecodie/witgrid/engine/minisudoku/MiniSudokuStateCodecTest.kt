@@ -32,6 +32,37 @@ class MiniSudokuStateCodecTest {
         }
     }
 
+    @Test
+    fun rejectsDigitsOutsideOneThroughSix() {
+        val encoded = MiniSudokuEngine.encodeState(MiniSudokuEngine.initialState(puzzle()))
+        val digitSeven = encoded.copyOf().apply { this[cellByteOffset(0)] = 7 }
+        val digitMax = encoded.copyOf().apply { this[cellByteOffset(0)] = -1 }
+
+        assertThrows(IllegalArgumentException::class.java) { MiniSudokuEngine.decodeState(digitSeven) }
+        assertThrows(IllegalArgumentException::class.java) { MiniSudokuEngine.decodeState(digitMax) }
+    }
+
+    @Test
+    fun rejectsNoteBitsAboveDigitSix() {
+        val encoded = MiniSudokuEngine.encodeState(MiniSudokuEngine.initialState(puzzle()))
+        val noteSeven = encoded.copyOf().apply { this[cellByteOffset(0) + 1] = 0b100_0000 }
+
+        assertThrows(IllegalArgumentException::class.java) { MiniSudokuEngine.decodeState(noteSeven) }
+    }
+
+    @Test
+    fun acceptsEveryNoteBitForDigitsOneThroughSix() {
+        val state = MiniSudokuEngine.initialState(puzzle()).withMove(Move.SetNotes(Cell(0), 0b11_1111))
+
+        assertEquals(state, MiniSudokuEngine.decodeState(MiniSudokuEngine.encodeState(state)))
+    }
+
+    /** Byte offset of a cell's digit: 5 header bytes, a length-prefixed puzzle text, a cell count, then pairs. */
+    private fun cellByteOffset(index: Int): Int {
+        val puzzleTextBytes = MiniSudokuCodec.encode(puzzle()).toByteArray(Charsets.UTF_8).size
+        return 5 + 2 + puzzleTextBytes + 4 + 2 * index
+    }
+
     private fun puzzle() = MiniSudokuPuzzle(
         id = "MS-STATE-6",
         givens = List(36) { null },

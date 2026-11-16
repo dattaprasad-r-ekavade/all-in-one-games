@@ -82,16 +82,21 @@ interface GameModule<P : Any, S : Any> {
 
     fun decodeState(bytes: ByteArray): S = engine.decodeState(bytes)
 
+    /** True when the puzzle embedded in [state] is the puzzle of [level]. */
+    fun stateMatchesLevel(level: GameLevel<P>, state: S): Boolean
+
     @Composable
     fun Board(state: S, onMoves: (List<Move>) -> Unit)
 }
 
 /**
- * Wraps [engine] for the app. [interstitialRule] gives the interval for each level, so a game
- * with size-based rules sets them where it is registered, not in shared code.
+ * Wraps [engine] for the app. [puzzleOf] reads the puzzle embedded in a state, which the
+ * engine interface does not expose. [interstitialRule] gives the interval for each level, so a
+ * game with size-based rules sets them where it is registered, not in shared code.
  */
 class EngineGameModule<P : Any, S : Any>(
     override val engine: GameEngine<P, S>,
+    private val puzzleOf: (S) -> P,
     private val interstitialRule: (GameLevel<P>) -> Int,
 ) : GameModule<P, S> {
     private class BankEntry(val raw: String, val bankLine: BankLine)
@@ -100,6 +105,9 @@ class EngineGameModule<P : Any, S : Any>(
     private val parsedBankFiles = mutableMapOf<String, List<BankEntry>>()
 
     override val id: String = engine.id
+
+    override fun stateMatchesLevel(level: GameLevel<P>, state: S): Boolean =
+        engine.encodePuzzle(puzzleOf(state)) == engine.encodePuzzle(level.puzzle)
 
     override fun levelsPerInterstitial(level: GameLevel<P>): Int =
         interstitialRule(level).also { require(it > 0) { "Interstitial interval must be positive" } }
