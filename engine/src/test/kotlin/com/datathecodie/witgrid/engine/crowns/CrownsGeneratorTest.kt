@@ -13,7 +13,7 @@ class CrownsGeneratorTest {
     fun seedOneGeneratesTenUniqueSolvableDeterministicPuzzlesForEveryPack() {
         for (pack in Pack.entries) {
             val firstRun = generateBatch(pack)
-            val secondRun = generateBatch(pack)
+            val secondRun = generateFreshBatch(pack)
             val firstLines = firstRun.map(CrownsEngine::encodePuzzle)
 
             assertEquals(firstLines, secondRun.map(CrownsEngine::encodePuzzle))
@@ -65,9 +65,43 @@ class CrownsGeneratorTest {
         }
     }
 
-    private fun generateBatch(pack: Pack): List<CrownsPuzzle> {
+    @Test
+    fun everyRegionHasAtLeastThreeCellsForSeedOne() {
+        for (pack in Pack.entries) {
+            generateBatch(pack).forEach { puzzle ->
+                val smallest = (0 until puzzle.size).minOf { region ->
+                    puzzle.regions.count { it == region }
+                }
+                assertTrue(smallest >= 3, "Smallest region in ${puzzle.id} has $smallest cells")
+            }
+        }
+    }
+
+    @Test
+    fun puzzleIdsAreUnsignedHexWithoutMinusSign() {
+        val idPattern = Regex("^CR-[A-Z]+-[0-9a-f]{16}$")
+        for (pack in Pack.entries) {
+            generateBatch(pack).forEach { puzzle ->
+                assertTrue(idPattern.matches(puzzle.id), "Bad Crowns ID ${puzzle.id}")
+            }
+        }
+    }
+
+    private fun generateBatch(pack: Pack): List<CrownsPuzzle> = seedOneBatches.getValue(pack)
+
+    private fun generateFreshBatch(pack: Pack): List<CrownsPuzzle> {
         val rng = SplitMix64(1L)
         return List(10) { CrownsEngine.generate(rng, pack) }
+    }
+
+    /** Expert generation is slow, so the seed-1 batches are built once and shared by the tests. */
+    private companion object {
+        val seedOneBatches: Map<Pack, List<CrownsPuzzle>> by lazy {
+            Pack.entries.associateWith { pack ->
+                val rng = SplitMix64(1L)
+                List(10) { CrownsEngine.generate(rng, pack) }
+            }
+        }
     }
 
     private fun assertConnectedRegions(puzzle: CrownsPuzzle) {
