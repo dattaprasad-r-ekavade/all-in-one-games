@@ -29,9 +29,10 @@ object BinaryEngine : GameEngine<BinaryPuzzle, BinaryState> {
     override fun countSolutions(puzzle: BinaryPuzzle, limit: Int): Int =
         BinaryRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: BinaryPuzzle, state: BinaryState): HintStep? = unavailable()
+    override fun nextStep(puzzle: BinaryPuzzle, state: BinaryState): HintStep? =
+        BinaryTechniqueSolver.nextStep(puzzle, state)
 
-    override fun grade(puzzle: BinaryPuzzle): Grade = unavailable()
+    override fun grade(puzzle: BinaryPuzzle): Grade = BinaryTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): BinaryPuzzle = unavailable()
 
