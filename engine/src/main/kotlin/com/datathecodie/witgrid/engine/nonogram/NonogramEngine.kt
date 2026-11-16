@@ -8,36 +8,36 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 
-/**
- * NO lane placeholder. Unit types deliberately promise no puzzle or state model;
- * the lane replaces them with its own immutable types when implementing its rules.
- */
-object NonogramEngine : GameEngine<Unit, Unit> {
+/** Nonogram rules and bank model exposed through the shared engine contract. */
+object NonogramEngine : GameEngine<NonogramPuzzle, NonogramState> {
     override val id: String = "nonogram"
 
-    override fun decodePuzzle(line: String): Unit = unavailable()
+    override fun decodePuzzle(line: String): NonogramPuzzle = NonogramCodec.decode(line)
 
-    override fun encodePuzzle(puzzle: Unit): String = unavailable()
+    override fun encodePuzzle(puzzle: NonogramPuzzle): String = NonogramCodec.encode(puzzle)
 
-    override fun initialState(puzzle: Unit): Unit = unavailable()
+    override fun initialState(puzzle: NonogramPuzzle): NonogramState = NonogramState.initial(puzzle)
 
-    override fun applyMove(state: Unit, move: Move): Unit = unavailable()
+    override fun applyMove(state: NonogramState, move: Move): NonogramState = state.withMove(move)
 
-    override fun isSolved(puzzle: Unit, state: Unit): Boolean = unavailable()
+    override fun isSolved(puzzle: NonogramPuzzle, state: NonogramState): Boolean =
+        NonogramRules.isSolved(puzzle, state)
 
-    override fun mistakes(puzzle: Unit, state: Unit): List<Cell> = unavailable()
+    override fun mistakes(puzzle: NonogramPuzzle, state: NonogramState): List<Cell> =
+        NonogramRules.mistakes(puzzle, state)
 
-    override fun countSolutions(puzzle: Unit, limit: Int): Int = unavailable()
+    override fun countSolutions(puzzle: NonogramPuzzle, limit: Int): Int =
+        NonogramRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: Unit, state: Unit): HintStep? = unavailable()
+    override fun nextStep(puzzle: NonogramPuzzle, state: NonogramState): HintStep? = unavailable()
 
-    override fun grade(puzzle: Unit): Grade = unavailable()
+    override fun grade(puzzle: NonogramPuzzle): Grade = unavailable()
 
-    override fun generate(rng: SplitMix64, pack: Pack): Unit = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): NonogramPuzzle = unavailable()
 
-    override fun encodeState(state: Unit): ByteArray = unavailable()
+    override fun encodeState(state: NonogramState): ByteArray = unavailable()
 
-    override fun decodeState(bytes: ByteArray): Unit = unavailable()
+    override fun decodeState(bytes: ByteArray): NonogramState = unavailable()
 
     private fun unavailable(): Nothing = throw NotImplementedError("NO")
 }
