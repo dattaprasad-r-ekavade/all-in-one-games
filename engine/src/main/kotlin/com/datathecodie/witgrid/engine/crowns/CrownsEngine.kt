@@ -34,9 +34,7 @@ object CrownsEngine : GameEngine<CrownsPuzzle, CrownsState> {
 
     override fun generate(rng: SplitMix64, pack: Pack): CrownsPuzzle = CrownsGenerator.generate(rng, pack)
 
-    override fun encodeState(state: CrownsState): ByteArray = unavailable()
+    override fun encodeState(state: CrownsState): ByteArray = CrownsStateCodec.encode(state)
 
-    override fun decodeState(bytes: ByteArray): CrownsState = unavailable()
-
-    private fun unavailable(): Nothing = throw NotImplementedError("CR")
+    override fun decodeState(bytes: ByteArray): CrownsState = CrownsStateCodec.decode(bytes)
 }

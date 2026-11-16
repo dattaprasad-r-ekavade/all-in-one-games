@@ -37,9 +37,7 @@ object MiniSudokuEngine : GameEngine<MiniSudokuPuzzle, MiniSudokuState> {
     override fun generate(rng: SplitMix64, pack: Pack): MiniSudokuPuzzle =
         MiniSudokuGenerator.generate(rng, pack)
 
-    override fun encodeState(state: MiniSudokuState): ByteArray = unavailable()
+    override fun encodeState(state: MiniSudokuState): ByteArray = MiniSudokuStateCodec.encode(state)
 
-    override fun decodeState(bytes: ByteArray): MiniSudokuState = unavailable()
-
-    private fun unavailable(): Nothing = throw NotImplementedError("MS")
+    override fun decodeState(bytes: ByteArray): MiniSudokuState = MiniSudokuStateCodec.decode(bytes)
 }
