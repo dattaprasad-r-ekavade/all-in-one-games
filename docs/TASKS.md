@@ -277,7 +277,7 @@ Plan: section 6 input row for the game.
 ### A9 — Home and Game screens
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 9 (Home, Game).
-**Owns:** `app/…/ui/screens/home/**`, `app/…/ui/screens/game/**`.
+**Owns:** `app/…/ui/screens/home/**`, `app/…/ui/screens/game/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/LevelProgressDao.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/ProgressRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/RoomProgressRepository.kt`, `app/src/main/res/values/strings.xml`.
 **Do:** Home: game cards with progress, daily state placeholder, streak placeholder, one quiet Premium row (no action yet). Game: four packs with progress, daily puzzle entry, "Continue".
 **Done when:** `./gradlew check` passes. ViewModels have JVM tests.
 
