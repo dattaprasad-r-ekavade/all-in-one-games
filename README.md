@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 18 %** (11 of 61 task cards done; 1 more in progress)
+**Overall: about 20 %** (12 of 61 task cards done; 1 more in progress)
 
 ```
-[#######---------------------------------]  18 %
+[########--------------------------------]  20 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 6 | 1 | 26 % |
+| 1 — Engine and puzzle bank | 23 | 7 | 1 | 30 % |
 | 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **11** | **1** | **18 %** |
+| **Total** | **61** | **12** | **1** | **20 %** |
 
 ## Done
 
@@ -45,19 +45,21 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | CR2 | Crowns technique solver, deterministic hints, one-sentence explanations, grade and size-based pack bands. `:engine:test` and `check` pass; reviewed and fixed by `gpt-6.1-sol`. |
 | CR3 | Seeded `SplitMix64` generator, connected flood-fill regions, unique and technique-solvable puzzles. Ten puzzles per pack pass for seed 1, including both Expert sizes; reviewed by `gpt-6.1-sol`. H1 should calibrate the immediate placements from small regions. |
 | CR4 | Independent plan-rule tests for valid layouts, touch rules, solution counts, mistakes and solved-state semantics. `:engine:test` and `check` pass. |
+| BI1 | Binary puzzle/state model, rules, bank codec and capped solution counter. Engine tests and check pass; reviewed by gpt-6.1-sol with exact count and invalid-line regression coverage. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| BI1 | Binary rules, puzzle/state model, bank payload and solution counter | Codex |
+| BI2 | Binary technique solver, grading, hints and pack bands | Codex |
 
 ## Next steps
 
-1. **Build the remaining game engines:** BI1 is active; NO1 and MS1 can follow. B1 (bank tooling), A2 (storage) and H0.1 (accounts and legal setup) are also ready.
-2. **Wire the theme and core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
-3. **Build the puzzle bank** after the game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
-4. **Human tasks can start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
+1. **Continue the Binary engine:** BI2 adds the technique solver, grading, hints and pack bands; then BI3 adds the generator and BI4 adds independent rule tests.
+2. **Build the other game engines:** complete NO1-NO4 and MS1-MS4. The two lanes are independent and can proceed alongside Binary work.
+3. **Start independent ready work:** B1 (bank tooling), A2 (storage) and human card H0.1 (accounts and legal setup).
+4. **Wire the core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
+5. **Build the puzzle bank** after the game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
