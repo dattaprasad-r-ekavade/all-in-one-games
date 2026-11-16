@@ -55,7 +55,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
-| M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | ready |
+| M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | active |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | todo |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | todo |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
