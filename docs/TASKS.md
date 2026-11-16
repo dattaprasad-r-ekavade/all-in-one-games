@@ -291,7 +291,7 @@ Plan: 4 (layout, timer), 9 (Play, Result, Level failed).
 ### A11 — Hint and check UI
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 7.6, 8.2 (allowances come later in M4).
-**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/hint/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/BoardCanvas.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/BoardHighlights.kt`.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/hint/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/BoardCanvas.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/BoardHighlights.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/BoardAccessibilityCells.kt`.
 **Do:** Hint: mistakes first, else `nextStep`; highlight cells, technique name, one-sentence explanation, "Apply" button. Check: flag wrong cells. A mistake hint has no `Technique`: use an app-side hint type (for example `sealed interface HintUi { Mistake; Step(HintStep) }`), not a fake technique. Use an `Allowance` interface with an "always allow" stub (M4 replaces it).
 **Done when:** `./gradlew check` passes. `HintController` has JVM tests.
 
