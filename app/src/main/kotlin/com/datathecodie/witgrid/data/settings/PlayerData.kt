@@ -10,6 +10,11 @@ data class StreakData(
     val currentDays: Int = 0,
     val lastActivityEpochDay: Long? = null,
     val freezesAvailable: Int = 0,
+    val lastFreezeRefillEpochDay: Long? = null,
+    val latestMissedEpochDay: Long? = null,
+    val latestMissedPreviousStreakDays: Int = 0,
+    val latestMissedPreviousActivityEpochDay: Long? = null,
+    val latestMissedRepairDeadlineEpochMilli: Long? = null,
 )
 
 enum class RewardType(val storageKey: String) {

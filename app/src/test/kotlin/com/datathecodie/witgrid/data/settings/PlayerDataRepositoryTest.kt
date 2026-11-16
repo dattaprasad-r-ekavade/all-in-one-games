@@ -41,6 +41,11 @@ class PlayerDataRepositoryTest {
                     currentDays = 9,
                     lastActivityEpochDay = 20_000,
                     freezesAvailable = 1,
+                    lastFreezeRefillEpochDay = 19_997,
+                    latestMissedEpochDay = 19_999,
+                    latestMissedPreviousStreakDays = 8,
+                    latestMissedPreviousActivityEpochDay = 19_998,
+                    latestMissedRepairDeadlineEpochMilli = 1_800_000_000_000,
                 ),
             )
             writer.setPremiumEnabled(true)
@@ -56,6 +61,11 @@ class PlayerDataRepositoryTest {
                     currentDays = 9,
                     lastActivityEpochDay = 20_000,
                     freezesAvailable = 1,
+                    lastFreezeRefillEpochDay = 19_997,
+                    latestMissedEpochDay = 19_999,
+                    latestMissedPreviousStreakDays = 8,
+                    latestMissedPreviousActivityEpochDay = 19_998,
+                    latestMissedRepairDeadlineEpochMilli = 1_800_000_000_000,
                 ),
                 premiumEnabled = true,
                 rewardBalances = mapOf(

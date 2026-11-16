@@ -31,6 +31,11 @@ class DataStorePlayerDataRepository(
                 currentDays = preferences[STREAK_DAYS] ?: 0,
                 lastActivityEpochDay = preferences[LAST_ACTIVITY_EPOCH_DAY],
                 freezesAvailable = preferences[FREEZES_AVAILABLE] ?: 0,
+                lastFreezeRefillEpochDay = preferences[LAST_FREEZE_REFILL_EPOCH_DAY],
+                latestMissedEpochDay = preferences[LATEST_MISSED_EPOCH_DAY],
+                latestMissedPreviousStreakDays = preferences[LATEST_MISSED_PREVIOUS_STREAK_DAYS] ?: 0,
+                latestMissedPreviousActivityEpochDay = preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY],
+                latestMissedRepairDeadlineEpochMilli = preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI],
             ),
             premiumEnabled = preferences[PREMIUM_ENABLED] ?: false,
             rewardBalances = RewardType.entries.associateWith { type ->
@@ -54,6 +59,24 @@ class DataStorePlayerDataRepository(
             streak.lastActivityEpochDay?.let { day ->
                 preferences[LAST_ACTIVITY_EPOCH_DAY] = day
             } ?: preferences.remove(LAST_ACTIVITY_EPOCH_DAY)
+            streak.lastFreezeRefillEpochDay?.let { day ->
+                preferences[LAST_FREEZE_REFILL_EPOCH_DAY] = day
+            } ?: preferences.remove(LAST_FREEZE_REFILL_EPOCH_DAY)
+            streak.latestMissedEpochDay?.let { day ->
+                preferences[LATEST_MISSED_EPOCH_DAY] = day
+                preferences[LATEST_MISSED_PREVIOUS_STREAK_DAYS] = streak.latestMissedPreviousStreakDays
+                streak.latestMissedPreviousActivityEpochDay?.let { previousDay ->
+                    preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY] = previousDay
+                } ?: preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
+                streak.latestMissedRepairDeadlineEpochMilli?.let { deadline ->
+                    preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI] = deadline
+                } ?: preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
+            } ?: run {
+                preferences.remove(LATEST_MISSED_EPOCH_DAY)
+                preferences.remove(LATEST_MISSED_PREVIOUS_STREAK_DAYS)
+                preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
+                preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
+            }
         }
     }
 
@@ -74,6 +97,11 @@ class DataStorePlayerDataRepository(
         val STREAK_DAYS = intPreferencesKey("streak_days")
         val LAST_ACTIVITY_EPOCH_DAY = longPreferencesKey("last_activity_epoch_day")
         val FREEZES_AVAILABLE = intPreferencesKey("freezes_available")
+        val LAST_FREEZE_REFILL_EPOCH_DAY = longPreferencesKey("last_freeze_refill_epoch_day")
+        val LATEST_MISSED_EPOCH_DAY = longPreferencesKey("latest_missed_epoch_day")
+        val LATEST_MISSED_PREVIOUS_STREAK_DAYS = intPreferencesKey("latest_missed_previous_streak_days")
+        val LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY = longPreferencesKey("latest_missed_previous_activity_epoch_day")
+        val LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI = longPreferencesKey("latest_missed_repair_deadline_epoch_milli")
         val PREMIUM_ENABLED = booleanPreferencesKey("premium_enabled")
     }
 }
