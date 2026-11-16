@@ -78,6 +78,30 @@ class CrownsGeneratorTest {
     }
 
     @Test
+    fun regionSizesStayBetweenMinimumAndMaximumForSeedOne() {
+        for (pack in Pack.entries) {
+            generateBatch(pack).forEach { puzzle ->
+                val sizes = (0 until puzzle.size).map { region -> puzzle.regions.count { it == region } }
+                assertTrue(sizes.min() >= 3, "Region under 3 cells in ${puzzle.id}: $sizes")
+                assertTrue(sizes.max() <= puzzle.size * 5 / 2, "Region over size*5/2 in ${puzzle.id}: $sizes")
+            }
+        }
+    }
+
+    @Test
+    fun techniqueStepCapsHoldForSeedOne() {
+        val kRegionsCaps = mapOf(Pack.EASY to 0, Pack.MEDIUM to 1, Pack.HARD to 2)
+        for ((pack, cap) in kRegionsCaps) {
+            generateBatch(pack).forEach { puzzle ->
+                val steps = CrownsStepCounter.countSteps(puzzle)
+                assertTrue(steps != null, "Techniques stuck on ${puzzle.id}")
+                val kRegionSteps = steps!![CrownsTechniques.K_REGIONS_K_LINES.id] ?: 0
+                assertTrue(kRegionSteps <= cap, "${puzzle.id} has $kRegionSteps k-regions steps, cap $cap")
+            }
+        }
+    }
+
+    @Test
     fun puzzleIdsAreUnsignedHexWithoutMinusSign() {
         val idPattern = Regex("^CR-[A-Z]+-[0-9a-f]{16}$")
         for (pack in Pack.entries) {

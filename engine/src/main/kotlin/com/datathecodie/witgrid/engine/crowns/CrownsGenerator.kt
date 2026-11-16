@@ -70,7 +70,7 @@ object CrownsGenerator {
             val frontiers = (0 until size).map { frontierCells(size, it, regions) }
             // A region below the minimum with no free neighbour is boxed in, so this layout is rejected.
             if ((0 until size).any { counts[it] < MIN_REGION_CELLS && frontiers[it].isEmpty() }) return null
-            val growable = (0 until size).filter { frontiers[it].isNotEmpty() }
+            val growable = (0 until size).filter { frontiers[it].isNotEmpty() && counts[it] < maxRegionCells(size) }
             if (growable.isEmpty()) return null
             // Small regions grow first, so they reach the minimum before neighbours box them in.
             val smallRegions = growable.filter { counts[it] < MIN_REGION_CELLS }
@@ -87,8 +87,8 @@ object CrownsGenerator {
 
     /**
      * Moves border cells between neighbouring regions until the puzzle has one solution
-     * that the technique solver can reach. Crown cells stay in their regions. A move that
-     * keeps every region connected and at least [MIN_REGION_CELLS] large is kept when it
+     * that the techniques solve within the pack's k-regions cap. Crown cells stay in their regions. A move that
+     * keeps every region connected, within the size limits, is kept when it
      * does not add solutions, so the walk stays among unique layouts once it finds one.
      */
     private fun refineToUnique(
@@ -102,7 +102,7 @@ object CrownsGenerator {
         var regions = initialRegions.toIntArray()
         var solutions = countSolutions(size, regions, solution, pack)
         repeat(MAX_REFINE_MOVES) {
-            if (solutions == 1 && solvesByTechnique(size, regions, solution, pack)) return regions.toList()
+            if (solutions == 1 && meetsTechniqueCap(size, regions, solution, pack)) return regions.toList()
             val cell = rng.nextInt(regions.size)
             if (cell in crownCells) return@repeat
             val neighbourRegions = orthogonalNeighbours(cell, size).map { regions[it] }.filter { it != regions[cell] }
@@ -135,17 +135,29 @@ object CrownsGenerator {
         storedGrade = storedGrade,
     )
 
-    private fun solvesByTechnique(size: Int, regions: IntArray, solution: List<Int>, pack: Pack): Boolean {
+    /** True when the techniques solve the puzzle and use no more k-regions steps than [pack] allows. */
+    private fun meetsTechniqueCap(size: Int, regions: IntArray, solution: List<Int>, pack: Pack): Boolean {
         val puzzle = puzzleFor(PLACEHOLDER_ID, size, regions.toList(), solution, pack, "pending")
-        return try {
-            CrownsTechniqueSolver.grade(puzzle)
-            true
+        val steps = try {
+            CrownsStepCounter.countSteps(puzzle)
         } catch (_: IllegalArgumentException) {
-            false
+            null
         } catch (_: IllegalStateException) {
-            false
-        }
+            null
+        } ?: return false
+        return (steps[CrownsTechniques.K_REGIONS_K_LINES.id] ?: 0) <= maxKRegionsSteps(pack)
     }
+
+    /** Easy must avoid k-regions steps, Medium and Hard allow a few, Expert has no cap. */
+    private fun maxKRegionsSteps(pack: Pack): Int = when (pack) {
+        Pack.EASY -> 0
+        Pack.MEDIUM -> 1
+        Pack.HARD -> 2
+        Pack.EXPERT -> Int.MAX_VALUE
+    }
+
+    /** Regions may not exceed size * 5 / 2 cells, which keeps any one region from taking most of the board. */
+    private fun maxRegionCells(size: Int): Int = size * 5 / 2
 
     private fun countSolutions(size: Int, regions: IntArray, solution: List<Int>, pack: Pack): Int =
         CrownsRules.countSolutions(
@@ -156,7 +168,7 @@ object CrownsGenerator {
     private fun allRegionsValid(size: Int, regions: IntArray): Boolean {
         for (region in 0 until size) {
             val cells = regions.indices.filter { regions[it] == region }
-            if (cells.size < MIN_REGION_CELLS) return false
+            if (cells.size < MIN_REGION_CELLS || cells.size > maxRegionCells(size)) return false
             val reached = mutableSetOf(cells.first())
             val queue = ArrayDeque(listOf(cells.first()))
             while (queue.isNotEmpty()) {
