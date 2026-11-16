@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -19,18 +20,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import com.datathecodie.witgrid.data.progress.RoomDailyPuzzleCompletionRepository
 import com.datathecodie.witgrid.data.progress.RoomProgressRepository
 import com.datathecodie.witgrid.data.progress.WitgridDatabase
+import com.datathecodie.witgrid.data.settings.DataStorePlayerDataRepository
+import com.datathecodie.witgrid.data.settings.PlayerData
+import com.datathecodie.witgrid.domain.daily.DailyClock
+import com.datathecodie.witgrid.domain.daily.DailyProgressCoordinator
+import com.datathecodie.witgrid.domain.daily.DailyProgressSnapshot
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.LevelRef
-import com.datathecodie.witgrid.ui.screens.CalendarScreen
 import com.datathecodie.witgrid.ui.screens.SettingsScreen
 import com.datathecodie.witgrid.ui.screens.StatisticsScreen
+import com.datathecodie.witgrid.ui.screens.calendar.CalendarScreenRoute
 import com.datathecodie.witgrid.ui.screens.failed.LevelFailedScreen
 import com.datathecodie.witgrid.ui.screens.game.GameScreenRoute
-import com.datathecodie.witgrid.ui.screens.game.dailyPuzzleIndex
 import com.datathecodie.witgrid.ui.screens.home.HomeScreenRoute
 import com.datathecodie.witgrid.ui.screens.play.PlayScreenRoute
 import com.datathecodie.witgrid.ui.screens.play.PlayPersistenceScope
@@ -38,9 +47,12 @@ import com.datathecodie.witgrid.ui.screens.result.ResultScreenRoute
 import com.datathecodie.witgrid.ui.screens.result.nextResultLevel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.TimeZone
 
 @Composable
 fun WitgridNavigation(navigator: AppNavigator) {
@@ -53,7 +65,38 @@ fun WitgridNavigation(navigator: AppNavigator) {
         onDispose { persistence.close(database::close) }
     }
     val progressRepository = remember(database) { RoomProgressRepository(database.levelProgressDao()) }
+    val dailyCompletionRepository = remember(database) {
+        RoomDailyPuzzleCompletionRepository(database.dailyPuzzleCompletionDao())
+    }
+    val playerDataRepository = remember(applicationContext) {
+        DataStorePlayerDataRepository(applicationContext)
+    }
+    val playerData by playerDataRepository.playerData.collectAsState(initial = PlayerData())
+    val dailyClock = remember { DailyClock { System.currentTimeMillis() } }
+    val dailyProgressCoordinator = remember(playerDataRepository, dailyCompletionRepository, dailyClock) {
+        DailyProgressCoordinator(
+            playerDataRepository = playerDataRepository,
+            dailyPuzzleCompletionRepository = dailyCompletionRepository,
+            clock = dailyClock,
+            timeZoneProvider = { TimeZone.getDefault() },
+        )
+    }
+    var dailyProgress by remember { mutableStateOf<DailyProgressSnapshot?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    val currentDailyDay = dailyProgress?.today ?: dailyProgressCoordinator.today()
+    val todayCompletionsFlow = remember(dailyCompletionRepository, currentDailyDay.epochDay) {
+        dailyCompletionRepository.observeBetween(currentDailyDay.epochDay, currentDailyDay.epochDay)
+    }
+    val todayCompletions by todayCompletionsFlow.collectAsState(initial = emptyList())
+    LaunchedEffect(destination, lifecycleOwner, dailyProgressCoordinator) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (isActive) {
+                dailyProgress = dailyProgressCoordinator.reconcile()
+                delay(DAILY_STATE_REFRESH_MILLIS)
+            }
+        }
+    }
     var restartRequest by remember { mutableStateOf<PlayRestartRequest?>(null) }
     var nextRestartRequestId by remember { mutableStateOf(0L) }
     var activeBackAction by remember(destination) {
@@ -110,6 +153,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 gameIds = GameRegistry.games.map { it.id },
                 levelRefsByGame = levelRefsByGame,
                 progressRepository = progressRepository,
+                streak = dailyProgress?.streak ?: playerData.streak,
+                completedDailyGamesToday = todayCompletions.size,
                 onSelectGame = { navigator.navigate(AppDestination.Game(it)) },
                 onOpenCalendar = { navigator.navigate(AppDestination.Calendar) },
                 onOpenStatistics = { navigator.navigate(AppDestination.Statistics) },
@@ -127,12 +172,13 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     gameId = currentDestination.gameId,
                     levelRefsByPack = levelRefsByPack,
                     progressRepository = progressRepository,
+                    dailyCompletedToday = todayCompletions.any { it.gameId == currentDestination.gameId },
                     onContinue = { navigator.navigate(AppDestination.Play(it)) },
                     onSelectPack = { navigator.navigate(AppDestination.Play(it)) },
                     onOpenDaily = {
                         scope.launch {
                             val dailyRef = withContext(Dispatchers.IO) {
-                                module.dailyRef(dailyPuzzleIndex(System.currentTimeMillis()), bankSource)
+                                module.dailyRef(dailyProgressCoordinator.today().bankIndex, bankSource)
                             }
                             if (navigator.destination.value == currentDestination) {
                                 navigator.navigate(AppDestination.Play(dailyRef))
@@ -159,7 +205,18 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     },
                     onRegisterBackAction = { action -> activeBackAction = action },
                     onSolved = { solved ->
-                        if (navigator.destination.value == currentDestination) {
+                        if (solved.levelRef.daily) {
+                            persistence.scope.launch {
+                                dailyProgress = dailyProgressCoordinator.completeDailyPuzzle(
+                                    gameId = solved.levelRef.gameId,
+                                    levelId = solved.levelRef.levelId,
+                                )
+                                if (navigator.destination.value == currentDestination) {
+                                    navigator.goBack()
+                                    navigator.navigate(AppDestination.Result(solved.levelRef))
+                                }
+                            }
+                        } else if (navigator.destination.value == currentDestination) {
                             navigator.goBack()
                             navigator.navigate(AppDestination.Result(solved.levelRef))
                         }
@@ -192,7 +249,23 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 onHome = navigator::returnHome,
             )
 
-            AppDestination.Calendar -> CalendarScreen(onHome = navigator::returnHome)
+            AppDestination.Calendar -> CalendarScreenRoute(
+                dailyProgress = dailyProgress,
+                completionRepository = dailyCompletionRepository,
+                gameIds = GameRegistry.games.map { it.id },
+                onOpenDailyPuzzle = { gameId ->
+                    val module = requireNotNull(GameRegistry.find(gameId))
+                    scope.launch {
+                        val dailyRef = withContext(Dispatchers.IO) {
+                            module.dailyRef(dailyProgressCoordinator.today().bankIndex, bankSource)
+                        }
+                        if (navigator.destination.value == AppDestination.Calendar) {
+                            navigator.navigate(AppDestination.Play(dailyRef))
+                        }
+                    }
+                },
+                onHome = navigator::returnHome,
+            )
             AppDestination.Statistics -> StatisticsScreen(onHome = navigator::returnHome)
             AppDestination.Settings -> SettingsScreen(onHome = navigator::returnHome)
         }
@@ -204,3 +277,4 @@ private data class PlayRestartRequest(val levelRef: LevelRef, val id: Long)
 private const val BACK_TRANSLATION_FRACTION = 0.08f
 private const val BACK_SCALE_FRACTION = 0.04f
 private const val BACK_ALPHA_FRACTION = 0.16f
+private const val DAILY_STATE_REFRESH_MILLIS = 60_000L
