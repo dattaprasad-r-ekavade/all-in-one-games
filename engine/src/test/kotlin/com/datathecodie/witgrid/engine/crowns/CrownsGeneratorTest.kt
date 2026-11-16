@@ -19,6 +19,7 @@ class CrownsGeneratorTest {
             assertEquals(firstLines, secondRun.map(CrownsEngine::encodePuzzle))
             assertEquals(10, firstRun.size)
             assertEquals(10, firstRun.map { it.id }.toSet().size)
+            assertEquals(10, firstRun.map { it.regions to it.solutionColumns }.toSet().size)
             if (pack == Pack.EXPERT) {
                 assertEquals(setOf(9, 10), firstRun.map { it.size }.toSet())
             }
@@ -45,6 +46,22 @@ class CrownsGeneratorTest {
                 Pack.EXPERT -> setOf(9, 10)
             }
             assertTrue(puzzle.size in validSizes)
+        }
+    }
+
+    @Test
+    fun boundarySeedsGenerateValidDistinctContentForEveryPack() {
+        val seeds = listOf(0L, -1L, 2L, Long.MIN_VALUE, Long.MAX_VALUE)
+        for (pack in Pack.entries) {
+            val puzzles = seeds.map { CrownsEngine.generate(SplitMix64(it), pack) }
+
+            assertEquals(seeds.size, puzzles.map { it.regions to it.solutionColumns }.toSet().size)
+            puzzles.forEach { puzzle ->
+                assertUnique(CrownsEngine, puzzle)
+                assertTechniqueSolves(CrownsEngine, puzzle)
+                assertEquals(pack, CrownsEngine.grade(puzzle).pack)
+                assertConnectedRegions(puzzle)
+            }
         }
     }
 
