@@ -270,7 +270,7 @@ Plan: 4 (layout, gestures, feedback).
 ### A5–A8 — Game boards
 Tier M · Build per index · Review the other family
 Plan: section 6 input row for the game.
-**Owns:** `app/…/games/<game>/**`, `app/src/androidTest/kotlin/com/datathecodie/witgrid/games/<game>/**`, one module registration in `app/src/main/kotlin/com/datathecodie/witgrid/games/GameRegistry.kt`, and Compose UI test setup in `gradle/libs.versions.toml` and `app/build.gradle.kts`. The added dependencies are limited to the Compose UI test API and its AndroidX test runner.
+**Owns:** `app/…/games/<game>/**`, `app/src/androidTest/kotlin/com/datathecodie/witgrid/games/<game>/**`, `app/src/main/kotlin/com/datathecodie/witgrid/games/GameModule.kt` (forward board undo), one module registration in `app/src/main/kotlin/com/datathecodie/witgrid/games/GameRegistry.kt`, and Compose UI test setup in `gradle/libs.versions.toml` and `app/build.gradle.kts`. The added dependencies are limited to the Compose UI test API and its AndroidX test runner.
 **Do:** Implement the `GameModule` and `Board` for the game with the A4 kit. Use the input rules from the plan. Draw region letters/patterns when the setting is on. Register the module in `GameRegistry` (one line).
 **Done when:** `./gradlew check` passes. A Compose UI test plays the first bank puzzle to the solved event by applying the solution moves.
 
