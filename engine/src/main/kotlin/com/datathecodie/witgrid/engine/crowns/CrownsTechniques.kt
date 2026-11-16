@@ -32,7 +32,7 @@ object CrownsGradeCodec {
     /** Encodes the hardest technique ID and total hint count; a solved-in-place board uses `none:0`. */
     fun encode(grade: Grade): String {
         val techniqueId = grade.hardestTechnique?.id ?: "none"
-        require(techniqueId == "none" || CrownsTechniques.byId(techniqueId) != null) {
+        require(grade.hardestTechnique == null || CrownsTechniques.byId(techniqueId) != null) {
             "Unknown Crowns technique ID"
         }
         return "$techniqueId:${grade.stepCount}"

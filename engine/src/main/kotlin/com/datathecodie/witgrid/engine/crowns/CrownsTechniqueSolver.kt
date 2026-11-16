@@ -147,10 +147,13 @@ object CrownsTechniqueSolver {
     }
 
     private fun kRegionsKLinesStep(puzzle: CrownsPuzzle, candidates: List<List<Cell>>): HintStep? {
-        for (subsetSize in 2 until puzzle.size) {
-            for (regions in regionSubsets(puzzle.size, subsetSize)) {
-                rowSubsetStep(puzzle, candidates, regions)?.let { return it }
-                columnSubsetStep(puzzle, candidates, regions)?.let { return it }
+        // A region with a placed crown needs no further line, so it cannot reserve another one.
+        val remainingRegions = candidates.indices.filter { candidates[it].isNotEmpty() }
+        for (subsetSize in 2 until remainingRegions.size) {
+            for (regions in regionSubsets(remainingRegions.size, subsetSize)) {
+                val regionIds = regions.map { remainingRegions[it] }
+                rowSubsetStep(puzzle, candidates, regionIds)?.let { return it }
+                columnSubsetStep(puzzle, candidates, regionIds)?.let { return it }
             }
         }
         return null
@@ -173,7 +176,7 @@ object CrownsTechniqueSolver {
         return HintStep(
             technique = CrownsTechniques.K_REGIONS_K_LINES,
             cells = immutableList(regions.flatMap { candidates[it] }.distinct().sortedBy { it.index }),
-            explanation = "${regionNames(regions)} can use only ${lineNumbers(rows)} rows, so those rows are reserved for these regions.",
+            explanation = "Regions ${regionNames(regions)} can place their crowns only in rows ${lineNumbers(rows)}, so other regions cannot use those rows.",
             moves = immutableList(moves),
         )
     }
@@ -195,7 +198,7 @@ object CrownsTechniqueSolver {
         return HintStep(
             technique = CrownsTechniques.K_REGIONS_K_LINES,
             cells = immutableList(regions.flatMap { candidates[it] }.distinct().sortedBy { it.index }),
-            explanation = "${regionNames(regions)} can use only ${lineNumbers(columns)} columns, so those columns are reserved for these regions.",
+            explanation = "Regions ${regionNames(regions)} can place their crowns only in columns ${lineNumbers(columns)}, so other regions cannot use those columns.",
             moves = immutableList(moves),
         )
     }
