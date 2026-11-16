@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 33 %** (20 of 61 task cards done; 1 more in progress)
+**Overall: about 34 %** (21 of 61 task cards done; 1 more in progress)
 
 ```
-[#############---------------------------]  33 %
+[##############--------------------------]  34 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 15 | 1 | 65 % |
+| 1 — Engine and puzzle bank | 23 | 16 | 1 | 70 % |
 | 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **20** | **1** | **33 %** |
+| **Total** | **61** | **21** | **1** | **34 %** |
 
 ## Done
 
@@ -54,16 +54,17 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | NO3 | Seeded density-target pattern generator with clue derivation and uniqueness/grade rejection. Ten deterministic puzzles per pack plus boundary-seed cases pass; independent review found no blockers. |
 | NO4 | Independent plan-rule tests cover ordered row/column runs, 0/1/2 solution counts, mistakes and solved-state semantics using hand-built fixtures. Engine tests and check pass; independent review found no blockers. |
 | MS1 | Mini Sudoku 6×6 model, 2×3 box rules, bank codec, capped solution counter and immutable digit/note state. `SetDigit` clears cell notes; engine tests and check pass; independently reviewed with no blockers. |
+| MS2 | Guess-free Mini Sudoku solver, one-sentence hints for all four published techniques, grade metadata and technique-based pack bands. Unique fixtures cover all techniques and a unique stuck puzzle; engine tests and check pass; reviewed by `gpt-6.1-sol` with no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| MS2 | Mini Sudoku technique solver, hints and grading | Codex |
+| MS3 | Mini Sudoku seeded generator with uniqueness and technique-solve rejection | Codex |
 
 ## Next steps
 
-1. **Build the Mini Sudoku engine:** MS1 is complete; MS2 is next for the technique solver, hints and grading, followed by MS3 generator and MS4 independent rule tests.
+1. **Build the Mini Sudoku engine:** MS1 and MS2 are complete; MS3 is active for the seeded generator, followed by MS4 independent rule tests.
 2. **Start independent ready work:** B1 (bank tooling), A2 (storage) and human card H0.1 (accounts and legal setup).
 3. **Wire the core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
 4. **Build the puzzle bank** after all game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
