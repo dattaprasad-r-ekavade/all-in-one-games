@@ -1,9 +1,8 @@
 package com.datathecodie.witgrid.games
 
-import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuEngine
-import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.games.binary.BinaryGameModule
 import com.datathecodie.witgrid.games.crowns.CrownsGameModule
+import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
 import com.datathecodie.witgrid.games.nonogram.NonogramGameModule
 
 object GameRegistry {
@@ -11,7 +10,7 @@ object GameRegistry {
         CrownsGameModule,
         BinaryGameModule,
         NonogramGameModule,
-        EngineGameModule(MiniSudokuEngine, MiniSudokuState::puzzle) { 2 },
+        MiniSudokuGameModule,
     )
 
     private val gamesById = games.associateBy { it.id }
