@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 28 %** (17 of 61 task cards done; 1 more in progress)
+**Overall: about 30 %** (18 of 61 task cards done; 1 more in progress)
 
 ```
-[###########-----------------------------]  28 %
+[############----------------------------]  30 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 12 | 1 | 52 % |
+| 1 — Engine and puzzle bank | 23 | 13 | 1 | 57 % |
 | 2 — Core app | 14 | 1 | 0 | 7 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **17** | **1** | **28 %** |
+| **Total** | **61** | **18** | **1** | **30 %** |
 
 ## Done
 
@@ -51,16 +51,17 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | BI4 | Independent tests cover Binary balance, triples, distinct rows and columns, solution counts, marks, mistakes and solved states. Engine tests and check pass; reviewed by gpt-6.1-sol. |
 | NO1 | Nonogram puzzle/state model, clue payload, rule checks and capped solution counter. Engine tests and check pass; independently reviewed, including counter cross-checks against exhaustive enumeration. |
 | NO2 | Nonogram overlap, edge and line-by-line solver, deterministic hints, line-pass grading and pack difficulty bands. Engine tests and check pass; independently reviewed and fixed for edge-run closure and one-pass difficulty cases. |
+| NO3 | Seeded density-target pattern generator with clue derivation and uniqueness/grade rejection. Ten deterministic puzzles per pack plus boundary-seed cases pass; independent review found no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## In progress
 
-| NO3 | Nonogram seeded generator and solver-checked clue acceptance | Codex |
+| NO4 | Independent Nonogram rules and fixture tests | Codex |
 
 ## Next steps
 
-1. **Build the Nonogram engine:** NO1 and NO2 are complete; NO3 is next for the seeded generator and solver-checked clue acceptance, followed by NO4 independent rule tests.
+1. **Build the Nonogram engine:** NO1–NO3 are complete; NO4 is next for independent Nonogram rule and fixture tests. Then the Nonogram lane is complete.
 2. **Build the Mini Sudoku engine:** MS1-MS4 are ready and independent of Nonogram.
 3. **Start independent ready work:** B1 (bank tooling), A2 (storage) and human card H0.1 (accounts and legal setup).
 4. **Wire the core app flow:** A3 depends on A1 and A2; A4 follows A3. Theme wiring into the manifest and activity is part of A3.
