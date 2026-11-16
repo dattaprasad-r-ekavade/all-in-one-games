@@ -52,7 +52,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | active |
 | R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | todo |
 | R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | todo |
-| R5 | Settings screen | L | Claude | Codex | A1, A3, R4, M1 | todo |
+| R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | todo |
@@ -62,7 +62,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | todo |
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
-| M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M6, H4 | todo |
+| M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | ready |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | todo |
@@ -328,28 +328,28 @@ Plan: 6 (daily index), 5, 7.5, 8.2 (streak repair).
 
 ### R2 — Daily UI and calendar screen
 Tier M · Build Claude (`builder`) · Review Codex
-**Owns:** `app/…/ui/screens/calendar/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/res/values/strings.xml`.
-**Do:** Wire daily puzzle entry, completion state and calendar navigation to R1's local-date rules and the committed daily bank. Reconcile and persist streak state before displaying repair availability; serialize read-transition-write updates and supply the current device time zone each time. Keep the daily status localized.
+**Owns:** `app/…/ui/screens/calendar/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/**`, `app/src/main/res/values/strings.xml`.
+**Do:** Wire daily puzzle entry, completion state and calendar navigation to R1's local-date rules and the committed daily bank. Persist daily completion history by local epoch day so recurring 365-day bank IDs do not merge different dates. Reconcile and persist streak state before displaying repair availability; serialize read-transition-write updates and supply the current device time zone each time. Keep the daily status localized.
 **Done when:** `./gradlew check` passes.
 
 ### R3 — Statistics screen
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Statistics).
-**Owns:** `app/…/ui/screens/stats/**`, `app/…/domain/stats/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
+**Owns:** `app/…/ui/screens/stats/**`, `app/…/domain/stats/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/**`, `app/src/main/res/values/strings.xml`.
 **Done when:** `./gradlew check` passes. The stats calculation has JVM tests.
 
 ### R4 — Reminder notification
 Tier L · Build Codex (`gpt-6-luna`) · Review Claude
 Plan: 5 (one optional reminder).
-**Owns:** `app/…/reminder/**`, `app/src/main/AndroidManifest.xml`, `app/src/main/res/values/strings.xml`.
-**Do:** Off by default. Player selects the time. Ask notification permission (API 33+) only when the player turns it on.
+**Owns:** `app/…/reminder/**`, `app/src/main/AndroidManifest.xml`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
+**Do:** Off by default. Player selects the time. Persist the enabled state and local reminder time through PlayerData. Ask notification permission (API 33+) only when the player turns it on.
 **Done when:** `./gradlew check` passes.
 
 ### R5 — Settings screen
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Settings).
 **Owns:** `app/…/ui/screens/settings/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
-**Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences.
+**Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences. Add a privacy-options entry that calls the consent options exposed by M3.
 **Done when:** `./gradlew check` passes.
 
 ### R6 — Accessibility pass
@@ -383,7 +383,7 @@ Tier L · Build Claude (`test-writer`) · Review Codex
 Tier H · Build Claude (`builder`) · Review Codex
 Plan: 7.1, 8.3, 8.7, decision from T0.3.
 **Owns:** `app/…/ads/**`, `gradle/libs.versions.toml`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
-**Do:** `AdService` interface with a real implementation and a fake. UMP consent before the first ad request. Preload one interstitial and one rewarded ad when online; drop ads older than one hour. Google's public test app ID and test unit IDs only. Live IDs come later from Gradle properties outside the repo (S3).
+**Do:** `AdService` interface with a real implementation and a fake. UMP consent before the first ad request, with a privacy-options action exposed for Settings. Preload one interstitial and one rewarded ad when online; drop ads older than one hour. Google's public test app ID and test unit IDs only. Live IDs come later from Gradle properties outside the repo (S3).
 **Done when:** `./gradlew check` passes. The lead sees test ads on a device.
 
 ### M4 — Ads in the player flows
@@ -396,8 +396,8 @@ Plan: 8.1–8.3, 8.5 (offer placement).
 ### M5 — Mistake limit and continue flow
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 8.4.
-**Owns:** `app/…/play/MistakeLimit.kt`, `app/…/play/PlayController.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
-**Do:** With the setting on, three mistakes fail a logic level. Continue grants exactly one additional mistake and leaves the board as-is; each later Continue grants one more. Restart is always free and never shows an ad.
+**Owns:** `app/…/play/MistakeLimit.kt`, `app/…/play/PlayController.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/**`, `app/src/main/res/values/strings.xml`.
+**Do:** With the setting on, three mistakes fail a logic level. Persist the mistake count with level progress and restore it when the level is reopened. Continue grants exactly one additional mistake and leaves the board as-is; each later Continue grants one more. Restart is always free and never shows an ad.
 **Done when:** `./gradlew check` passes. Restart never shows an ad.
 
 ### M6 — Premium purchase and restore
@@ -415,8 +415,8 @@ Plan: 8.5.
 ### M7 — Analytics, Crashlytics, Remote Config
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 8.6, 10.
-**Owns:** `app/…/analytics/**`, `gradle/libs.versions.toml`, `build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
-**Do:** `Analytics` interface with Firebase and fake implementations. All events in plan 10. Remote Config bound to `Config` from M1, in-app defaults first. The build works when `google-services.json` is missing (CI and agents): use the fake.
+**Owns:** `app/…/analytics/**`, `app/…/play/**`, `app/…/nav/WitgridNavigation.kt`, `app/…/ui/screens/home/**`, `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/ui/screens/settings/**`, `app/…/ads/flow/**`, `app/…/billing/**`, `app/…/domain/daily/**`, `app/…/MainActivity.kt`, `gradle/libs.versions.toml`, `build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
+**Do:** `Analytics` interface with Firebase and fake implementations. Instrument every event in plan 10 at its source. Remote Config bound to `Config` from M1, in-app defaults first. The build works when `google-services.json` is missing (CI and agents): use the fake.
 **Done when:** `./gradlew check` passes in CI without `google-services.json`.
 
 ---
@@ -439,7 +439,7 @@ Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 ### S3 — Release build configuration
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 **Owns:** release parts of `app/build.gradle.kts`, `app/proguard-rules.pro`.
-**Do:** R8 on, rules for Room, Billing, Ads, Firebase. Version code scheme. Signing config reads `keystore.properties` if it exists (never committed). Live ad IDs from Gradle properties; debug always uses test IDs.
+**Do:** R8 on, rules for Room, Billing, Ads, Firebase. Version code scheme. Signing config reads `keystore.properties` if it exists (never committed). Debug and closed-test builds always use Google's test ad IDs; live IDs activate only for production builds from Gradle properties outside the repo.
 **Done when:** `./gradlew :app:bundleRelease` builds an unsigned bundle when no keystore is present.
 
 ### H5 — Art, keystore, closed test, production access (Human)
