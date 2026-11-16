@@ -62,7 +62,7 @@ Labels used in this plan:
 ## 4. Design principles and art direction
 
 1. **Clean UI.** One screen has one job. No pop-up offers during play.
-2. **No ad interrupts a puzzle.** Full-screen ads show only after a level finish.
+2. **No ad interrupts a puzzle.** Ads are presented only outside an active puzzle board. Interstitials show only after a level finish and the player's tap on "Next".
 3. **Offline first.** Each game, each level and each save works with no connection.
 4. **Fair puzzles.** Each puzzle has exactly one solution and needs no guess.
 5. **Hints explain.** A hint shows the next logical step and says why.
@@ -274,6 +274,7 @@ Rules:
 - Give the reward when the SDK reports it. Store the reward immediately, so that a killed app does not lose it.
 - Hint allowances are shared across all games. Spend a hint when useful advice is revealed; revealing the same hint again on an unchanged board does not spend another. An unavailable hint costs nothing. This also applies to the offline hint allowance.
 - A rewarded streak repair restores the most recent missed local day and must be completed within 48 hours after that day.
+- Never show or start an ad while a puzzle board is active. Rewarded hint and check credits are earned from the pre-puzzle Game screen, then spent in Play.
 
 ### 8.3 Offline behaviour
 
@@ -309,6 +310,7 @@ Rules:
 - Show the Premium offer in Settings, on the home screen as one quiet row, and when a rewarded ad cannot load.
 - Store the Premium flag locally, so it works offline. Check it again with Play Billing when a connection is available.
 - Add "Restore purchase" in Settings.
+- Premium removes the ad or allowance cost of streak repair, but does not extend the latest-uncovered-miss or 48-hour eligibility rules.
 - Comparable apps charge $3.99 to $5.99 for ad removal only. Use a Play price experiment after launch to compare $5.99 and $7.99.
 
 ### 8.6 Remote Config keys
@@ -342,8 +344,8 @@ All keys have a default in the app, so the app works offline from the first star
 | Screen | Content | Ad or offer |
 |---|---|---|
 | Home | Game cards with progress, daily puzzle state, streak and freeze count | One quiet Premium row |
-| Game | Four packs with progress, the daily puzzle, "Continue" | None |
-| Play | Grid, undo, redo, mark mode, hint, check, timer | Rewarded hint and check only |
+| Game | Four packs with progress, the daily puzzle, "Continue" | Optional rewarded hint and check credits before entering Play |
+| Play | Grid, undo, redo, mark mode, hint, check, timer | None; use free, offline or previously earned credits |
 | Result | Time, best time, streak update, "Next" | Interstitial after "Next" (section 8.1) |
 | Level failed | "Continue" and "Restart" | Rewarded continue |
 | Calendar | Month view of daily puzzles and streak | Rewarded streak repair |
@@ -473,8 +475,8 @@ Release about one game each 2 to 3 weeks. Each new game is a store update and a 
 2. ~~Ads SDK choice~~ — decided 16 Nov 2026: Next-Gen (`docs/decisions/ads-sdk.md`).
 3. Public developer details on Play for an account that earns money.
 4. GDD section 7 is missing from the PDF.
-5. Nonogram: abstract patterns at launch, or delay for picture puzzles.
-6. Minimum Android version (proposal: API 24).
+5. ~~Nonogram pictures at launch?~~ - abstract patterns are the launch scope; see section 6.3.
+6. ~~Minimum Android version?~~ - minSdk 24 is set in T0.1.
 7. ~~JDK version~~ — settled in T0.1: AGP 9.5.1 works with JDK 17. Versions: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk 37, targetSdk 36, minSdk 24, JUnit 6.1.3.
 8. Codex sandbox flags for Gradle (`network_access`, `--add-dir ~/.gradle`) on your Codex version. Settle at the first Codex task.
 

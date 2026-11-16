@@ -49,8 +49,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | A14 | UI smoke tests | L | Codex | Claude | A5–A8, A10, A12, A13, B2 | done |
 | **Phase 3 — Retention** |||||||
 | R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | done |
-| R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | active |
-| R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | todo |
+| R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | done |
+| R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | ready |
 | R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | todo |
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
@@ -329,13 +329,15 @@ Plan: 6 (daily index), 5, 7.5, 8.2 (streak repair).
 ### R2 — Daily UI and calendar screen
 Tier M · Build Claude (`builder`) · Review Codex
 **Owns:** `app/…/ui/screens/calendar/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/DailyPuzzleIndex.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/domain/daily/DailyProgressCoordinator.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/**`, `app/src/main/res/values/strings.xml`.
-**Do:** Wire daily puzzle entry, completion state and calendar navigation to R1's local-date rules and the committed daily bank. Persist daily completion history by local epoch day so recurring 365-day bank IDs do not merge different dates. Reconcile and persist streak state before displaying repair availability; serialize read-transition-write updates and supply the current device time zone each time. Keep the daily status localized.
+**Do:** Wire daily puzzle entry, completion state and calendar navigation to R1's local-date rules and the committed daily bank. Persist daily completion history by local epoch day so recurring 365-day bank IDs do not merge different dates. Reconcile and persist streak state before displaying repair availability; serialize read-transition-write updates and supply the current device time zone each time. Keep the daily status localized. The calendar shows completion history for past dates; only today's daily puzzles are playable, and future dates are unavailable.
 **Done when:** `./gradlew check` passes.
+**Decision:** Past daily puzzles are history-only for launch. A completion row is replayed into streak state before missed-day rules, including after offline recovery.
 
 ### R3 — Statistics screen
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Statistics).
 **Owns:** `app/…/ui/screens/stats/**`, `app/…/domain/stats/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/**`, `app/src/main/res/values/strings.xml`.
+**Do:** Count distinct completed regular levels per game; exclude guided intro levels and do not count replays as new solves. Show daily completions separately, keyed by local date and game. For regular levels, show the fastest best time and the arithmetic mean of one best time per completed level; label the latter "Average best time". Do not add attempt-history storage.
 **Done when:** `./gradlew check` passes. The stats calculation has JVM tests.
 
 ### R4 — Reminder notification
@@ -370,6 +372,7 @@ Plan: 8.1–8.6.
 **Do:** Plain Kotlin, no SDK code.
 - `InterstitialPolicy.shouldShow(...)` with every condition in 8.1.
 - `AllowanceLedger`: free hints each day, checks, continues, streak repairs, offline extra hints; Premium makes all unlimited. Hint allowances are shared across games. Spend when useful advice is revealed, but do not charge again for the same hint on an unchanged board; unavailable hints cost nothing. Rewards are stored atomically before the callback returns.
+- Premium removes the ad or allowance cost for streak repair, but the same latest-uncovered-miss and 48-hour eligibility rules still apply.
 - `ConfigKeys` with every key and default in 8.6, behind a `Config` interface.
 **Done when:** `./gradlew :app:testDebugUnitTest` passes.
 
@@ -389,8 +392,8 @@ Plan: 7.1, 8.3, 8.7, decision from T0.3.
 ### M4 — Ads in the player flows
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 8.1–8.3, 8.5 (offer placement).
-**Owns:** `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/ads/flow/**`, `app/src/main/res/values/strings.xml`.
-**Do:** Interstitial after "Next" through `InterstitialPolicy`. Rewarded buttons that state the reward first. Offline fallbacks. Premium offer when a rewarded ad cannot load.
+**Owns:** `app/…/ui/screens/game/GameScreen.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/nav/WitgridNavigation.kt`, `app/…/ads/flow/**`, `app/src/main/res/values/strings.xml`.
+**Do:** Interstitial after "Next" through `InterstitialPolicy`. Never show or start an ad while a puzzle board is active. Offer rewarded hint/check credits from the pre-puzzle Game screen; spend those credits in Play. Offer rewarded Continue on Level failed and rewarded streak repair on Calendar. Each rewarded button states the reward first. Add offline fallbacks and a Premium offer when a rewarded ad cannot load. Premium repair follows the same latest-uncovered-miss and 48-hour eligibility rules.
 **Done when:** `./gradlew check` passes. The handoff has a manual test table: each placement × online/offline × free/Premium.
 
 ### M5 — Mistake limit and continue flow
@@ -439,7 +442,7 @@ Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 ### S3 — Release build configuration
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 **Owns:** release parts of `app/build.gradle.kts`, `app/proguard-rules.pro`.
-**Do:** R8 on, rules for Room, Billing, Ads, Firebase. Version code scheme. Signing config reads `keystore.properties` if it exists (never committed). Debug and closed-test builds always use Google's test ad IDs; live IDs activate only for production builds from Gradle properties outside the repo.
+**Do:** R8 on, rules for Room, Billing, Ads, Firebase. Version code scheme. Gradle may consume owner-provided `keystore.properties` if present; agents must never open, print or commit signing files or values. Debug and closed-test builds always use Google's test ad IDs; live IDs activate only for production builds from Gradle properties outside the repo.
 **Done when:** `./gradlew :app:bundleRelease` builds an unsigned bundle when no keystore is present.
 
 ### H5 — Art, keystore, closed test, production access (Human)
