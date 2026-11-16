@@ -11,6 +11,9 @@ object CrownsCodec {
     fun decode(line: String): CrownsPuzzle {
         val bankLine = BankLine.decode(line)
         require(bankLine.size in 6..10) { "Crowns bank size must be between 6 and 10" }
+        require(bankLine.pack == CrownsPackBands.packForSize(bankLine.size)) {
+            "Crowns pack must match its board size"
+        }
         require(bankLine.payload.length == bankLine.size * bankLine.size) {
             "Crowns region payload must contain one digit per cell"
         }
@@ -35,6 +38,9 @@ object CrownsCodec {
     /** Encodes a validated Crowns puzzle as one canonical shared bank line. */
     fun encode(puzzle: CrownsPuzzle): String {
         require(puzzle.size in 6..10) { "Crowns bank size must be between 6 and 10" }
+        require(puzzle.pack == CrownsPackBands.packForSize(puzzle.size)) {
+            "Crowns pack must match its board size"
+        }
         require(CrownsRules.isValidSolution(puzzle)) { "Crowns stored solution violates the game rules" }
         val payload = puzzle.regions.joinToString(separator = "") { it.digitToChar().toString() }
         val solution = puzzle.solutionColumns.joinToString(separator = "") { it.digitToChar().toString() }

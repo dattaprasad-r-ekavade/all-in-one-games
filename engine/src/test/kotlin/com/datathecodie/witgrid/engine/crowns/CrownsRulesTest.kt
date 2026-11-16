@@ -69,9 +69,20 @@ class CrownsRulesTest {
         val fields = line.split('|')
         val invalidSolution = fields.toMutableList().also { it[3] = "000000" }.joinToString("|")
         val invalidPayload = fields.toMutableList().also { it[2] = "0" }.joinToString("|")
+        val invalidPack = fields.toMutableList().also { it[4] = Pack.MEDIUM.name }.joinToString("|")
 
         assertThrows(IllegalArgumentException::class.java) { CrownsCodec.decode(invalidSolution) }
         assertThrows(IllegalArgumentException::class.java) { CrownsCodec.decode(invalidPayload) }
+        assertThrows(IllegalArgumentException::class.java) { CrownsCodec.decode(invalidPack) }
+        val puzzleWithWrongPack = CrownsPuzzle(
+            puzzle.id,
+            puzzle.size,
+            puzzle.regions,
+            puzzle.solutionColumns,
+            Pack.MEDIUM,
+            puzzle.storedGrade,
+        )
+        assertThrows(IllegalArgumentException::class.java) { CrownsCodec.encode(puzzleWithWrongPack) }
     }
 
     @Test

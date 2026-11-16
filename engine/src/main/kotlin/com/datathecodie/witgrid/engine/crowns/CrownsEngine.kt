@@ -27,9 +27,10 @@ object CrownsEngine : GameEngine<CrownsPuzzle, CrownsState> {
     override fun countSolutions(puzzle: CrownsPuzzle, limit: Int): Int =
         CrownsRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: CrownsPuzzle, state: CrownsState): HintStep? = unavailable()
+    override fun nextStep(puzzle: CrownsPuzzle, state: CrownsState): HintStep? =
+        CrownsTechniqueSolver.nextStep(puzzle, state)
 
-    override fun grade(puzzle: CrownsPuzzle): Grade = unavailable()
+    override fun grade(puzzle: CrownsPuzzle): Grade = CrownsTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): CrownsPuzzle = unavailable()
 
