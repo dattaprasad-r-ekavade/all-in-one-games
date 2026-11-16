@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 16 Nov 2026_
 
-**Overall: about 7 %** (4 of 61 task cards done; 2 more in progress)
+**Overall: about 8 %** (5 of 61 task cards done; 1 more in progress)
 
 ```
-[███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  7 %
+[███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  8 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -22,13 +22,13 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | Phase | Cards | Done | Active | Progress |
 |---|---|---|---|---|
 | 0 — Setup | 5 | 4 | 0 | 80 % |
-| 1 — Engine and puzzle bank | 23 | 0 | 1 | 0 % |
+| 1 — Engine and puzzle bank | 23 | 1 | 0 | 4 % |
 | 2 — Core app | 14 | 0 | 1 | 0 % |
 | 3 — Retention | 6 | 0 | 0 | 0 % |
 | 4 — Monetisation and data | 8 | 0 | 0 | 0 % |
 | 5 — Closed test | 4 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 % |
-| **Total** | **61** | **4** | **2** | **7 %** |
+| **Total** | **61** | **5** | **1** | **8 %** |
 
 ## Done
 
@@ -38,6 +38,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | T0.1 | Gradle project with three modules: `engine` (pure Kotlin), `bankgen` (command-line tool), `app` (Android + Compose). Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk 37, targetSdk 36, minSdk 24. The empty app builds. |
 | T0.2 | GitHub Actions CI: the `build` job runs `./gradlew check :app:assembleDebug` on each push and pull request to `main`. |
 | T0.3 | Ads SDK decision: Google Mobile Ads **Next-Gen SDK** (`ads-mobile-sdk` 1.6.0 or later), AdMob only at launch. See [docs/decisions/ads-sdk.md](docs/decisions/ads-sdk.md). |
+| E1 | Engine contracts, deterministic SplitMix64, grid geometry, moves/history, bank-line codec and typed game stubs. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` with no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
@@ -45,15 +46,14 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 | Card | Work | Agent |
 |---|---|---|
-| E1 | Engine core contracts: PRNG, grid, moves, undo, `GameEngine` interface, bank line format | Codex `gpt-6.1-sol` (high) |
 | A1 | Theme: paper and ink, dark mode, 5 colourways, 8 region colours, Inter font | Claude `builder` (Sonnet) |
 
 ## Next steps
 
-1. **Merge the two active cards.** Each one gets a review from the other agent family. You read the E1 interfaces before merge.
-2. **Start the four game streams** (Crowns, Binary, Nonogram, Mini Sudoku) in parallel after E1. Also start E2 (engine test kit) and A2 (storage).
-3. **Build the puzzle bank** (B1 to B3): 600 levels and 365 daily puzzles for each game.
-4. **Human tasks to start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
+1. **Finish A1 review** and inspect the light and dark theme previews. Theme wiring into the manifest and activity is part of A3.
+2. **Start engine follow-up work** now that E1 is complete: E2, A2 and the CR1/BI1/NO1/MS1 game-model cards. Keep to the workflow's three-agent concurrency limit.
+3. **Build the puzzle bank** after the game generators and B1 are ready: 600 levels and 365 daily puzzles for each game, then validate and hand-test them.
+4. **Human tasks can start now** (card H0.1): trademark check of "Witgrid", Play Console account, AdMob account, developer website with privacy policy and `app-ads.txt`, and a new export of GDD section 7.
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
