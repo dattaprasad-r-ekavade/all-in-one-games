@@ -69,7 +69,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | done |
 | U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | done |
 | U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | done |
-| U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | todo |
+| U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | active |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
