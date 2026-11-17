@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,14 +44,20 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.DARK -> true
             }
             WitgridTheme(colourway = colourway, darkTheme = darkTheme) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                        .windowInsetsPadding(WindowInsets.safeDrawing)
-                        .imePadding(),
+                // Surface sets the content colour; a plain background left text black in dark mode.
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
                 ) {
-                    WitgridNavigation(navigator)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .windowInsetsPadding(WindowInsets.safeDrawing)
+                            .imePadding(),
+                    ) {
+                        WitgridNavigation(navigator)
+                    }
                 }
             }
         }
