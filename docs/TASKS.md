@@ -527,9 +527,10 @@ Plan: 4.1, 9. Design: `docs/design/home-*.png`, `game-*.png`.
 ### U7 — Result, Failed, Calendar, Statistics, Settings
 Tier M · Build Codex · Review Claude (lead screenshots)
 Plan: 4.1, 9. Design: `docs/design/result-*.png`, `settings-*.png`.
-**Owns:** `ui/screens/result/**` (not `ResultNavigation.kt`, which is U9), `ui/screens/failed/**`, `ui/screens/calendar/**`, `ui/screens/stats/**`, `ui/screens/settings/**`, `res/values/strings.xml` (these screens' strings).
+**Owns:** `ui/screens/result/**` (not `ResultNavigation.kt`, which is U9), `ui/screens/failed/**`, `ui/screens/calendar/**`, `ui/screens/stats/**`, `ui/screens/settings/**`, `nav/WitgridNavigation.kt`, `ui/layout/ScreenPreviews.kt`, `app/src/androidTest/kotlin/com/datathecodie/witgrid/screenshots/ScreenshotCaptureTest.kt`, `res/values/strings.xml` (these screens' strings), and their tests.
 **Do:** Result: close icon, solved-board thumbnail, "Solved", "Game · Pack · Level N", Time / Best / Hints tiles, best-time banner, "Next level" (primary) and "Back to packs". Level failed: the same frame with Continue and Restart. Calendar: month grid with done and missed marks, today's daily puzzles as one list. Statistics: one card for each game with `StatTile`s (a solved count is permitted; no "of total"). Settings: theme as a segmented control, colourway swatches, assist switches with one-line subtitles, a "More" list (reminder, Premium, restore purchase, privacy, licences). Remove the unused `onHome` parameters.
 **Done when:** `./gradlew check` passes. Screenshots match the mockups.
+**Lead scope extension (17 Nov 2026):** Added `WitgridNavigation.kt` for Result/Failed framing and pack-return routing after removing old Home callbacks; added `ScreenPreviews.kt` and `ScreenshotCaptureTest.kt` because they call the screens whose U7 APIs are being rebuilt.
 
 ### U8 — Screenshot matrix and visual QA gate
 Tier M · Build Codex · Review Claude (lead)
