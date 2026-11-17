@@ -13,6 +13,8 @@ _Last update: 17 Nov 2026_
 
 **Overall: about 88 %** (56 of 64 task cards done; 2 ready; 0 active; 1 blocked)
 
+**Local debug build (17 Nov 2026):** `:app:assembleDebug --rerun-tasks` succeeded. The 21.6 MB APK is at `app/build/outputs/apk/debug/app-debug.apk`; it remains a local, debug-signed build and is not uploaded or committed.
+
 ```
 [###################################-----]  88 %
 ```
