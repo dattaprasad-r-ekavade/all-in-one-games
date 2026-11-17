@@ -44,6 +44,9 @@ import com.datathecodie.witgrid.engine.nonogram.NonogramPuzzle
 import com.datathecodie.witgrid.engine.nonogram.NonogramRules
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
 import com.datathecodie.witgrid.ui.board.BoardCanvas
+import com.datathecodie.witgrid.ui.board.LocalBoardViewportMode
+import com.datathecodie.witgrid.ui.board.MIN_BOARD_CELL_SIZE
+import com.datathecodie.witgrid.ui.board.PannableBoardViewport
 import com.datathecodie.witgrid.ui.theme.NumberStyles
 import com.datathecodie.witgrid.ui.theme.Spacing
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
@@ -93,70 +96,102 @@ fun NonogramBoard(
     }
     val boardContent: @Composable () -> Unit = {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val viewportMode = LocalBoardViewportMode.current
             val maxClueCount = maxOf(
                 puzzle.rowClues.maxOf { clues -> clues.size },
                 puzzle.columnClues.maxOf { clues -> clues.size },
                 MIN_CLUE_COUNT,
             )
-            val cellSize = (maxWidth - Spacing.screenMargin * 2) / (puzzle.size + maxClueCount)
+            val fitCellSize = ((maxWidth - Spacing.screenMargin * 2) / (puzzle.size + maxClueCount))
+                .coerceAtLeast(1.dp)
+            val cellSize = if (viewportMode.enlarged) {
+                maxOf(fitCellSize, MIN_BOARD_CELL_SIZE)
+            } else {
+                fitCellSize
+            }
             val clueBandWidth = cellSize * maxClueCount
             val boardSlotWidth = cellSize * puzzle.size + Spacing.screenMargin * 2
+            val contentWidth = cellSize * (puzzle.size + maxClueCount) + Spacing.screenMargin * 2
+            val contentHeight = cellSize * (puzzle.size + maxClueCount)
+            val viewportWidth = minOf(maxWidth, contentWidth)
+            val viewportHeight = if (maxHeight == Dp.Infinity) {
+                contentHeight
+            } else {
+                minOf(maxHeight, contentHeight)
+            }
+            val canPan = viewportMode.enlarged &&
+                (contentWidth > viewportWidth || contentHeight > viewportHeight)
 
-            Column {
-                Row(modifier = Modifier.fillMaxWidth().height(clueBandWidth)) {
-                    Spacer(Modifier.width(clueBandWidth))
-                    ColumnClues(
-                        puzzle = puzzle,
-                        cellSize = cellSize,
-                        maxClueCount = maxClueCount,
-                        boardSlotWidth = boardSlotWidth,
-                        completedColumns = completedColumns,
-                        colors = colors.ink,
-                        completedColor = colors.accent,
-                    )
+            val cluesAndGrid: @Composable () -> Unit = {
+                Column(modifier = Modifier.width(contentWidth).height(contentHeight)) {
+                    Row(modifier = Modifier.fillMaxWidth().height(clueBandWidth)) {
+                        Spacer(Modifier.width(clueBandWidth))
+                        ColumnClues(
+                            puzzle = puzzle,
+                            cellSize = cellSize,
+                            maxClueCount = maxClueCount,
+                            boardSlotWidth = boardSlotWidth,
+                            completedColumns = completedColumns,
+                            colors = colors.ink,
+                            completedColor = colors.accent,
+                        )
+                    }
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        RowClues(
+                            puzzle = puzzle,
+                            cellSize = cellSize,
+                            clueBandWidth = clueBandWidth,
+                            completedRows = completedRows,
+                            colors = colors.ink,
+                            completedColor = colors.accent,
+                        )
+                        BoardCanvas(
+                            gridSize = puzzle.size,
+                            cellDescription = { cell -> describeCell(state, cell) },
+                            modifier = Modifier.width(boardSlotWidth),
+                            solved = NonogramRules.isSolved(puzzle, state),
+                            reduceMotion = options.reduceMotion,
+                            hapticsEnabled = options.hapticsEnabled,
+                            panningEnabled = canPan,
+                            drawCell = { cell, bounds ->
+                                drawMark(state.marks[cell.index], bounds, colors.accent, colors.ink)
+                            },
+                            onCellTap = { cell ->
+                                NonogramBoardInput.markMoves(
+                                    state,
+                                    listOf(cell),
+                                    mode,
+                                    options.autoCrossCompletedLines,
+                                ).takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
+                            },
+                            onDragPaint = { path ->
+                                NonogramBoardInput.markMoves(
+                                    state,
+                                    path,
+                                    mode,
+                                    options.autoCrossCompletedLines,
+                                ).takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
+                            },
+                            onLongPress = { cell ->
+                                NonogramBoardInput.clearMoves(state, cell)
+                                    .takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
+                            },
+                            onUndo = onUndo,
+                        )
+                    }
                 }
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    RowClues(
-                        puzzle = puzzle,
-                        cellSize = cellSize,
-                        clueBandWidth = clueBandWidth,
-                        completedRows = completedRows,
-                        colors = colors.ink,
-                        completedColor = colors.accent,
-                    )
-                    BoardCanvas(
-                        gridSize = puzzle.size,
-                        cellDescription = { cell -> describeCell(state, cell) },
-                        modifier = Modifier.width(boardSlotWidth),
-                        solved = NonogramRules.isSolved(puzzle, state),
-                        reduceMotion = options.reduceMotion,
-                        hapticsEnabled = options.hapticsEnabled,
-                        drawCell = { cell, bounds ->
-                            drawMark(state.marks[cell.index], bounds, colors.accent, colors.ink)
-                        },
-                        onCellTap = { cell ->
-                            NonogramBoardInput.markMoves(
-                                state,
-                                listOf(cell),
-                                mode,
-                                options.autoCrossCompletedLines,
-                            ).takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
-                        },
-                        onDragPaint = { path ->
-                            NonogramBoardInput.markMoves(
-                                state,
-                                path,
-                                mode,
-                                options.autoCrossCompletedLines,
-                            ).takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
-                        },
-                        onLongPress = { cell ->
-                            NonogramBoardInput.clearMoves(state, cell)
-                                .takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
-                        },
-                        onUndo = onUndo,
-                    )
-                }
+            }
+
+            if (canPan) {
+                PannableBoardViewport(
+                    modifier = Modifier.width(viewportWidth).height(viewportHeight),
+                    contentWidth = contentWidth,
+                    contentHeight = contentHeight,
+                    enabled = true,
+                    content = cluesAndGrid,
+                )
+            } else {
+                cluesAndGrid()
             }
         }
     }

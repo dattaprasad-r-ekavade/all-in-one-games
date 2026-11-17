@@ -75,6 +75,7 @@ class DataStorePlayerDataRepository(
                 crownsShowRegionAids = preferences[CROWNS_SHOW_REGION_AIDS] ?: true,
                 crownsAutoXEnabled = preferences[CROWNS_AUTO_X_ENABLED] ?: false,
                 nonogramAutoCrossEnabled = preferences[NONOGRAM_AUTO_CROSS_ENABLED] ?: false,
+                reduceMotion = preferences[REDUCE_MOTION] ?: false,
             ),
             reminder = ReminderSettings(
                 enabled = preferences[REMINDER_ENABLED] ?: false,
@@ -104,6 +105,7 @@ class DataStorePlayerDataRepository(
                 preferences[CROWNS_SHOW_REGION_AIDS] = settings.crownsShowRegionAids
                 preferences[CROWNS_AUTO_X_ENABLED] = settings.crownsAutoXEnabled
                 preferences[NONOGRAM_AUTO_CROSS_ENABLED] = settings.nonogramAutoCrossEnabled
+                preferences[REDUCE_MOTION] = settings.reduceMotion
             }
         }
     }
@@ -304,6 +306,7 @@ class DataStorePlayerDataRepository(
         val CROWNS_SHOW_REGION_AIDS = booleanPreferencesKey("crowns_show_region_aids")
         val CROWNS_AUTO_X_ENABLED = booleanPreferencesKey("crowns_auto_x_enabled")
         val NONOGRAM_AUTO_CROSS_ENABLED = booleanPreferencesKey("nonogram_auto_cross_enabled")
+        val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
         val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
         val REMINDER_HOUR_OF_DAY = intPreferencesKey("reminder_hour_of_day")
         val REMINDER_MINUTE = intPreferencesKey("reminder_minute")

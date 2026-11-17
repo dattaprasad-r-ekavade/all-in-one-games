@@ -100,6 +100,7 @@
     <string name="button_apply_hint">Apply</string>
     <string name="button_dismiss_hint">Close</string>
     <string name="board_highlighted_cell_accessibility">%1$s, highlighted</string>
+    <string name="board_enlarged_gesture_help">Drag to pan; tap or hold a cell for its actions.</string>
     <string name="state_on">On</string>
     <string name="state_off">Off</string>
     <string name="button_hide_timer">Hide timer</string>
@@ -115,6 +116,8 @@
     <string name="button_restart">Restart</string>
     <string name="button_next">Next</string>
     <string name="button_back">Back</string>
+    <string name="button_board_enlarge">Larger cells</string>
+    <string name="button_board_fit">Fit board</string>
     <string name="button_home">Home</string>
     <string name="game_crowns">Crowns</string>
     <string name="game_binary">Binary</string>
@@ -145,6 +148,8 @@
     <string name="settings_crowns_auto_x">Automatically mark impossible cells in Crowns</string>
     <string name="settings_nonogram_auto_cross">Automatically cross completed Nonogram lines</string>
     <string name="settings_play">Play</string>
+    <string name="settings_accessibility">Accessibility</string>
+    <string name="settings_reduce_motion">Reduce motion</string>
     <string name="settings_mistake_limit">Mistake limit</string>
     <string name="settings_haptics">Haptics</string>
     <string name="settings_sound">Sound</string>

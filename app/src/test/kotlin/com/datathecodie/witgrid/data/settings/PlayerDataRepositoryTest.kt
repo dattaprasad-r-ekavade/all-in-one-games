@@ -116,6 +116,7 @@ class PlayerDataRepositoryTest {
                     crownsShowRegionAids = false,
                     crownsAutoXEnabled = true,
                     nonogramAutoCrossEnabled = true,
+                    reduceMotion = true,
                 ),
             )
             writer.updateStreak(
@@ -158,6 +159,7 @@ class PlayerDataRepositoryTest {
                     crownsShowRegionAids = false,
                     crownsAutoXEnabled = true,
                     nonogramAutoCrossEnabled = true,
+                    reduceMotion = true,
                 ),
                 streak = StreakData(
                     currentDays = 9,
