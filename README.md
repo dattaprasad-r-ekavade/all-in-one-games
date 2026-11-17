@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 80 %** (51 of 64 task cards done; 5 ready; 1 active)
+**Overall: about 81 %** (52 of 64 task cards done; 6 ready; 1 active)
 
 ```
-[################################--------]  80 %
+[#################################-------]  81 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -25,10 +25,10 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
 | 3 - Retention | 6 | 5 | 1 | 0 | 0 | 0 | 83 % |
-| 4 — Monetisation and data | 8 | 3 | 1 | 1 | 0 | 0 | 38 % |
-| 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
+| 4 — Monetisation and data | 8 | 4 | 1 | 1 | 0 | 0 | 50 % |
+| 5 - Closed test | 4 | 0 | 2 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **51** | **5** | **1** | **0** | **0** | **80 %** |
+| **Total** | **64** | **52** | **6** | **1** | **0** | **0** | **81 %** |
 
 ## Done
 
@@ -83,6 +83,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | M1 | Plain Kotlin monetisation config and policy, atomic DataStore allowances/rewards/interstitial tracking, unchanged-hint deduplication, stable reward grant IDs, and eligible streak-repair checks. App tests and full `check` pass; GPT-6.1-Sol review found no blockers. |
 | M2 | Independent policy tests cover interstitial gates and boundaries, daily/shared/offline hints, checks, continues, Premium, repair eligibility, and persistent reward-grant idempotency. App tests and full `check` pass; GPT-6.1-Sol review found no blockers. |
 | M3 | UMP consent flow and privacy-options API, network-aware interstitial/rewarded preloads with one-hour expiry, testable fake, and Google public test IDs only. Full `check` passes; GPT-6.1-Sol review found no blockers. Device ad rendering is checked with M4 placements. |
+| M4 | Result-only interstitials, rewarded hint/check credits, Continue and streak-repair ad flows, and atomic repair-credit persistence. Full `check` passes; online/offline test-ad paths were exercised on emulator; GPT-6.1-Sol review found no remaining blockers. |
 | R4 | Reminder settings persist disabled-by-default local hour/minute values. Inexact daily alarms and localized notifications recover after delivery, reboot, clock/time-zone change, and app update. API 33 permission gating and spring-forward scheduling are tested; full `check` passes and GPT-6.1-Sol review found no blockers. |
 | R5 | Settings for theme, colourway, puzzle assists, mistake limit, haptics, sound, reminders, privacy choices and licences. Writes survive screen disposal; permission retry survives activity recreation. `check` passes and GPT-6.1-Sol review findings were fixed. H0.1 must supply the published policy URL before release. |
 
@@ -90,14 +91,14 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Complete M4:** wire ad placements and verify the online and offline player flows, including a visible test ad on device.
+1. **Complete M5:** enforce the mistake limit and persist the board and mistake count across Continue and restart.
 2. **Complete R6:** accessibility pass for board labels, 200 % font scale, reduced motion, colour-blind patterns and touch targets.
 3. **Continue Premium:** M6 is ready for purchase and restore flow implementation; use the human licence tester for store verification.
 4. **Hand-test the bank and finish H0.1:** H1 covers puzzle fairness; H0.1 supplies accounts and the published privacy policy URL before release.
 
 ## In progress
 
-| M4 | Ads in the player flows | Codex |
+| M5 | Mistake limit and continue flow | Codex |
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 

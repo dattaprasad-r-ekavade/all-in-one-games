@@ -58,14 +58,14 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | done |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | done |
-| M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | active |
-| M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
+| M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | done |
+| M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | active |
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | ready |
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | ready |
-| S2 | Screenshot capture script | M | Codex | Claude | A14 | todo |
+| S2 | Screenshot capture script | M | Codex | Claude | A14 | ready |
 | S3 | Release build configuration | M | Codex | Claude | M3, M6, M7 | todo |
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
 | **Phase 6 — Launch** |||||||
