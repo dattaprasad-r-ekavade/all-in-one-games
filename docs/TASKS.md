@@ -70,8 +70,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | done |
 | U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | done |
 | U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | done |
-| U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | active |
-| U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
+| U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | done |
+| U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | ready |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
 | U9 | Endless level numbers and looping | H | Codex | Claude | U2 | done |
 | **Phase 5 — Closed test** |||||||
@@ -522,6 +522,7 @@ Plan: 4.1, 9. Design: `docs/design/home-*.png`, `game-*.png`.
 **Do:** Home: "Today's puzzles" card (date, streak chip, one status chip for each game in a wrapping row, "Play daily <game>" button for the first unfinished game), then a 2-column grid of game cards (small drawn board preview, name, "Level N · Pack"), then one quiet Premium row. The grid works for any number of games. Game screen: Continue card (preview, "Level N", in-puzzle status), daily row with a done tick, pack cards with name, board size and "Next: level N", and one quiet row "N hints and N checks saved · Get more" that opens a sheet with the two rewarded offers. Remove `home_progress`, `game_pack_progress`, the "x of 4 daily puzzles" text, and every other level total. Remove the unused `onHome`, `onOpenStatistics` and `onOpenSettings` parameters (U2 moved those actions into the top bar).
 **Done when:** `./gradlew check` passes. Screenshots match the mockups. No level total appears on these screens.
 **Lead scope extension (17 Nov 2026):** Added `WitgridNavigation.kt` so Home can receive per-game daily completion state and open that game's daily puzzle directly, Game can receive saved hint/check balances, and obsolete callback arguments can be removed from their route call sites.
+**Lead completion note (17 Nov 2026):** Integrated locally as `303c67f` after the U6 builder commit and GPT-6.1-Sol review. The full `check`, debug APK assembly, and Android-test assembly passed; `check` validated 3,864 puzzles in 24 files. Three focused emulator tests passed. I reviewed eight Home/Game screenshots across light/dark themes and font scales 1.0/1.3. Review fixes corrected credit plurals, added the approved rules/calendar/continue/credits/Premium cues, and read board-size ranges from bank envelopes instead of decoding every puzzle. Captures: `D:\cash-grabs\witgrid-wt\U6\build\u6-screens\contact-sheet-final.jpg`.
 
 ### U7 — Result, Failed, Calendar, Statistics, Settings
 Tier M · Build Codex · Review Claude (lead screenshots)
