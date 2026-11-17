@@ -53,7 +53,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | done |
 | R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | done |
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | done |
-| R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | active |
+| R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | done |
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | done |

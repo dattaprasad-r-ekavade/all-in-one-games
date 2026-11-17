@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 83 %** (53 of 64 task cards done; 5 ready; 1 active)
+**Overall: about 84 %** (54 of 64 task cards done; 5 ready; 0 active)
 
 ```
-[#################################-------]  83 %
+[##################################------]  84 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -24,11 +24,11 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
-| 3 - Retention | 6 | 5 | 0 | 1 | 0 | 0 | 83 % |
+| 3 - Retention | 6 | 6 | 0 | 0 | 0 | 0 | 100 % |
 | 4 — Monetisation and data | 8 | 5 | 1 | 0 | 0 | 0 | 63 % |
 | 5 - Closed test | 4 | 0 | 2 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **53** | **5** | **1** | **0** | **0** | **83 %** |
+| **Total** | **64** | **54** | **5** | **0** | **0** | **0** | **84 %** |
 
 ## Done
 
@@ -87,19 +87,20 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | M5 | Three-mistake failure when enabled, persisted mistake and Continue state, saved-credit retry without double debit, same-board Continue, and free Restart. Room migration and unit tests pass; full `check` passes; GPT-6.1-Sol review approved with no blockers. |
 | R4 | Reminder settings persist disabled-by-default local hour/minute values. Inexact daily alarms and localized notifications recover after delivery, reboot, clock/time-zone change, and app update. API 33 permission gating and spring-forward scheduling are tested; full `check` passes and GPT-6.1-Sol review found no blockers. |
 | R5 | Settings for theme, colourway, puzzle assists, mistake limit, haptics, sound, reminders, privacy choices and licences. Writes survive screen disposal; permission retry survives activity recreation. `check` passes and GPT-6.1-Sol review findings were fixed. H0.1 must supply the published policy URL before release. |
+| R6 | TalkBack cell actions, 200% text support, colour-blind region aids, and a persisted reduce-motion setting. Dense boards offer an optional pannable mode with cells at least 48 dp; Nonogram clues pan with the grid. Full `check` and GPT-6.1-Sol review pass. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## Next steps
 
-1. **Complete R6:** finish the accessibility pass, including the enlarged pannable mode for dense boards.
-2. **Continue Premium:** M6 is ready for purchase and restore flow implementation; use the human licence tester for store verification.
-3. **Prepare Firebase and Play accounts:** H0.1 and H4 supply accounts and policy destinations; M7 will keep telemetry opt-in only.
-4. **Hand-test the bank and prepare the store:** H1 covers puzzle fairness; S1 and S2 are ready, followed by S3 after M6/M7.
+1. **Implement M6:** the purchase and restore flow is ready; use the human licence tester for Play Billing verification.
+2. **Complete human setup:** H0.1 supplies the verified accounts and policy destinations; H1 hand-tests puzzle fairness.
+3. **Prepare the closed test:** S1 and S2 are ready for store listing drafts and screenshot automation; S3 follows M6 and M7.
+4. **Set up Firebase and AdMob:** H4 follows H0.1; M7 then adds Analytics and Crashlytics with opt-in collection.
 
 ## In progress
 
-| R6 | Accessibility pass | Codex |
+No implementation task is active. Ready work: M6, H0.1, H1, S1 and S2.
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
