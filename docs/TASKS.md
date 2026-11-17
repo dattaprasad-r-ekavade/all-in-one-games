@@ -81,7 +81,8 @@ Plan: 11 (phase 0), 8.7, 15.
 - [ ] Open the Play Console account. Complete developer verification. Check which personal details Play shows.
 - [ ] Open the AdMob account. Do **not** create live ad units in code yet.
 - [ ] Make the developer website: privacy policy page and `app-ads.txt`.
-- [ ] Export GDD section 7 (ASO, launch, closed test) again. The PDF in the repo stops after section 6.
+- [ ] Export GDD section 7 (ASO, launch, closed test) again. The PDF in the repo stops after section 6; save the new export as `docs/reports/GDD-section-7.pdf`.
+**Done when:** Trademark searches are dated and recorded; Play Console and AdMob accounts are verified; the public HTTPS privacy policy and `app-ads.txt` URLs are live; and `docs/reports/GDD-section-7.pdf` is available. Send the public privacy-policy URL and support email to the lead so the app setting and store drafts can be finalized. Record public URLs and account status, never credentials.
 
 ### H0.2 — Developer machine and repo setup (Human)
 Do the steps in `docs/AGENT_WORKFLOW.md` section 3.
@@ -228,7 +229,9 @@ Tier L · Build Claude (Haiku) · Review Claude (Sonnet)
 **Done when:** `./gradlew check` passes. No ID contains `--`.
 
 ### H1 — Hand-test the bank (Human)
-Solve 20 puzzles of each game and pack on the PC or the first app build. Note the time and if any step needed a guess. Make bug cards for bad grades.
+**Owns:** `docs/reports/bank-hand-test.md`.
+**Do:** Solve 20 puzzles for each of the four games in each of the four packs (320 solves) using the first app build. Record puzzle ID, elapsed time, whether a guess was needed, and any grade or clue issue. Give issue details to the lead for bug-card creation; do not edit `docs/TASKS.md` directly.
+**Done when:** The report has 20 records for every game/pack pair; the lead creates a bug card for every issue found before H1 closes. If no issues were found, record that explicitly.
 
 ---
 
@@ -413,9 +416,11 @@ Plan: 8.5.
   **Lead status note (17 Nov 2026):** Code and review are complete. Waiting on H4's Play product and licence tester for the required device purchase and restore check.
 
 ### H4 — Firebase project, AdMob units, licence tester (Human)
-- [ ] Create the Firebase project. Put `google-services.json` in `app/` locally (it is git-ignored).
+- [ ] Create the Firebase project, register this Android app, and enable Analytics, Crashlytics, and Remote Config. Put `google-services.json` in `app/` locally (it is git-ignored).
 - [ ] Create the AdMob app and ad units. Store the IDs in `~/.gradle/gradle.properties`, not in the repo.
+- [ ] Configure and publish the required UMP consent message(s) in AdMob. S3 verifies the in-app flow after wiring the owner app ID; keep Google test app and ad unit IDs in test builds.
 - [ ] Create the one-time non-consumable Play product `witgrid_premium_lifetime` at $7.99 and add your Google account as a Play licence tester.
+**Done when:** Firebase is registered for this Android app and its local config remains uncommitted; AdMob has the app, interstitial/rewarded units, and published consent messages; the Play product exists at the planned price and the licence tester is enabled. Keep Google test ad IDs in all debug and closed-test builds; production IDs stay outside the repository.
 
 ### M7 — Analytics, Crashlytics, Remote Config
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude

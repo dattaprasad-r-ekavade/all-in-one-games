@@ -95,9 +95,9 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Complete H0.1 and H4:** configure verified accounts and policy destinations, then create the Play product and licence tester. Run M6's device purchase and restore check after H4.
+1. **Complete H0.1, then H4:** finish the verified accounts, public policy URLs, Firebase/AdMob setup, UMP messages, Play product, and licence tester listed in `docs/TASKS.md`. Then run M6's device purchase and restore check.
 2. **Prepare the closed test:** S1's listing and policy drafts are ready; S2's eight screenshots are committed. S3 follows M6 and M7.
-3. **Hand-test the bank:** H1 verifies puzzle fairness.
+3. **Hand-test the bank:** H1 records 20 puzzles per game/pack in the [test log](docs/reports/bank-hand-test.md); the lead creates bug cards for issues.
 4. **Continue monetisation setup:** M7 follows H4; Analytics and Crashlytics remain opt-in. H4 also configures Firebase and AdMob.
 
 ## In progress
