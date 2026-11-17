@@ -97,6 +97,8 @@ Plan: 11 (phase 0), 8.7, 15.
 **Lead progress note (17 Nov 2026):** The privacy policy at `https://datathecodie.com/witgrid/privacy-policy.html` and `https://datathecodie.com/app-ads.txt` are live and were verified on 17 Nov; the policy matches the committed page and the Settings URL. Trademark searches, Play Console/AdMob verification, and the GDD section 7 export remain.
 **Lead source check (17 Nov 2026):** Searched Drive for Witgrid, the GDD title, and DataTheCodie Studios. No matching GDD source was found; a broader ASO search returned only an unrelated LLM Clicker GDD. The repository copy still ends at section 6, so the correct section 7 source/export remains outstanding.
 
+**Lead progress note (18 Nov 2026):** An initial USPTO Wordmark query for “Witgrid” returned 0 records on the [official Trademark Search](https://tmsearch.uspto.gov/search/) with all statuses included. This is a preliminary name lookup, not a clearance search. EUIPO/TMview and UKIPO checks and remaining H0.1 items are still open.
+
 ### H0.2 — Developer machine and repo setup (Human)
 Do the steps in `docs/AGENT_WORKFLOW.md` section 3.
 - [ ] `ANDROID_HOME` set. `gh auth login` done. First commit pushed. Codex trusts the folder.
