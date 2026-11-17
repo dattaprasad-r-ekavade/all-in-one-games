@@ -393,7 +393,7 @@ Plan: 7.1, 8.3, 8.7, decision from T0.3.
 ### M4 — Ads in the player flows
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 8.1–8.3, 8.5 (offer placement).
-**Owns:** `app/…/ui/screens/game/GameScreen.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/nav/WitgridNavigation.kt`, `app/…/ads/flow/**`, `app/src/main/res/values/strings.xml`.
+**Owns:** `app/…/ui/screens/game/GameScreen.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/nav/WitgridNavigation.kt`, `app/…/ads/flow/**`, `app/…/data/settings/PlayerDataRepository.kt`, `app/…/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/res/values/strings.xml`.
 **Do:** Interstitial after "Next" through `InterstitialPolicy`. Never show or start an ad while a puzzle board is active. Offer rewarded hint/check credits from the pre-puzzle Game screen; spend those credits in Play. Offer rewarded Continue on Level failed and rewarded streak repair on Calendar. Each rewarded button states the reward first. Add offline fallbacks and a Premium offer when a rewarded ad cannot load. Premium repair follows the same latest-uncovered-miss and 48-hour eligibility rules.
 **Done when:** `./gradlew check` passes. The handoff has a manual test table: each placement × online/offline × free/Premium, with a visible Google test ad confirmed on a device in an eligible online flow.
 
