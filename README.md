@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 75 %** (48 of 64 task cards done; 4 ready)
+**Overall: about 75 %** (48 of 64 task cards done; 3 ready; 1 active)
 
 ```
 [##############################----------]  75 %
@@ -25,10 +25,10 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
 | 3 - Retention | 6 | 3 | 0 | 0 | 0 | 0 | 50 % |
-| 4 — Monetisation and data | 8 | 2 | 1 | 0 | 0 | 0 | 25 % |
+| 4 — Monetisation and data | 8 | 2 | 0 | 1 | 0 | 0 | 25 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **48** | **4** | **0** | **0** | **0** | **75 %** |
+| **Total** | **64** | **48** | **3** | **1** | **0** | **0** | **75 %** |
 
 ## Done
 
@@ -87,13 +87,13 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Build M3:** consent handling and ad service using Google's public test IDs.
+1. **Complete M3:** consent handling and the ad service use Google's public test IDs only.
 2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website. These details do not block app coding.
 
 ## In progress
 
-None. M3 is ready.
+| M3 | Consent and ad service (test units) | Codex |
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 

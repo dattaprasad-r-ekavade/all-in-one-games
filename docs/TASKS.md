@@ -57,7 +57,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | done |
-| M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | ready |
+| M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | active |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | todo |
