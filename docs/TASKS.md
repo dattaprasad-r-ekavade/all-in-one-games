@@ -69,7 +69,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | done |
 | U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | done |
 | U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | done |
-| U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | active |
+| U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | done |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
@@ -513,6 +513,7 @@ Plan: 4.1. Design: `docs/design/play-*.png`.
 **Do:** Crowns: region aids off by default, thin lines inside a region, thick lines between regions, a drawn crown, a soft X. Binary: a filled accent dot and an orange ring (`#C2622F` light, `#E9A27A` dark), not letters; letters only in TalkBack labels. Nonogram: clue band sized from the longest clue, active row and column tint, finished clues fade, 5-cell guide lines. Mini Sudoku: given digits darker than player digits, selected row, column and box tint, notes in small digits.
 **Done when:** `./gradlew check` passes. Screenshots match the mockups in light and dark.
 **Lead scope extension (17 Nov 2026):** Added `DataStorePlayerDataRepository.kt` because its explicit preference fallback overrides `AppSettings` for fresh installs; it must use the same off-by-default value for the Crowns region aids.
+**Lead completion note (17 Nov 2026):** Integrated locally as `8e9e027`. Full `check` passed, including the fresh-default/persisted-opt-in test and validation of 3,864 bank puzzles. The viewport regression and U4 32-case layout matrix passed; U5 captured and reviewed all four boards in light and dark. GPT-6.1-Sol approved with no blockers.
 
 ### U6 — Home and Game screens
 Tier M · Build Codex · Review Claude (lead screenshots)
