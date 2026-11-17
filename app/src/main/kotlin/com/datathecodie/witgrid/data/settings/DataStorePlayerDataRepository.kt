@@ -207,26 +207,31 @@ class DataStorePlayerDataRepository(
     private fun writeStreak(preferences: MutablePreferences, streak: StreakData) {
         preferences[STREAK_DAYS] = streak.currentDays
         preferences[FREEZES_AVAILABLE] = streak.freezesAvailable
-        streak.lastActivityEpochDay?.let { day ->
-            preferences[LAST_ACTIVITY_EPOCH_DAY] = day
-        } ?: preferences.remove(LAST_ACTIVITY_EPOCH_DAY)
-        streak.lastFreezeRefillEpochDay?.let { day ->
-            preferences[LAST_FREEZE_REFILL_EPOCH_DAY] = day
-        } ?: preferences.remove(LAST_FREEZE_REFILL_EPOCH_DAY)
-        streak.latestMissedEpochDay?.let { day ->
-            preferences[LATEST_MISSED_EPOCH_DAY] = day
-            preferences[LATEST_MISSED_PREVIOUS_STREAK_DAYS] = streak.latestMissedPreviousStreakDays
-            streak.latestMissedPreviousActivityEpochDay?.let { previousDay ->
-                preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY] = previousDay
-            } ?: preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
-            streak.latestMissedRepairDeadlineEpochMilli?.let { deadline ->
-                preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI] = deadline
-            } ?: preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
-        } ?: run {
-            preferences.remove(LATEST_MISSED_EPOCH_DAY)
-            preferences.remove(LATEST_MISSED_PREVIOUS_STREAK_DAYS)
-            preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
-            preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
+        preferences.setOrRemove(LAST_ACTIVITY_EPOCH_DAY, streak.lastActivityEpochDay)
+        preferences.setOrRemove(LAST_FREEZE_REFILL_EPOCH_DAY, streak.lastFreezeRefillEpochDay)
+        val missedDay = streak.latestMissedEpochDay
+        preferences.setOrRemove(LATEST_MISSED_EPOCH_DAY, missedDay)
+        preferences.setOrRemove(
+            LATEST_MISSED_PREVIOUS_STREAK_DAYS,
+            if (missedDay != null) streak.latestMissedPreviousStreakDays else null,
+        )
+        preferences.setOrRemove(
+            LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY,
+            if (missedDay != null) streak.latestMissedPreviousActivityEpochDay else null,
+        )
+        preferences.setOrRemove(
+            LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI,
+            if (missedDay != null) streak.latestMissedRepairDeadlineEpochMilli else null,
+        )
+    }
+
+    // MutablePreferences.remove() returns the old value typed as non-null T. Using that value in an
+    // expression (for example after ?:) unboxes null and crashes when the key is absent.
+    private fun <T : Any> MutablePreferences.setOrRemove(key: Preferences.Key<T>, value: T?) {
+        if (value != null) {
+            this[key] = value
+        } else {
+            remove(key)
         }
     }
 
@@ -259,8 +264,7 @@ class DataStorePlayerDataRepository(
         RewardType.entries.forEach { type ->
             preferences[rewardBalanceKey(type)] = data.rewardBalances[type] ?: 0
         }
-        data.allowanceUsage.localDateEpochDay?.let { preferences[ALLOWANCE_USAGE_DATE] = it }
-            ?: preferences.remove(ALLOWANCE_USAGE_DATE)
+        preferences.setOrRemove(ALLOWANCE_USAGE_DATE, data.allowanceUsage.localDateEpochDay)
         preferences[HINTS_USED_TODAY] = data.allowanceUsage.hintsUsedToday
         preferences[OFFLINE_HINTS_USED_TODAY] = data.allowanceUsage.offlineHintsUsedToday
         preferences[CHARGED_HINT_KEYS] = data.allowanceUsage.chargedHintKeys
@@ -269,10 +273,9 @@ class DataStorePlayerDataRepository(
         (previouslyTrackedGames + data.levelsSinceLastInterstitial.keys).forEach { gameId ->
             val key = interstitialLevelKey(gameId)
             val count = data.levelsSinceLastInterstitial[gameId] ?: 0
-            if (count == 0) preferences.remove(key) else preferences[key] = count
+            preferences.setOrRemove(key, if (count == 0) null else count)
         }
-        data.lastInterstitialShownEpochMillis?.let { preferences[LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS] = it }
-            ?: preferences.remove(LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS)
+        preferences.setOrRemove(LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS, data.lastInterstitialShownEpochMillis)
         preferences[HAS_STARTED_APP_SESSION] = data.hasStartedAppSession
     }
 
