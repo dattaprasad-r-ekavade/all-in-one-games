@@ -14,7 +14,7 @@ These are draft answers, not submitted declarations. Google Play requires the Da
 | In-app purchases | Yes: optional one-time, non-consumable Premium purchase through Google Play Billing. | `DEVELOPMENT_PLAN.md` section 8.5; `PlayBillingService`. Premium activation still depends on H4 creating the Play product and tester. |
 | Target audience | 13 and older; do not select any age group under 13. | Product plan section 8.7. Confirm the final age-group choices in Play Console. |
 | App access | No sign-in or special access is required. | Current app has no account flow. |
-| Website and privacy policy | Pending H0.1. | Add the public HTTPS privacy-policy URL and support contact before submitting a form or release. |
+| Website and privacy policy | https://datathecodie.com/witgrid/privacy-policy.html | Live and verified 17 Nov 2026; the public page includes the support contact. H0.1 account, trademark, and GDD steps remain. |
 
 Keep ad content at or below the eventual IARC rating. Set the AdMob content rating controls after the account and ad units exist.
 
@@ -74,7 +74,7 @@ The IARC questionnaire determines the displayed regional rating; do not enter a 
 
 ## Finalization checklist
 
-- [ ] H0.1 supplies the developer name, public support contact, published privacy policy, and developer website.
+- [x] Public website, privacy policy, developer name, and support contact are live and verified; H0.1 account, trademark, and GDD steps remain.
 - [ ] H4 supplies the production AdMob configuration, privacy message, Play product, and licence tester. Keep test IDs in closed-test builds.
 - [ ] M7 is merged; Analytics and Crashlytics remain off until explicit opt-in, and Remote Config behavior is documented.
 - [ ] Inspect the final release bundle's merged manifest and dependencies; confirm all SDK data disclosures and the Billing answer.

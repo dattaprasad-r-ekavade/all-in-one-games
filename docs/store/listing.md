@@ -1,6 +1,6 @@
 # Google Play listing draft
 
-Status: Lead-reviewed draft for the first closed-test listing. Do not publish until the developer name, support contact, privacy-policy URL, final screenshots, and release build are confirmed.
+Status: Lead-reviewed draft for the first closed-test listing. The public policy URL and support contact are verified. Do not publish until H0.1 account/trademark/GDD checks, final screenshot approval, and the production release build are complete.
 Language: English (United States)
 Last checked: 17 November 2026
 
