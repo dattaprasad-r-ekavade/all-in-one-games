@@ -1,24 +1,31 @@
 package com.datathecodie.witgrid.ui.screens.play
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -84,31 +92,53 @@ internal fun PlayScreenLayout(
                 HorizontalDivider(color = colors.cardEdge)
                 val toolbarTypography = MaterialTheme.typography.copy(
                     labelMedium = MaterialTheme.typography.labelMedium.copy(
-                        fontSize = if (LocalDensity.current.fontScale > 1.1f) 11.sp else 12.sp,
+                        fontSize = 12.sp,
                         lineHeight = 16.sp,
                     ),
                     labelSmall = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 12.sp),
                 )
                 MaterialTheme(typography = toolbarTypography) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp).testTag("play-toolbar"),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                    ) {
-                        ToolBarItem(playIcon(PlayIcon.UNDO), stringResource(R.string.button_undo), onUndo,
-                            Modifier.weight(1f), enabled = canUndo)
-                        ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
-                            Modifier.weight(1f), enabled = canRedo)
-                        if (modeTools == null) {
-                            ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
-                                { restartVisible = true }, Modifier.weight(1f))
-                        } else {
-                            // Game mode items share the same equal-width columns as the common actions.
-                            Row(Modifier.weight(2f)) { modeTools() }
+                    if (LocalDensity.current.fontScale > 1.1f) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp).testTag("play-toolbar")) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                ToolBarItem(playIcon(PlayIcon.UNDO), stringResource(R.string.button_undo), onUndo,
+                                    Modifier.weight(1f), enabled = canUndo)
+                                ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
+                                    Modifier.weight(1f), enabled = canRedo)
+                                if (modeTools == null) {
+                                    ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
+                                        { restartVisible = true }, Modifier.weight(1f))
+                                } else {
+                                    Row(Modifier.weight(2f)) { modeTools() }
+                                }
+                            }
+                            Row(Modifier.fillMaxWidth()) {
+                                LargeTextAction(playIcon(PlayIcon.HINT), R.string.button_hint,
+                                    onRequestHint, !hintOperationPending, hintCredits)
+                                LargeTextAction(playIcon(PlayIcon.CHECK), R.string.button_check, onCheck, !hintOperationPending)
+                            }
                         }
-                        ToolBarItem(playIcon(PlayIcon.HINT), stringResource(R.string.button_hint), onRequestHint,
-                            Modifier.weight(1.1f), badge = hintCredits, enabled = !hintOperationPending)
-                        ToolBarItem(playIcon(PlayIcon.CHECK), stringResource(R.string.button_check), onCheck,
-                            Modifier.weight(1f), enabled = !hintOperationPending)
+                    } else {
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp).testTag("play-toolbar"),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                        ) {
+                            ToolBarItem(playIcon(PlayIcon.UNDO), stringResource(R.string.button_undo), onUndo,
+                                Modifier.weight(1f), enabled = canUndo)
+                            ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
+                                Modifier.weight(1f), enabled = canRedo)
+                            if (modeTools == null) {
+                                ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
+                                    { restartVisible = true }, Modifier.weight(1f))
+                            } else {
+                                // Game mode items share the same equal-width columns as the common actions.
+                                Row(Modifier.weight(2f)) { modeTools() }
+                            }
+                            ToolBarItem(playIcon(PlayIcon.HINT), stringResource(R.string.button_hint), onRequestHint,
+                                Modifier.weight(1.1f), badge = hintCredits, enabled = !hintOperationPending)
+                            ToolBarItem(playIcon(PlayIcon.CHECK), stringResource(R.string.button_check), onCheck,
+                                Modifier.weight(1f), enabled = !hintOperationPending)
+                        }
                     }
                 }
             }
@@ -171,6 +201,35 @@ internal fun PlayScreenLayout(
                 }
             },
         )
+    }
+}
+
+/** Compact assist actions leave room for the board and preserve the action icons. */
+@Composable
+private fun RowScope.LargeTextAction(
+    icon: Painter,
+    label: Int,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    badge: String? = null,
+) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = WitgridTheme.colors.ink,
+            disabledContentColor = WitgridTheme.colors.mutedInk.copy(alpha = 0.38f),
+        ),
+        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp, vertical = 8.dp),
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.padding(end = 6.dp).size(24.dp))
+        Text(stringResource(label), style = MaterialTheme.typography.labelMedium, softWrap = false, maxLines = 1)
+        badge?.let {
+            Text(it, Modifier.padding(start = 4.dp).background(WitgridTheme.colors.accent, CircleShape)
+                .padding(horizontal = 5.dp, vertical = 1.dp),
+                style = MaterialTheme.typography.labelSmall, color = WitgridTheme.colors.onAccent)
+        }
     }
 }
 
