@@ -71,7 +71,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | done |
 | U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | done |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | done |
-| U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | ready |
+| U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | active |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
 | U9 | Endless level numbers and looping | H | Codex | Claude | U2 | done |
 | **Phase 5 — Closed test** |||||||
