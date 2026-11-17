@@ -54,9 +54,7 @@ private fun SampleHomeScreen() {
             isLoading = false,
         ),
         onSelectGame = {},
-        onOpenCalendar = {},
-        onOpenStatistics = {},
-        onOpenSettings = {},
+        onPlayDaily = {},
     )
 }
 
@@ -146,7 +144,6 @@ private fun SampleGameScreen() {
         onContinue = {},
         onSelectPack = {},
         onOpenDaily = {},
-        onHome = {},
     )
 }
 

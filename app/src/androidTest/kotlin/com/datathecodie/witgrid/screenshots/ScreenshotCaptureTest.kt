@@ -98,16 +98,14 @@ class ScreenshotCaptureTest {
                     isLoading = false,
                 ),
                 streak = StreakData(currentDays = 5, freezesAvailable = 1),
-                completedDailyGamesToday = 2,
+                completedDailyGameIds = setOf("crowns", "nonogram"),
                 onSelectGame = {},
-                onOpenCalendar = {},
-                onOpenStatistics = {},
-                onOpenSettings = {},
+                onPlayDaily = {},
             )
         }
-        waitForText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.screen_home))
+        waitForText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.home_today))
         composeRule.onNodeWithText(
-            InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.screen_home),
+            InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.home_today),
         ).performScrollTo()
     }
 
@@ -169,7 +167,6 @@ class ScreenshotCaptureTest {
                     onContinue = {},
                     onSelectPack = {},
                     onOpenDaily = {},
-                    onHome = {},
                 )
                 PremiumOfferDialog(
                     premiumEnabled = false,

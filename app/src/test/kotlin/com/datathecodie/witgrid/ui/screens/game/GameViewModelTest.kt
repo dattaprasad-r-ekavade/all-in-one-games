@@ -53,6 +53,20 @@ class GameViewModelTest {
         assertEquals(listOf(7L, 12L, null, null), state.packs.map { it.nextLevelRef?.levelNumber })
     }
 
+    @Test
+    fun continueStatusUsesCurrentAttemptAndNeverEarlierLoop() = runBlocking {
+        val active = progress(easyTwo, false, 8).copy(elapsedTimeMillis = 102_000)
+        assertEquals(active, refresh(listOf(active)).continueProgress)
+        assertEquals(null, refresh(listOf(progress(easyTwo, true, 8))).continueProgress)
+        assertEquals(null, refresh(listOf(progress(easyTwo, false, 2), progress(easyThree, true, 6))).continueProgress)
+    }
+
+    @Test
+    fun continueStatusRecognizesExistingUnnumberedSave() = runBlocking {
+        val legacy = progress(easyTwo, false).copy(elapsedTimeMillis = 23_000)
+        assertEquals(legacy, refresh(listOf(legacy)).continueProgress)
+    }
+
     private suspend fun refresh(progress: List<LevelProgress>): GameUiState {
         val viewModel = GameViewModel("binary", catalog, object : GameProgressSummaryRepository {
             override suspend fun getProgressForGame(gameId: String) = progress

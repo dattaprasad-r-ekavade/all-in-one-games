@@ -341,14 +341,22 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 levelRefsByGame = levelRefsByGame,
                 progressRepository = progressRepository,
                 streak = dailyProgress?.streak ?: playerData.streak,
-                completedDailyGamesToday = todayCompletions.size,
+                completedDailyGameIds = todayCompletions.map { it.gameId }.toSet(),
                 premiumEnabled = playerData.premiumEnabled,
                 billingState = billingState,
                 onPurchasePremium = { activity?.let(billingService::launchPurchase) },
                 onSelectGame = { navigator.navigate(AppDestination.Game(it)) },
-                onOpenCalendar = { navigator.navigate(AppDestination.Calendar) },
-                onOpenStatistics = { navigator.navigate(AppDestination.Statistics) },
-                onOpenSettings = { navigator.navigate(AppDestination.Settings) },
+                onPlayDaily = { gameId ->
+                    scope.launch {
+                        val module = requireNotNull(GameRegistry.find(gameId))
+                        val dailyRef = withContext(Dispatchers.IO) {
+                            module.dailyRef(dailyProgressCoordinator.today().bankIndex, bankSource)
+                        }
+                        if (navigator.destination.value == currentDestination) {
+                            navigator.navigate(AppDestination.Play(dailyRef))
+                        }
+                    }
+                },
             ) }
 
             is AppDestination.Game -> {
@@ -393,7 +401,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
                             }
                         }
                     },
-                    onHome = navigator::returnHome,
+                    hintCredits = playerData.rewardBalances[RewardType.HINT] ?: 0,
+                    checkCredits = playerData.rewardBalances[RewardType.CHECK] ?: 0,
                 ) }
             }
 

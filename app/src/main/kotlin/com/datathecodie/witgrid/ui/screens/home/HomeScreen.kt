@@ -2,16 +2,19 @@ package com.datathecodie.witgrid.ui.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,7 +33,15 @@ import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.data.settings.StreakData
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.ui.components.Chip
+import com.datathecodie.witgrid.ui.components.ListRow
+import com.datathecodie.witgrid.ui.components.PrimaryButton
+import com.datathecodie.witgrid.ui.components.SectionHeader
+import com.datathecodie.witgrid.ui.components.WitgridCard
 import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
+import com.datathecodie.witgrid.ui.theme.WitgridTheme
+import java.text.DateFormat
+import java.util.Date
 
 @Composable
 fun HomeScreenRoute(
@@ -38,11 +49,9 @@ fun HomeScreenRoute(
     levelRefsByGame: Map<String, List<LevelRef>>,
     progressRepository: GameProgressSummaryRepository,
     streak: StreakData,
-    completedDailyGamesToday: Int,
+    completedDailyGameIds: Set<String>,
     onSelectGame: (String) -> Unit,
-    onOpenCalendar: () -> Unit,
-    onOpenStatistics: () -> Unit,
-    onOpenSettings: () -> Unit,
+    onPlayDaily: (String) -> Unit,
     premiumEnabled: Boolean = false,
     billingState: BillingUiState = BillingUiState(),
     onPurchasePremium: () -> Unit = {},
@@ -52,132 +61,91 @@ fun HomeScreenRoute(
     }
     val state by viewModel.state.collectAsState()
     LaunchedEffect(viewModel) { viewModel.refresh() }
-
-    HomeScreen(
-        state = state,
-        streak = streak,
-        completedDailyGamesToday = completedDailyGamesToday,
-        onSelectGame = onSelectGame,
-        onOpenCalendar = onOpenCalendar,
-        onOpenStatistics = onOpenStatistics,
-        onOpenSettings = onOpenSettings,
-        premiumEnabled = premiumEnabled,
-        billingState = billingState,
-        onPurchasePremium = onPurchasePremium,
-    )
+    HomeScreen(state, streak, completedDailyGameIds, onSelectGame, onPlayDaily,
+        premiumEnabled, billingState, onPurchasePremium)
 }
 
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     streak: StreakData = StreakData(),
-    completedDailyGamesToday: Int = 0,
+    completedDailyGameIds: Set<String> = emptySet(),
     onSelectGame: (String) -> Unit,
-    onOpenCalendar: () -> Unit,
-    onOpenStatistics: () -> Unit,
-    onOpenSettings: () -> Unit,
+    onPlayDaily: (String) -> Unit,
     premiumEnabled: Boolean = false,
     billingState: BillingUiState = BillingUiState(),
     onPurchasePremium: () -> Unit = {},
+    todayLabel: String = DateFormat.getDateInstance(DateFormat.FULL).format(Date()),
 ) {
     var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
     if (showPremiumOffer) {
-        PremiumOfferDialog(
-            premiumEnabled = premiumEnabled,
-            billingState = billingState,
-            onPurchasePremium = onPurchasePremium,
-            onDismiss = { showPremiumOffer = false },
-        )
+        PremiumOfferDialog(premiumEnabled, billingState, onPurchasePremium, { showPremiumOffer = false })
     }
+    val colors = WitgridTheme.colors
     AdaptiveScreen {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (state.isLoading) {
                 CircularProgressIndicator()
             } else {
-                state.games.forEach { game ->
-                    Card(
-                        onClick = { onSelectGame(game.gameId) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Text(
-                                text = stringResource(gameNameResource(game.gameId)),
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                            game.nextLevelRef?.let { level ->
-                                Text(
-                                    text = if (level.isIntro) {
-                                        stringResource(
-                                            R.string.home_guided_intro,
-                                            stringResource(packNameResource(level.pack)),
-                                        )
-                                    } else {
-                                        stringResource(
-                                            R.string.home_next_level,
-                                            requireNotNull(level.levelNumber),
-                                            stringResource(packNameResource(level.pack)),
-                                        )
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
+                WitgridCard(Modifier.fillMaxWidth()) {
+                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(todayLabel, color = colors.mutedInk,
+                                style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.home_today), style = MaterialTheme.typography.titleLarge)
+                        }
+                        Chip(stringResource(R.string.home_streak_days, streak.currentDays), highlighted = true)
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        state.games.forEach { game ->
+                            val completed = game.gameId in completedDailyGameIds
+                            Chip(stringResource(if (completed) R.string.home_daily_done else R.string.home_daily_ready,
+                                stringResource(gameNameResource(game.gameId))), highlighted = completed,
+                                onClick = { onPlayDaily(game.gameId) })
+                        }
+                    }
+                    Spacer(Modifier.height(14.dp))
+                    val firstUnfinished = state.games.firstOrNull { it.gameId !in completedDailyGameIds }
+                    if (firstUnfinished != null) {
+                        PrimaryButton(stringResource(R.string.home_play_daily, stringResource(gameNameResource(firstUnfinished.gameId))),
+                            { onPlayDaily(firstUnfinished.gameId) }, Modifier.fillMaxWidth())
+                    } else if (state.games.isNotEmpty()) {
+                        Text(stringResource(R.string.home_daily_all_done), color = colors.accent)
+                    }
+                }
+                SectionHeader(stringResource(R.string.home_games))
+                state.games.chunked(2).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        row.forEach { game ->
+                            WitgridCard(Modifier.weight(1f), onClick = { onSelectGame(game.gameId) }) {
+                                GameBoardPreview(game.gameId)
+                                Spacer(Modifier.height(12.dp))
+                                Text(stringResource(gameNameResource(game.gameId)), style = MaterialTheme.typography.titleMedium)
+                                game.nextLevelRef?.let { level ->
+                                    Text(if (level.isIntro) stringResource(R.string.home_guided_intro, stringResource(packNameResource(level.pack)))
+                                        else stringResource(R.string.home_next_level, requireNotNull(level.levelNumber), stringResource(packNameResource(level.pack))),
+                                        style = MaterialTheme.typography.bodyMedium, color = colors.mutedInk)
+                                }
                             }
                         }
+                        if (row.size == 1) Spacer(Modifier.weight(1f))
                     }
                 }
             }
-
-            Card(onClick = onOpenCalendar, modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(stringResource(R.string.screen_daily_puzzle), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        stringResource(R.string.home_daily_status, completedDailyGamesToday.coerceIn(0, DAILY_GAME_COUNT)),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        stringResource(
-                            R.string.home_streak_status,
-                            streak.currentDays,
-                            streak.freezesAvailable,
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-
-            Card(onClick = { showPremiumOffer = true }, modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(stringResource(R.string.home_premium_row), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = if (premiumEnabled) {
-                            stringResource(R.string.premium_owned)
-                        } else {
-                            billingState.productPrice?.let { price ->
-                                stringResource(R.string.premium_home_offer, price)
-                            } ?: stringResource(R.string.premium_product_unavailable)
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+            Spacer(Modifier.height(8.dp))
+            WitgridCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
+                ListRow(stringResource(R.string.home_premium_row), subtitle = stringResource(
+                    if (premiumEnabled) R.string.premium_owned else R.string.home_premium_subtitle),
+                    onClick = { showPremiumOffer = true })
             }
         }
     }
 }
 
-private fun gameNameResource(gameId: String): Int = when (gameId) {
+internal fun gameNameResource(gameId: String): Int = when (gameId) {
     "crowns" -> R.string.game_crowns
     "binary" -> R.string.game_binary
     "nonogram" -> R.string.game_nonogram
@@ -185,9 +153,7 @@ private fun gameNameResource(gameId: String): Int = when (gameId) {
     else -> R.string.game_unknown
 }
 
-private const val DAILY_GAME_COUNT = 4
-
-private fun packNameResource(pack: Pack): Int = when (pack) {
+internal fun packNameResource(pack: Pack): Int = when (pack) {
     Pack.EASY -> R.string.pack_easy
     Pack.MEDIUM -> R.string.pack_medium
     Pack.HARD -> R.string.pack_hard
