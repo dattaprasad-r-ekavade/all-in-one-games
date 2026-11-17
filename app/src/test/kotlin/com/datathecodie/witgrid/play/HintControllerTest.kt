@@ -8,6 +8,7 @@ import com.datathecodie.witgrid.engine.core.Technique
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -20,7 +21,7 @@ class HintControllerTest {
         val controller = controller(
             mistakes = listOf(mistakeCell, mistakeCell),
             nextStep = { nextStepCalls += 1; sampleStep() },
-            recordMistakeHintUse = { recordedMistakes += 1 },
+            recordHintUse = { recordedMistakes += 1 },
         )
 
         val hint = controller.requestHint()
@@ -64,29 +65,84 @@ class HintControllerTest {
     }
 
     @Test
-    fun deniedAllowanceDoesNotReadBoardOrApplyHints() = runBlocking {
+    fun deniedAllowanceDoesNotRevealOrRecordUsefulAdvice() = runBlocking {
         var readCount = 0
+        var recordedUses = 0
         val controller = controller(
             mistakes = { readCount += 1; emptyList() },
+            nextStep = { sampleStep() },
+            recordHintUse = { recordedUses += 1 },
             allowance = DenyAll,
         )
 
         assertEquals(HintRequest.NotAllowed, controller.requestHint())
         assertEquals(CheckUi.NotAllowed, controller.check())
-        assertEquals(0, readCount)
+        assertEquals(1, readCount)
+        assertEquals(0, recordedUses)
+    }
+
+    @Test
+    fun repeatedSameHintOnUnchangedBoardIsAlreadyCharged() = runBlocking {
+        var recordedUses = 0
+        val controller = controller(
+            nextStep = { sampleStep() },
+            recordHintUse = { recordedUses += 1 },
+            allowance = AlreadyChargedHint,
+        )
+
+        assertEquals(HintRequest.Available(HintUi.Step(sampleStep())), controller.requestHint())
+        assertEquals(0, recordedUses)
+    }
+
+    @Test
+    fun unavailableHintDoesNotAskForOrSpendAnAllowance() = runBlocking {
+        var allowanceCalls = 0
+        val allowance = object : Allowance {
+            override suspend fun allowHint(hintKey: String): HintAllowanceDecision {
+                allowanceCalls += 1
+                return HintAllowanceDecision.Denied
+            }
+
+            override suspend fun allowCheck(): Boolean = false
+        }
+        val controller = controller(allowance = allowance)
+
+        assertEquals(HintRequest.NoStep, controller.requestHint())
+        assertEquals(0, allowanceCalls)
+    }
+
+    @Test
+    fun hintKeyChangesWhenBoardChanges() = runBlocking {
+        val allowance = RecordingAllowance()
+        var board = "first-board"
+        val controller = HintController(
+            currentMistakes = { emptyList() },
+            nextStep = ::sampleStep,
+            applyStep = { true },
+            recordHintUse = {},
+            allowance = allowance,
+            boardKey = { board },
+        )
+
+        controller.requestHint()
+        board = "changed-board"
+        controller.requestHint()
+
+        assertEquals(2, allowance.hintKeys.size)
+        assertNotEquals(allowance.hintKeys.first(), allowance.hintKeys.last())
     }
 
     private fun controller(
         mistakes: List<Cell> = emptyList(),
         nextStep: () -> HintStep? = { null },
         applyStep: suspend (HintStep) -> Boolean = { false },
-        recordMistakeHintUse: suspend () -> Unit = {},
+        recordHintUse: suspend (String) -> Unit = {},
         allowance: Allowance = AlwaysAllow,
     ) = controller(
         mistakes = { mistakes },
         nextStep = nextStep,
         applyStep = applyStep,
-        recordMistakeHintUse = recordMistakeHintUse,
+        recordHintUse = recordHintUse,
         allowance = allowance,
     )
 
@@ -94,9 +150,9 @@ class HintControllerTest {
         mistakes: () -> List<Cell>,
         nextStep: () -> HintStep? = { null },
         applyStep: suspend (HintStep) -> Boolean = { false },
-        recordMistakeHintUse: suspend () -> Unit = {},
+        recordHintUse: suspend (String) -> Unit = {},
         allowance: Allowance = AlwaysAllow,
-    ) = HintController(mistakes, nextStep, applyStep, recordMistakeHintUse, allowance)
+    ) = HintController(mistakes, nextStep, applyStep, recordHintUse, allowance)
 
     private fun sampleStep() = HintStep(
         technique = Technique("test", "Single cell", 0),
@@ -106,8 +162,26 @@ class HintControllerTest {
     )
 
     private object DenyAll : Allowance {
-        override suspend fun allowHint(): Boolean = false
+        override suspend fun allowHint(hintKey: String): HintAllowanceDecision = HintAllowanceDecision.Denied
 
         override suspend fun allowCheck(): Boolean = false
+    }
+
+    private object AlreadyChargedHint : Allowance {
+        override suspend fun allowHint(hintKey: String): HintAllowanceDecision =
+            HintAllowanceDecision.AlreadyCharged
+
+        override suspend fun allowCheck(): Boolean = true
+    }
+
+    private class RecordingAllowance : Allowance {
+        val hintKeys = mutableListOf<String>()
+
+        override suspend fun allowHint(hintKey: String): HintAllowanceDecision {
+            hintKeys += hintKey
+            return HintAllowanceDecision.Allowed
+        }
+
+        override suspend fun allowCheck(): Boolean = true
     }
 }

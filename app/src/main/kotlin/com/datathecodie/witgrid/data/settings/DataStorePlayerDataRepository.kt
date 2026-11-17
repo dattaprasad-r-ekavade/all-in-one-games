@@ -21,6 +21,7 @@ class DataStorePlayerDataRepository(
     constructor(context: Context) : this(context.applicationContext.playerDataStore)
 
     override val playerData: Flow<PlayerData> = dataStore.data.map { preferences ->
+        val monetisation = readMonetisationData(preferences)
         PlayerData(
             settings = AppSettings(
                 soundEnabled = preferences[SOUND_ENABLED] ?: true,
@@ -37,10 +38,13 @@ class DataStorePlayerDataRepository(
                 latestMissedPreviousActivityEpochDay = preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY],
                 latestMissedRepairDeadlineEpochMilli = preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI],
             ),
-            premiumEnabled = preferences[PREMIUM_ENABLED] ?: false,
-            rewardBalances = RewardType.entries.associateWith { type ->
-                preferences[rewardBalanceKey(type)] ?: 0
-            },
+            premiumEnabled = monetisation.premiumEnabled,
+            rewardBalances = monetisation.rewardBalances,
+            allowanceUsage = monetisation.allowanceUsage,
+            processedRewardGrantIds = monetisation.processedRewardGrantIds,
+            levelsSinceLastInterstitial = monetisation.levelsSinceLastInterstitial,
+            lastInterstitialShownEpochMillis = monetisation.lastInterstitialShownEpochMillis,
+            hasStartedAppSession = monetisation.hasStartedAppSession,
         )
     }
 
@@ -85,10 +89,87 @@ class DataStorePlayerDataRepository(
     }
 
     override suspend fun setRewardBalance(type: RewardType, balance: Int) {
+        require(balance >= 0) { "Reward balance must not be negative" }
         dataStore.edit { preferences -> preferences[rewardBalanceKey(type)] = balance }
     }
 
+    override suspend fun updateMonetisationData(
+        update: (MonetisationData) -> MonetisationData,
+    ): MonetisationData {
+        var updated: MonetisationData? = null
+        dataStore.edit { preferences ->
+            val current = readMonetisationData(preferences)
+            val next = update(current)
+            validate(next)
+            writeMonetisationData(preferences, next, current.levelsSinceLastInterstitial.keys)
+            updated = next
+        }
+        return requireNotNull(updated)
+    }
+
     private fun rewardBalanceKey(type: RewardType) = intPreferencesKey("reward_${type.storageKey}")
+
+    private fun readMonetisationData(preferences: Preferences): MonetisationData = MonetisationData(
+        premiumEnabled = preferences[PREMIUM_ENABLED] ?: false,
+        rewardBalances = RewardType.entries.associateWith { type -> preferences[rewardBalanceKey(type)] ?: 0 },
+        allowanceUsage = AllowanceUsage(
+            localDateEpochDay = preferences[ALLOWANCE_USAGE_DATE],
+            hintsUsedToday = preferences[HINTS_USED_TODAY] ?: 0,
+            offlineHintsUsedToday = preferences[OFFLINE_HINTS_USED_TODAY] ?: 0,
+            chargedHintKeys = preferences[CHARGED_HINT_KEYS] ?: emptySet(),
+        ),
+        processedRewardGrantIds = preferences[PROCESSED_REWARD_GRANT_IDS] ?: emptySet(),
+        levelsSinceLastInterstitial = INTERSTITIAL_GAME_IDS.mapNotNull { gameId ->
+            preferences[interstitialLevelKey(gameId)]?.let { gameId to it }
+        }.toMap(),
+        lastInterstitialShownEpochMillis = preferences[LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS],
+        hasStartedAppSession = preferences[HAS_STARTED_APP_SESSION] ?: false,
+        latestMissedEpochDay = preferences[LATEST_MISSED_EPOCH_DAY],
+        latestMissedRepairDeadlineEpochMillis = preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI],
+    )
+
+    private fun writeMonetisationData(
+        preferences: androidx.datastore.preferences.core.MutablePreferences,
+        data: MonetisationData,
+        previouslyTrackedGames: Set<String>,
+    ) {
+        preferences[PREMIUM_ENABLED] = data.premiumEnabled
+        RewardType.entries.forEach { type ->
+            preferences[rewardBalanceKey(type)] = data.rewardBalances[type] ?: 0
+        }
+        data.allowanceUsage.localDateEpochDay?.let { preferences[ALLOWANCE_USAGE_DATE] = it }
+            ?: preferences.remove(ALLOWANCE_USAGE_DATE)
+        preferences[HINTS_USED_TODAY] = data.allowanceUsage.hintsUsedToday
+        preferences[OFFLINE_HINTS_USED_TODAY] = data.allowanceUsage.offlineHintsUsedToday
+        preferences[CHARGED_HINT_KEYS] = data.allowanceUsage.chargedHintKeys
+        preferences[PROCESSED_REWARD_GRANT_IDS] = data.processedRewardGrantIds
+        (previouslyTrackedGames + data.levelsSinceLastInterstitial.keys).forEach { gameId ->
+            val key = interstitialLevelKey(gameId)
+            val count = data.levelsSinceLastInterstitial[gameId] ?: 0
+            if (count == 0) preferences.remove(key) else preferences[key] = count
+        }
+        data.lastInterstitialShownEpochMillis?.let { preferences[LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS] = it }
+            ?: preferences.remove(LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS)
+        preferences[HAS_STARTED_APP_SESSION] = data.hasStartedAppSession
+    }
+
+    private fun validate(data: MonetisationData) {
+        require(data.rewardBalances.values.all { it >= 0 }) { "Reward balances must not be negative" }
+        require(data.processedRewardGrantIds.none(String::isBlank)) { "Reward grant IDs must not be blank" }
+        require(data.allowanceUsage.hintsUsedToday >= 0) { "Hint allowance use must not be negative" }
+        require(data.allowanceUsage.offlineHintsUsedToday >= 0) {
+            "Offline hint allowance use must not be negative"
+        }
+        require(data.allowanceUsage.chargedHintKeys.none(String::isBlank)) { "Hint keys must not be blank" }
+        require(data.levelsSinceLastInterstitial.values.all { it >= 0 }) {
+            "Interstitial level counts must not be negative"
+        }
+        require(data.levelsSinceLastInterstitial.keys.all(String::isNotBlank)) {
+            "Interstitial game IDs must not be blank"
+        }
+    }
+
+    private fun interstitialLevelKey(gameId: String) = intPreferencesKey("interstitial_levels_$gameId")
 
     private companion object {
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
@@ -103,5 +184,14 @@ class DataStorePlayerDataRepository(
         val LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY = longPreferencesKey("latest_missed_previous_activity_epoch_day")
         val LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI = longPreferencesKey("latest_missed_repair_deadline_epoch_milli")
         val PREMIUM_ENABLED = booleanPreferencesKey("premium_enabled")
+        val ALLOWANCE_USAGE_DATE = longPreferencesKey("allowance_usage_date_epoch_day")
+        val HINTS_USED_TODAY = intPreferencesKey("hints_used_today")
+        val OFFLINE_HINTS_USED_TODAY = intPreferencesKey("offline_hints_used_today")
+        val CHARGED_HINT_KEYS = androidx.datastore.preferences.core.stringSetPreferencesKey("charged_hint_keys")
+        val PROCESSED_REWARD_GRANT_IDS =
+            androidx.datastore.preferences.core.stringSetPreferencesKey("processed_reward_grant_ids")
+        val LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS = longPreferencesKey("last_interstitial_shown_epoch_millis")
+        val HAS_STARTED_APP_SESSION = booleanPreferencesKey("has_started_app_session")
+        val INTERSTITIAL_GAME_IDS = listOf("crowns", "binary", "nonogram", "minisudoku")
     }
 }

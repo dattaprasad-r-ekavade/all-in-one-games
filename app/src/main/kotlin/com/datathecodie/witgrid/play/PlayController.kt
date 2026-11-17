@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import java.security.MessageDigest
 
 /**
  * What the play screen shows. [mistakesMade] counts new wrong entries in this attempt. It is
@@ -100,6 +101,14 @@ class PlayController<P : Any, S : Any> private constructor(
 
     fun nextHint(): HintStep? = gameModule.nextHint(level, snapshot.value.state)
 
+    fun currentBoardFingerprint(): String {
+        val encodedState = gameModule.encodeState(snapshot.value.state)
+        val digest = MessageDigest.getInstance("SHA-256").digest(encodedState).joinToString("") { byte ->
+            (byte.toInt() and 0xff).toString(16).padStart(2, '0')
+        }
+        return "${level.ref.gameId}:${level.ref.levelId}:$digest"
+    }
+
     suspend fun applyMove(move: Move): Boolean = applyGesture(listOf(move))
 
     suspend fun applyGesture(moves: List<Move>): Boolean = mutationMutex.withLock {
@@ -111,15 +120,25 @@ class PlayController<P : Any, S : Any> private constructor(
     }
 
     suspend fun applyHint(hint: HintStep): Boolean = mutationMutex.withLock {
-        if (gameModule.nextHint(level, history.present) != hint) return@withLock false
+        applyHintLocked(hint, countUsage = true)
+    }
+
+    /** Applies an already revealed hint; usage is recorded when the advice is first shown. */
+    suspend fun applyRevealedHint(hint: HintStep): Boolean = mutationMutex.withLock {
+        applyHintLocked(hint, countUsage = false)
+    }
+
+    private suspend fun applyHintLocked(hint: HintStep, countUsage: Boolean): Boolean {
+        if (gameModule.nextHint(level, history.present) != hint) return false
         val nextState = gameModule.applyMoves(history.present, hint.moves)
-        saveHistory(history.record(nextState), hintsUsed + 1)
+        return saveHistory(history.record(nextState), hintsUsed + if (countUsage) 1 else 0)
     }
 
     /**
      * Counts a hint that is not a [HintStep], such as a mistake hint. The board does not change.
      */
-    suspend fun recordHintUse() = mutationMutex.withLock {
+    suspend fun recordHintUse(hintKey: String) = mutationMutex.withLock {
+        require(hintKey.isNotBlank()) { "Hint key must not be blank" }
         hintsUsed += 1
         persistCurrentState()
         publishSnapshot()
