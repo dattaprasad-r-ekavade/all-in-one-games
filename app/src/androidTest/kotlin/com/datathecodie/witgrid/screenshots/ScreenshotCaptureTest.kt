@@ -2,6 +2,7 @@ package com.datathecodie.witgrid.screenshots
 
 import android.content.ContentValues
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Environment
 import android.os.SystemClock
 import android.provider.MediaStore
@@ -20,11 +21,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.core.view.WindowCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -78,7 +84,10 @@ import com.datathecodie.witgrid.ui.screens.welcome.WelcomeScreen
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -105,6 +114,14 @@ class ScreenshotCaptureTest {
         }
         arguments.getString("captureWidthDp")?.let { expected ->
             assertEquals(expected.toInt(), context.resources.configuration.screenWidthDp)
+        }
+        if (arguments.getString("captureBoardsOnly") == "true") {
+            val bank = AssetBankSource(context.assets)
+            captureBoard("crowns_board", CrownsGameModule, bank, context)
+            captureBoard("binary_board", BinaryGameModule, bank, context)
+            captureBoard("nonogram_board", NonogramGameModule, bank, context)
+            captureBoard("mini_sudoku_board", MiniSudokuGameModule, bank, context)
+            return
         }
         setScreenContent { WelcomeScreen(onFinish = {}) }
         captureScreenshot("welcome", context)
@@ -206,6 +223,34 @@ class ScreenshotCaptureTest {
             ).fetchSemanticsNodes().isNotEmpty()
         }
         captureScreenshot(name, context)
+        assertToolbarLabels()
+        if (module.id == "minisudoku") {
+            val board = composeRule.onAllNodesWithTag("play-board").fetchSemanticsNodes().single().boundsInRoot
+            println("Mini Sudoku board: ${board.width / composeRule.density.density}dp x ${board.height / composeRule.density.density}dp")
+            val minimum = 118 * composeRule.density.density
+            assertTrue("Mini Sudoku must retain at least a 118dp board", board.width >= minimum && board.height >= minimum)
+        }
+    }
+
+    private fun assertToolbarLabels() {
+        val nodes = composeRule.onAllNodes(hasAnyAncestor(hasTestTag("play-toolbar")), useUnmergedTree = true)
+            .fetchSemanticsNodes()
+        nodes.forEach { node ->
+            if (node.config.contains(SemanticsActions.GetTextLayoutResult)) {
+                val action = node.config[SemanticsActions.GetTextLayoutResult]
+                val layouts = mutableListOf<TextLayoutResult>()
+                action.action?.invoke(layouts)
+                layouts.forEach { layout ->
+                    assertTrue("Toolbar label must fit on one line: ${layout.layoutInput.text}, lines=${layout.lineCount}, width=${node.boundsInRoot.width}, lineWidth=${layout.getLineRight(0) - layout.getLineLeft(0)}",
+                        layout.lineCount == 1 && layout.getLineRight(0) - layout.getLineLeft(0) <= node.boundsInRoot.width + 1f)
+                }
+            }
+            if (node.config.contains(SemanticsActions.OnClick)) {
+                val minimum = 48 * composeRule.density.density
+                assertTrue("Toolbar target must remain at least 48dp", node.boundsInRoot.width >= minimum &&
+                    node.boundsInRoot.height >= minimum)
+            }
+        }
     }
 
     private fun showResult() {
@@ -284,8 +329,10 @@ class ScreenshotCaptureTest {
 
     private fun captureScreenshot(name: String, context: android.content.Context) {
         composeRule.waitForIdle()
-        composeRule.mainClock.advanceTimeBy(SCREENSHOT_SETTLE_MILLIS)
-        SystemClock.sleep(SCREENSHOT_SETTLE_MILLIS)
+        composeRule.mainClock.advanceTimeBy(ANIMATION_SETTLE_MILLIS)
+        composeRule.waitForIdle()
+        awaitCommittedFrame()
+        SystemClock.sleep(100L)
         val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
         val screenshotUri = requireNotNull(
             context.contentResolver.insert(
@@ -318,6 +365,23 @@ class ScreenshotCaptureTest {
             throw exception
         } finally {
             bitmap.recycle()
+        }
+    }
+
+    private fun awaitCommittedFrame() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val committed = CountDownLatch(1)
+            instrumentation.runOnMainSync {
+                val view = composeRule.activity.window.decorView
+                check(view.isHardwareAccelerated) { "Capture requires a hardware-rendered window" }
+                // Semantics can be current while the previous screen is still in the display buffer.
+                view.viewTreeObserver.registerFrameCommitCallback { committed.countDown() }
+                view.invalidate()
+            }
+            check(committed.await(10, TimeUnit.SECONDS)) { "Timed out waiting for the capture frame" }
+        } else {
+            instrumentation.waitForIdleSync()
         }
     }
 
@@ -426,7 +490,7 @@ class ScreenshotCaptureTest {
         val PICTURES_DIRECTORY = Environment.DIRECTORY_PICTURES
         const val ROW_ONE_CELL_DESCRIPTION = "Row 1, column"
         const val WAIT_TIMEOUT_MILLIS = 30_000L
-        const val SCREENSHOT_SETTLE_MILLIS = 1_000L
+        const val ANIMATION_SETTLE_MILLIS = 1_500L
         val SCREENSHOT_NAMES = listOf(
             "home",
             "welcome",

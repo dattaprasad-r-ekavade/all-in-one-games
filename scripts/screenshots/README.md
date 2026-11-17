@@ -26,3 +26,9 @@ Reruns overwrite the same expected files. Instrumentation deletes its named Medi
 ```
 
 The lead must inspect both sheets and representative full-size images before every closed-test upload. Pay particular attention to 360dp at font scale 2.0, board fit, scrolling, and bottom tools. Script success verifies capture completeness, not visual approval. No upload or publishing is performed.
+
+The capture test also checks that toolbar labels occupy one line and fit their visible text bounds, toolbar actions retain at least 48dp touch targets, and Mini Sudoku retains at least a 118dp board. At the tightest required profile (360dp, system font 2.0), the board measures about 120dp; the zoom action remains the enlarged-cell path. Large text uses two toolbar rows with icons and full labels instead of shrinking the system text. The default font keeps the original single row.
+
+For a quick instrumentation-only board regression pass, use the same capture runner arguments plus `-e captureBoardsOnly true`. This captures all four boards and runs the layout assertions without the other screens. The full script remains the required 144-image review gate.
+
+Device captures wait for Compose to become idle and for the hardware renderer to commit a fresh frame before reading the display. This prevents a newly composed screen's semantics from passing checks while the PNG still contains the previous screen's body.
