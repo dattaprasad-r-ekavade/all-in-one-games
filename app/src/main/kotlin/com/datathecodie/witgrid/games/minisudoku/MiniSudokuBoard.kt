@@ -40,6 +40,7 @@ import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuRules
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
+import com.datathecodie.witgrid.ui.board.SudokuPlayActions
 import com.datathecodie.witgrid.ui.board.BoardCanvas
 import com.datathecodie.witgrid.ui.theme.NumberStyles
 import com.datathecodie.witgrid.ui.theme.Spacing
@@ -52,6 +53,7 @@ fun MiniSudokuBoard(
     onUndo: () -> Unit,
     options: MiniSudokuBoardOptions = LocalMiniSudokuBoardOptions.current,
     modifier: Modifier = Modifier,
+    playLayout: (@Composable (board: @Composable () -> Unit, actions: SudokuPlayActions) -> Unit)? = null,
     layout: (@Composable (board: @Composable () -> Unit, controls: @Composable () -> Unit) -> Unit)? = null,
 ) {
     var selectedCellIndex by remember(state.puzzle.id) { mutableStateOf<Int?>(null) }
@@ -182,7 +184,25 @@ fun MiniSudokuBoard(
             }
         }
     }
-    if (layout == null) {
+    if (playLayout != null) {
+        playLayout(boardContent, SudokuPlayActions(
+            notesMode = notesMode,
+            canEdit = selectedCellIsEditable,
+            onToggleNotes = { notesMode = !notesMode },
+            onErase = {
+                selectedCell?.let { cell ->
+                    MiniSudokuBoardInput.clearMoves(state, cell).takeIf { it.isNotEmpty() }?.let(onMoves)
+                }
+            },
+            onDigit = { digit ->
+                selectedCell?.let { cell ->
+                    val moves = if (notesMode) MiniSudokuBoardInput.noteMoves(state, cell, digit)
+                    else MiniSudokuBoardInput.digitMoves(state, cell, digit, options.autoNotesEnabled)
+                    moves.takeIf { it.isNotEmpty() }?.let(onMoves)
+                }
+            },
+        ))
+    } else if (layout == null) {
         Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             boardContent()
             controlsContent()

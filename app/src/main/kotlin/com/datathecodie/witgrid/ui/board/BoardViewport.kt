@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-data class BoardViewportMode(val enlarged: Boolean = false)
+data class BoardViewportMode(val enlarged: Boolean = false, val embedded: Boolean = false)
 
 val LocalBoardViewportMode = staticCompositionLocalOf { BoardViewportMode() }
 

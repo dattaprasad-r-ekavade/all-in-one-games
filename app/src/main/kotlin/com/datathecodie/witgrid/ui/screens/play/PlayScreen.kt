@@ -1,24 +1,12 @@
 package com.datathecodie.witgrid.ui.screens.play
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -88,6 +76,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     onContinueRequestConsumed: (String) -> Unit = {},
     onConsumeContinueTransaction: suspend (String) -> Boolean = { false },
     onFailed: () -> Unit = {},
+    hintCredits: String? = null,
 ) {
     val introCoachLineResourceId = levelRef.introCoachLineResourceId
     val introCoachLine = if (introCoachLineResourceId == null) {
@@ -335,17 +324,24 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 null -> null
             }
         }
+        val puzzleStatus = playPuzzleStatus(snapshot.state)
         val visibleStatusMessage = statusMessage ?: if (snapshot.mistakeLimitEnabled) {
-            stringResource(R.string.play_mistake_count, snapshot.mistakesMade, snapshot.mistakesAllowed)
+            stringResource(
+                R.string.play_status_with_mistakes,
+                puzzleStatus.orEmpty(),
+                stringResource(R.string.play_mistake_count, snapshot.mistakesMade, snapshot.mistakesAllowed),
+            )
         } else {
-            null
+            puzzleStatus
         }
-        val layout: @Composable (@Composable () -> Unit, @Composable () -> Unit) -> Unit = { board, controls ->
+        val layout: @Composable (@Composable () -> Unit, @Composable () -> Unit, (@Composable () -> Unit)?) -> Unit = { board, controls, modeTools ->
             PlayScreenLayout(
                 levelRef = levelRef,
                 elapsedTimeMillis = snapshot.elapsedTimeMillis,
                 canUndo = snapshot.canUndo,
                 canRedo = snapshot.canRedo,
+                hintCredits = hintCredits,
+                onRestart = { clearFeedback(); perform { controller.restart() } },
                 saveFailed = saveFailed,
                 introCoachLine = introCoachLine,
                 statusMessage = visibleStatusMessage,
@@ -354,6 +350,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 onToggleEnlargedBoard = { enlargedBoardMode = !enlargedBoardMode },
                 board = board,
                 gameControls = controls,
+                modeTools = modeTools,
                 onUndo = onUndo,
                 onRedo = onRedo,
                 onRequestHint = onRequestHint,
@@ -364,12 +361,14 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
         val flaggedCells = if (snapshot.mistakeLimitEnabled) snapshot.mistakes.toSet() else emptySet()
         CompositionLocalProvider(
             LocalBoardHighlightCells provides (highlightedCells + flaggedCells),
-            LocalBoardViewportMode provides BoardViewportMode(enlargedBoardMode),
+            LocalBoardViewportMode provides BoardViewportMode(enlargedBoardMode, embedded = true),
         ) {
             when (val state = snapshot.state) {
-                is MiniSudokuState -> MiniSudokuBoard(state, onMoves, onUndo, layout = layout)
-                is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = layout)
-                else -> layout({ gameModule.Board(snapshot.state, onMoves, onUndo) }, {})
+                is MiniSudokuState -> MiniSudokuBoard(state, onMoves, onUndo, playLayout = { board, actions ->
+                    layout(board, { PlaySudokuDigits(state, actions) }, { PlaySudokuTools(actions) })
+                })
+                is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = { board, controls -> layout(board, controls, null) })
+                else -> layout({ gameModule.Board(snapshot.state, onMoves, onUndo) }, {}, null)
             }
         }
         when (val request = hintRequest) {
@@ -433,222 +432,6 @@ private fun PlayLoadingScreen(loadFailed: Boolean, onBack: () -> Unit) {
 }
 
 @Composable
-internal fun PlayScreenLayout(
-    levelRef: LevelRef,
-    elapsedTimeMillis: Long,
-    canUndo: Boolean,
-    canRedo: Boolean,
-    saveFailed: Boolean,
-    introCoachLine: String?,
-    statusMessage: String?,
-    hintOperationPending: Boolean,
-    enlargedBoardMode: Boolean = false,
-    onToggleEnlargedBoard: () -> Unit = {},
-    board: @Composable () -> Unit,
-    gameControls: @Composable () -> Unit,
-    onUndo: () -> Unit,
-    onRedo: () -> Unit,
-    onRequestHint: () -> Unit,
-    onCheck: () -> Unit,
-    onBack: () -> Unit,
-) {
-    var timerVisible by remember(levelRef) { mutableStateOf(true) }
-
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val contentWidth = maxWidth.coerceAtMost(MAX_PLAY_CONTENT_WIDTH)
-        val useLandscapeTools = maxWidth >= MIN_LANDSCAPE_WIDTH &&
-            maxWidth > maxHeight &&
-            maxHeight <= MAX_LANDSCAPE_HEIGHT
-        val headerHeight = maxHeight * PLAY_HEADER_FRACTION
-        val toolbarHeight = maxHeight * TOOLBAR_FRACTION
-        Column(
-            modifier = Modifier
-                .width(contentWidth)
-                .fillMaxHeight()
-                .align(Alignment.TopCenter),
-        ) {
-            PlayHeader(levelRef, headerHeight)
-
-            if (useLandscapeTools) {
-                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                    BoxWithConstraints(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        val boardSize = minOf(maxWidth, maxHeight)
-                        Box(modifier = Modifier.width(boardSize)) { board() }
-                    }
-                    PlayControls(
-                        modifier = Modifier
-                            .width(minOf(LANDSCAPE_CONTROLS_WIDTH, contentWidth * LANDSCAPE_CONTROLS_FRACTION))
-                            .fillMaxHeight(),
-                        elapsedTimeMillis = elapsedTimeMillis,
-                        canUndo = canUndo,
-                        canRedo = canRedo,
-                        saveFailed = saveFailed,
-                        introCoachLine = introCoachLine,
-                        showCoachLine = true,
-                        statusMessage = statusMessage,
-                        hintOperationPending = hintOperationPending,
-                        enlargedBoardMode = enlargedBoardMode,
-                        onToggleEnlargedBoard = onToggleEnlargedBoard,
-                        timerVisible = timerVisible,
-                        gameControls = gameControls,
-                        onUndo = onUndo,
-                        onRedo = onRedo,
-                        onToggleTimer = { timerVisible = !timerVisible },
-                        onRequestHint = onRequestHint,
-                        onCheck = onCheck,
-                        onBack = onBack,
-                    )
-                }
-            } else {
-                BoxWithConstraints(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    val boardSize = minOf(maxWidth, maxHeight)
-                    if (introCoachLine == null) {
-                        // Keep the board square inside its available height, including on short screens.
-                        Box(modifier = Modifier.width(boardSize)) { board() }
-                    } else {
-                        // Let larger text scroll above the board instead of shrinking its touch targets.
-                        Column(
-                            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text(
-                                introCoachLine,
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Box(modifier = Modifier.size(boardSize)) { board() }
-                        }
-                    }
-                }
-
-                PlayControls(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(toolbarHeight),
-                    elapsedTimeMillis = elapsedTimeMillis,
-                    canUndo = canUndo,
-                    canRedo = canRedo,
-                    saveFailed = saveFailed,
-                    introCoachLine = introCoachLine,
-                    showCoachLine = false,
-                    statusMessage = statusMessage,
-                    hintOperationPending = hintOperationPending,
-                    enlargedBoardMode = enlargedBoardMode,
-                    onToggleEnlargedBoard = onToggleEnlargedBoard,
-                    timerVisible = timerVisible,
-                    gameControls = gameControls,
-                    onUndo = onUndo,
-                    onRedo = onRedo,
-                    onToggleTimer = { timerVisible = !timerVisible },
-                    onRequestHint = onRequestHint,
-                    onCheck = onCheck,
-                    onBack = onBack,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PlayHeader(levelRef: LevelRef, height: androidx.compose.ui.unit.Dp) {
-    Column(modifier = Modifier.fillMaxWidth().heightIn(min = height).padding(16.dp)) {
-        Text(stringResource(gameNameResource(levelRef.gameId)), style = MaterialTheme.typography.titleLarge)
-    }
-}
-
-@Composable
-private fun PlayControls(
-    modifier: Modifier,
-    elapsedTimeMillis: Long,
-    canUndo: Boolean,
-    canRedo: Boolean,
-    saveFailed: Boolean,
-    introCoachLine: String?,
-    showCoachLine: Boolean,
-    statusMessage: String?,
-    hintOperationPending: Boolean,
-    enlargedBoardMode: Boolean,
-    onToggleEnlargedBoard: () -> Unit,
-    timerVisible: Boolean,
-    gameControls: @Composable () -> Unit,
-    onUndo: () -> Unit,
-    onRedo: () -> Unit,
-    onToggleTimer: () -> Unit,
-    onRequestHint: () -> Unit,
-    onCheck: () -> Unit,
-    onBack: () -> Unit,
-) {
-    Column(
-        modifier = modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        if (showCoachLine) {
-            introCoachLine?.let { line ->
-                Text(
-                    line,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-        gameControls()
-        FilterChip(
-            selected = enlargedBoardMode,
-            onClick = onToggleEnlargedBoard,
-            label = {
-                Text(
-                    stringResource(
-                        if (enlargedBoardMode) R.string.button_board_fit else R.string.button_board_enlarge,
-                    ),
-                )
-            },
-        )
-        if (enlargedBoardMode) {
-            Text(
-                stringResource(R.string.board_enlarged_gesture_help),
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-        if (saveFailed) {
-            Text(stringResource(R.string.play_save_failed), color = MaterialTheme.colorScheme.error)
-        }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-        if (timerVisible) {
-            Text(
-                stringResource(R.string.play_elapsed_time, formatDuration(elapsedTimeMillis)),
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            TextButton(onClick = onUndo, enabled = canUndo) {
-                Text(stringResource(R.string.button_undo))
-            }
-            TextButton(onClick = onRedo, enabled = canRedo) {
-                Text(stringResource(R.string.button_redo))
-            }
-            TextButton(onClick = onToggleTimer) {
-                Text(stringResource(if (timerVisible) R.string.button_hide_timer else R.string.button_show_timer))
-            }
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            TextButton(onClick = onRequestHint, enabled = !hintOperationPending) {
-                Text(stringResource(R.string.button_hint))
-            }
-            TextButton(onClick = onCheck, enabled = !hintOperationPending) {
-                Text(stringResource(R.string.button_check))
-            }
-            TextButton(onClick = onBack) { Text(stringResource(R.string.button_back)) }
-        }
-    }
-}
-
-@Composable
 private fun HintDialog(
     hint: HintUi,
     applyPending: Boolean,
@@ -679,12 +462,12 @@ private fun HintDialog(
     }
 }
 
-private fun formatDuration(milliseconds: Long): String {
+internal fun formatDuration(milliseconds: Long): String {
     val seconds = milliseconds.coerceAtLeast(0L) / MILLIS_PER_SECOND
     return "%d:%02d".format(seconds / SECONDS_PER_MINUTE, seconds % SECONDS_PER_MINUTE)
 }
 
-private fun gameNameResource(gameId: String): Int = when (gameId) {
+internal fun gameNameResource(gameId: String): Int = when (gameId) {
     "crowns" -> R.string.game_crowns
     "binary" -> R.string.game_binary
     "nonogram" -> R.string.game_nonogram
@@ -692,13 +475,6 @@ private fun gameNameResource(gameId: String): Int = when (gameId) {
     else -> R.string.game_unknown
 }
 
-private const val PLAY_HEADER_FRACTION = 0.15f
-private const val TOOLBAR_FRACTION = 1f / 3f
-private const val LANDSCAPE_CONTROLS_FRACTION = 0.36f
-private val LANDSCAPE_CONTROLS_WIDTH = 288.dp
-private val MIN_LANDSCAPE_WIDTH = 600.dp
-private val MAX_LANDSCAPE_HEIGHT = 600.dp
-private val MAX_PLAY_CONTENT_WIDTH = 1_200.dp
 private const val MILLIS_PER_SECOND = 1_000L
 private const val SECONDS_PER_MINUTE = 60L
 private const val TIMER_REFRESH_MILLIS = 1_000L

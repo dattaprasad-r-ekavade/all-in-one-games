@@ -445,6 +445,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         progressRepository = progressRepository,
                         persistence = persistence,
                         allowance = allowance,
+                        hintCredits = (playerData.rewardBalances[RewardType.HINT] ?: 0).toString(),
                         mistakeLimitEnabled = playerData.settings.mistakeLimitEnabled,
                         restartRequestId = matchingRestartRequest?.id,
                         onRestartRequestConsumed = { requestId ->

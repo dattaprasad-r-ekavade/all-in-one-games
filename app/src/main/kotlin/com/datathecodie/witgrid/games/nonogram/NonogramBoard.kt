@@ -102,7 +102,9 @@ fun NonogramBoard(
                 puzzle.columnClues.maxOf { clues -> clues.size },
                 MIN_CLUE_COUNT,
             )
-            val fitCellSize = ((maxWidth - Spacing.screenMargin * 2) / (puzzle.size + maxClueCount))
+            val margin = if (viewportMode.embedded) 0.dp else Spacing.screenMargin
+            val availableSide = if (maxHeight == Dp.Infinity) maxWidth else minOf(maxWidth, maxHeight)
+            val fitCellSize = ((availableSide - margin * 2) / (puzzle.size + maxClueCount))
                 .coerceAtLeast(1.dp)
             val cellSize = if (viewportMode.enlarged) {
                 maxOf(fitCellSize, MIN_BOARD_CELL_SIZE)
@@ -110,8 +112,8 @@ fun NonogramBoard(
                 fitCellSize
             }
             val clueBandWidth = cellSize * maxClueCount
-            val boardSlotWidth = cellSize * puzzle.size + Spacing.screenMargin * 2
-            val contentWidth = cellSize * (puzzle.size + maxClueCount) + Spacing.screenMargin * 2
+            val boardSlotWidth = cellSize * puzzle.size + margin * 2
+            val contentWidth = cellSize * (puzzle.size + maxClueCount) + margin * 2
             val contentHeight = cellSize * (puzzle.size + maxClueCount)
             val viewportWidth = minOf(maxWidth, contentWidth)
             val viewportHeight = if (maxHeight == Dp.Infinity) {
@@ -132,6 +134,7 @@ fun NonogramBoard(
                             maxClueCount = maxClueCount,
                             boardSlotWidth = boardSlotWidth,
                             completedColumns = completedColumns,
+                            margin = margin,
                             colors = colors.ink,
                             completedColor = colors.accent,
                         )
@@ -212,12 +215,13 @@ private fun ColumnClues(
     maxClueCount: Int,
     boardSlotWidth: Dp,
     completedColumns: List<Boolean>,
+    margin: Dp,
     colors: Color,
     completedColor: Color,
 ) {
     val clueHeight = cellSize * maxClueCount
     Row(
-        modifier = Modifier.width(boardSlotWidth).height(clueHeight).padding(horizontal = Spacing.screenMargin),
+        modifier = Modifier.width(boardSlotWidth).height(clueHeight).padding(horizontal = margin),
     ) {
         puzzle.columnClues.forEachIndexed { index, clues ->
             val clueDescription = clueDescription(

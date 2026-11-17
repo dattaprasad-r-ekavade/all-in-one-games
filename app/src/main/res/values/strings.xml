@@ -219,4 +219,22 @@
     <string name="action_calendar">Calendar</string>
     <string name="action_statistics">Statistics</string>
     <string name="action_settings">Settings</string>
+    <string name="play_level_subtitle">%1$s \u00b7 Level %2$d</string>
+    <string name="play_daily_subtitle">%1$s \u00b7 Daily puzzle</string>
+    <string name="play_intro_subtitle">%1$s \u00b7 Introduction</string>
+    <string name="play_timer_hidden">Timer</string>
+    <string name="play_rules">Rules</string>
+    <string name="play_rules_title">How to play %1$s</string>
+    <string name="play_rules_crowns">Place one crown in each row, column, and colour region. Crowns cannot touch, even diagonally. Tap to cycle between a crown, a cross, and an empty cell. Long press to clear a cell.</string>
+    <string name="play_rules_binary">Fill each row and column with equal numbers of the two symbols. No three matching symbols may touch in a row or column. Rows and columns must be unique. Tap to cycle symbols; long press to clear.</string>
+    <string name="play_rules_nonogram">Numbers beside each row and above each column describe the lengths of filled runs in order. Leave at least one empty cell between runs. Use Fill or Cross to mark cells. Drag to paint, or long press to clear.</string>
+    <string name="play_rules_minisudoku">Fill each row, column, and 2 by 3 box with digits 1 through 6 exactly once. Select a cell, then choose a digit. Notes toggles pencil marks; Erase clears the selected cell.</string>
+    <string name="play_restart_message">Clear your entries and start this puzzle again?</string>
+    <string name="play_cancel">Cancel</string>
+    <string name="play_crowns_count">%1$d of %2$d crowns placed</string>
+    <string name="play_cells_count">%1$d of %2$d cells filled</string>
+    <string name="play_marked_count">%1$d of %2$d cells marked</string>
+    <string name="play_status_with_mistakes">%1$s \u00b7 %2$s</string>
+    <string name="play_digit_left">%1$d left</string>
+    <string name="play_erase">Erase</string>
 </resources>

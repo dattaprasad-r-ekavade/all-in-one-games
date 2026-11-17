@@ -97,7 +97,7 @@ class PlayScreenRouteTest {
         ).performClick()
         composeRule.waitUntil(5_000) { repository.savedProgress != null }
         assertEquals(1 shl (digit - 1), module.decodeState(requireNotNull(repository.savedProgress).stateBytes).notes[first])
-        composeRule.onNodeWithText(context.getString(R.string.minisudoku_mode_digits)).performClick()
+        notes.performClick()
 
         editable.forEach { index ->
             selectCell(index)

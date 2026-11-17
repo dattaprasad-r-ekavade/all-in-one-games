@@ -85,7 +85,7 @@ fun BoardCanvas(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.screenMargin)
+            .padding(horizontal = if (viewportMode.embedded) 0.dp else Spacing.screenMargin)
             .aspectRatio(1f),
     ) {
         val viewportSide = maxWidth

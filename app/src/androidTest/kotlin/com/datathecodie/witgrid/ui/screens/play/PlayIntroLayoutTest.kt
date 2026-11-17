@@ -12,7 +12,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
@@ -80,9 +79,9 @@ class PlayIntroLayoutTest {
         assertTrue("All coach lines must be visible", coachBounds.height >= layouts.single().size.height - 1f)
 
         val board = composeRule.onNodeWithTag("intro-board")
-        board.performScrollTo().assertIsDisplayed()
+        board.assertIsDisplayed()
         val boardBounds = board.fetchSemanticsNode().boundsInRoot
-        assertTrue("Keep a usable six-cell board", boardBounds.height / density >= 300f)
-        assertTrue("Keep the board below the top 15%", boardBounds.top / density >= 640f * 0.15f - 1f)
+        assertTrue("Keep the board visible beneath the full coach text", boardBounds.height / density >= 120f)
+        assertTrue("Keep the board below the coach line", boardBounds.top >= coachBounds.bottom)
     }
 }
