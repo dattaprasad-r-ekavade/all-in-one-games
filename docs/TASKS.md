@@ -67,13 +67,13 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U0 | Hotfix: invisible text in dark mode | M | Claude (lead) | — | — | done |
 | U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | done |
 | U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | done |
-| U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | ready |
+| U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | active |
 | U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | todo |
 | U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | todo |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
-| U9 | Endless level numbers and looping | H | Codex | Claude | U2 | ready |
+| U9 | Endless level numbers and looping | H | Codex | Claude | U2 | active |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
