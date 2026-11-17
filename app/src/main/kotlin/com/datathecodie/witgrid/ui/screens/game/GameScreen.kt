@@ -28,6 +28,7 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.ads.AdShowResult
 import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
 import com.datathecodie.witgrid.ads.flow.RewardedActionButton
+import com.datathecodie.witgrid.billing.BillingUiState
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.LevelRef
@@ -46,6 +47,8 @@ fun GameScreenRoute(
     onEarnHintCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
     onEarnCheckCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
     onHome: () -> Unit,
+    billingState: BillingUiState = BillingUiState(),
+    onPurchasePremium: () -> Unit = {},
 ) {
     val viewModel = remember(gameId, levelRefsByPack, progressRepository) {
         GameViewModel(gameId, levelRefsByPack, progressRepository)
@@ -63,6 +66,8 @@ fun GameScreenRoute(
         onEarnHintCredit = onEarnHintCredit,
         onEarnCheckCredit = onEarnCheckCredit,
         onHome = onHome,
+        billingState = billingState,
+        onPurchasePremium = onPurchasePremium,
     )
 }
 
@@ -77,9 +82,18 @@ fun GameScreen(
     onEarnHintCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
     onEarnCheckCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
     onHome: () -> Unit,
+    billingState: BillingUiState = BillingUiState(),
+    onPurchasePremium: () -> Unit = {},
 ) {
     var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
-    if (showPremiumOffer) PremiumOfferDialog(onDismiss = { showPremiumOffer = false })
+    if (showPremiumOffer) {
+        PremiumOfferDialog(
+            premiumEnabled = premiumEnabled,
+            billingState = billingState,
+            onPurchasePremium = onPurchasePremium,
+            onDismiss = { showPremiumOffer = false },
+        )
+    }
 
     AdaptiveScreen {
         Column(

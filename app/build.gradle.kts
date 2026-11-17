@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.gma.next.gen)
     implementation(libs.ump)
+    implementation(libs.billing)
     ksp(libs.room.compiler)
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)

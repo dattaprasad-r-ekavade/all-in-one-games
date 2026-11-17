@@ -41,6 +41,7 @@ import com.datathecodie.witgrid.ads.GoogleAdService
 import com.datathecodie.witgrid.ads.flow.InterstitialAdFlow
 import com.datathecodie.witgrid.ads.flow.RewardedAdFlow
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.billing.PlayBillingService
 import com.datathecodie.witgrid.data.settings.DataStorePlayerDataRepository
 import com.datathecodie.witgrid.data.settings.PlayerData
 import com.datathecodie.witgrid.data.settings.RewardType
@@ -104,6 +105,13 @@ fun WitgridNavigation(navigator: AppNavigator) {
     }
     val playerDataRepository = remember(applicationContext) {
         DataStorePlayerDataRepository(applicationContext)
+    }
+    val billingService = remember(applicationContext, playerDataRepository) {
+        PlayBillingService(applicationContext, playerDataRepository)
+    }
+    val billingState by billingService.state.collectAsState()
+    DisposableEffect(billingService) {
+        onDispose { billingService.close() }
     }
     val reminderController = remember(applicationContext, playerDataRepository) {
         ReminderController(
@@ -174,6 +182,11 @@ fun WitgridNavigation(navigator: AppNavigator) {
     var dailyProgress by remember { mutableStateOf<DailyProgressSnapshot?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    LaunchedEffect(billingService, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            billingService.refresh()
+        }
+    }
     var reminderPermissionPending by rememberSaveable { mutableStateOf(false) }
     var reminderActionMessage by rememberSaveable { mutableStateOf<Int?>(null) }
     val reminderPermissionLauncher = rememberLauncherForActivityResult(
@@ -276,6 +289,9 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 progressRepository = progressRepository,
                 streak = dailyProgress?.streak ?: playerData.streak,
                 completedDailyGamesToday = todayCompletions.size,
+                premiumEnabled = playerData.premiumEnabled,
+                billingState = billingState,
+                onPurchasePremium = { activity?.let(billingService::launchPurchase) },
                 onSelectGame = { navigator.navigate(AppDestination.Game(it)) },
                 onOpenCalendar = { navigator.navigate(AppDestination.Calendar) },
                 onOpenStatistics = { navigator.navigate(AppDestination.Statistics) },
@@ -295,6 +311,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     progressRepository = progressRepository,
                     dailyCompletedToday = todayCompletions.any { it.gameId == currentDestination.gameId },
                     premiumEnabled = playerData.premiumEnabled,
+                    billingState = billingState,
+                    onPurchasePremium = { activity?.let(billingService::launchPurchase) },
                     onEarnHintCredit = {
                         activity?.let { rewardedAdFlow.grantReward(it, RewardType.HINT) }
                             ?: AdShowResult.Unavailable
@@ -476,6 +494,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 premiumEnabled = playerData.premiumEnabled,
                 continueCreditAvailable =
                     (playerData.rewardBalances[RewardType.EXTRA_LIFE] ?: 0) > 0,
+                billingState = billingState,
+                onPurchasePremium = { activity?.let(billingService::launchPurchase) },
                 onRewardedContinue = {
                     activity?.let { rewardedAdFlow.grantReward(it, RewardType.EXTRA_LIFE) }
                         ?: AdShowResult.Unavailable
@@ -489,6 +509,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 premiumEnabled = playerData.premiumEnabled,
                 streakRepairCreditAvailable =
                     (playerData.rewardBalances[RewardType.STREAK_REPAIR] ?: 0) > 0,
+                billingState = billingState,
+                onPurchasePremium = { activity?.let(billingService::launchPurchase) },
                 onRepairStreak = {
                     var freshProgress = dailyProgressCoordinator.reconcile()
                     dailyProgress = freshProgress
@@ -591,6 +613,12 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 onShowPrivacyOptions = {
                     val currentActivity = activity
                     if (currentActivity != null) adService.showPrivacyOptions(currentActivity)
+                },
+                premiumEnabled = playerData.premiumEnabled,
+                billingState = billingState,
+                onPurchasePremium = { activity?.let(billingService::launchPurchase) },
+                onRestorePurchases = {
+                    scope.launch { billingService.restorePurchases() }
                 },
                 onHome = navigator::returnHome,
             )
