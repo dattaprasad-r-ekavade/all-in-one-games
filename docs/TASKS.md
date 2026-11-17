@@ -518,9 +518,10 @@ Plan: 4.1. Design: `docs/design/play-*.png`.
 ### U6 — Home and Game screens
 Tier M · Build Codex · Review Claude (lead screenshots)
 Plan: 4.1, 9. Design: `docs/design/home-*.png`, `game-*.png`.
-**Owns:** `ui/screens/home/**`, `ui/screens/game/**`, `ui/layout/ScreenPreviews.kt`, `res/values/strings.xml` (home and game strings).
+**Owns:** `ui/screens/home/**`, `ui/screens/game/**`, `ui/layout/ScreenPreviews.kt`, `nav/WitgridNavigation.kt`, `res/values/strings.xml` (home and game strings), and their tests.
 **Do:** Home: "Today's puzzles" card (date, streak chip, one status chip for each game in a wrapping row, "Play daily <game>" button for the first unfinished game), then a 2-column grid of game cards (small drawn board preview, name, "Level N · Pack"), then one quiet Premium row. The grid works for any number of games. Game screen: Continue card (preview, "Level N", in-puzzle status), daily row with a done tick, pack cards with name, board size and "Next: level N", and one quiet row "N hints and N checks saved · Get more" that opens a sheet with the two rewarded offers. Remove `home_progress`, `game_pack_progress`, the "x of 4 daily puzzles" text, and every other level total. Remove the unused `onHome`, `onOpenStatistics` and `onOpenSettings` parameters (U2 moved those actions into the top bar).
 **Done when:** `./gradlew check` passes. Screenshots match the mockups. No level total appears on these screens.
+**Lead scope extension (17 Nov 2026):** Added `WitgridNavigation.kt` so Home can receive per-game daily completion state and open that game's daily puzzle directly, Game can receive saved hint/check balances, and obsolete callback arguments can be removed from their route call sites.
 
 ### U7 — Result, Failed, Calendar, Statistics, Settings
 Tier M · Build Codex · Review Claude (lead screenshots)
