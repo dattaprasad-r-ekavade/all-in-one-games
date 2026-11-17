@@ -68,7 +68,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | done |
 | U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | done |
 | U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | done |
-| U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | active |
+| U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | done |
 | U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | todo |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
@@ -504,6 +504,7 @@ Plan: 4, 4.1, 9. Design: `docs/design/play-*.png`.
 **Done when:** `./gradlew check` passes. Screenshots of all four games on a 360 dp and a large phone, light and dark, font 1.0 and 1.3, show no clipping.
 
 **Lead scope extension (17 Nov 2026):** Added the Mini Sudoku and Nonogram board implementations so U4 can expose their in-play controls while keeping the digit pad and clues visible, and `WitgridNavigation.kt` so the play route can receive the saved hint-credit balance for its badge. Board visual restyling remains with U5.
+**Lead completion note (17 Nov 2026):** Integrated locally as `d75ea24`. `check` passed, including lint and validation of 3,864 puzzles across 24 bank files. Seven targeted instrumentation tests passed, including 32 screenshot cases covering four games, 360/432 dp, light/dark, and font scales 1.0/1.3. The lead reviewed all four contact sheets and representative full-size captures; no clipping was visible. GPT-6.1-Sol approved with no blockers.
 
 ### U5 — Board looks for each game
 Tier M · Build Codex · Review Claude (lead screenshots)
