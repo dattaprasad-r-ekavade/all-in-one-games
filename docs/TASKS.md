@@ -51,13 +51,13 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | done |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | done |
 | R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | done |
-| R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | todo |
+| R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | ready |
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | done |
-| M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | active |
+| M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | done |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | todo |
@@ -388,14 +388,14 @@ Tier H · Build Claude (`builder`) · Review Codex
 Plan: 7.1, 8.3, 8.7, decision from T0.3.
 **Owns:** `app/…/ads/**`, `gradle/libs.versions.toml`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
 **Do:** `AdService` interface with a real implementation and a fake. UMP consent before the first ad request, with a privacy-options action exposed for Settings. Preload one interstitial and one rewarded ad when online; drop ads older than one hour. Reward completion returns a stable grant ID for `AllowanceLedger`, so callback retries cannot grant twice. Google's public test app ID and test unit IDs only. Live IDs come later from Gradle properties outside the repo (S3).
-**Done when:** `./gradlew check` passes. The lead sees test ads on a device.
+**Done when:** `./gradlew check` passes. The M3 handoff identifies the Google test IDs; M4 records on-device test-ad rendering in its online placement matrix after adding the first ad callsite.
 
 ### M4 — Ads in the player flows
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 8.1–8.3, 8.5 (offer placement).
 **Owns:** `app/…/ui/screens/game/GameScreen.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/nav/WitgridNavigation.kt`, `app/…/ads/flow/**`, `app/src/main/res/values/strings.xml`.
 **Do:** Interstitial after "Next" through `InterstitialPolicy`. Never show or start an ad while a puzzle board is active. Offer rewarded hint/check credits from the pre-puzzle Game screen; spend those credits in Play. Offer rewarded Continue on Level failed and rewarded streak repair on Calendar. Each rewarded button states the reward first. Add offline fallbacks and a Premium offer when a rewarded ad cannot load. Premium repair follows the same latest-uncovered-miss and 48-hour eligibility rules.
-**Done when:** `./gradlew check` passes. The handoff has a manual test table: each placement × online/offline × free/Premium.
+**Done when:** `./gradlew check` passes. The handoff has a manual test table: each placement × online/offline × free/Premium, with a visible Google test ad confirmed on a device in an eligible online flow.
 
 ### M5 — Mistake limit and continue flow
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
