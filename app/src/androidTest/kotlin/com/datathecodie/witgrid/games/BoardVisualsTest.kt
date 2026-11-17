@@ -93,7 +93,6 @@ class BoardVisualsTest {
         }
     }
 }
-
 @Composable
 private fun VisualPlay(gameId: String, bank: AssetBankSource) {
     @Suppress("UNCHECKED_CAST")
@@ -138,4 +137,3 @@ private fun VisualPlay(gameId: String, bank: AssetBankSource) {
         }
     }
 }
-
