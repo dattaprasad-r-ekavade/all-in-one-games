@@ -73,6 +73,7 @@ import com.datathecodie.witgrid.ui.screens.settings.SettingsScreen
 import com.datathecodie.witgrid.ui.screens.calendar.CalendarScreenRoute
 import com.datathecodie.witgrid.ui.screens.failed.LevelFailedScreen
 import com.datathecodie.witgrid.ui.screens.game.GameScreenRoute
+import com.datathecodie.witgrid.ui.screens.game.GameRulesSheet
 import com.datathecodie.witgrid.ui.screens.home.HomeScreenRoute
 import com.datathecodie.witgrid.ui.screens.play.PlayScreenRoute
 import com.datathecodie.witgrid.ui.screens.play.PlayPersistenceScope
@@ -361,6 +362,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
 
             is AppDestination.Game -> {
                 val module = requireNotNull(GameRegistry.find(currentDestination.gameId))
+                var showGameRules by rememberSaveable(currentDestination.gameId) { mutableStateOf(false) }
                 val levelRefsByPack = remember(currentDestination.gameId, levelRefsByGame) {
                     Pack.entries.associateWith { pack ->
                         levelRefsByGame[currentDestination.gameId].orEmpty().filter { it.pack == pack }
@@ -371,6 +373,11 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         WitgridTopBar(
                             title = stringResource(gameTitleResource(currentDestination.gameId)),
                             onBack = goBack,
+                            actions = listOf(
+                                TopBarAction(R.drawable.ic_info, stringResource(R.string.play_rules)) {
+                                    showGameRules = true
+                                },
+                            ),
                         )
                     },
                 ) { GameScreenRoute(
@@ -404,6 +411,9 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     hintCredits = playerData.rewardBalances[RewardType.HINT] ?: 0,
                     checkCredits = playerData.rewardBalances[RewardType.CHECK] ?: 0,
                 ) }
+                if (showGameRules) {
+                    GameRulesSheet(currentDestination.gameId) { showGameRules = false }
+                }
             }
 
             is AppDestination.Play -> {

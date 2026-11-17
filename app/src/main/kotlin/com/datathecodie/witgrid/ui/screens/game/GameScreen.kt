@@ -1,6 +1,10 @@
 package com.datathecodie.witgrid.ui.screens.game
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,12 +12,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -27,8 +36,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.ads.AdShowResult
@@ -40,7 +58,6 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.ui.components.ListRow
-import com.datathecodie.witgrid.ui.components.PrimaryButton
 import com.datathecodie.witgrid.ui.components.SectionHeader
 import com.datathecodie.witgrid.ui.components.WitgridCard
 import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
@@ -96,6 +113,7 @@ fun GameScreen(
     var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
     var showRewards by rememberSaveable { mutableStateOf(false) }
     val colors = WitgridTheme.colors
+    val context = LocalContext.current
     if (showPremiumOffer) {
         PremiumOfferDialog(premiumEnabled, billingState, onPurchasePremium, { showPremiumOffer = false })
     }
@@ -138,14 +156,48 @@ fun GameScreen(
                             }
                         }
                         Spacer(Modifier.height(16.dp))
-                        PrimaryButton(stringResource(R.string.button_continue), { onContinue(level) }, Modifier.fillMaxWidth())
+                        ContinueButton { onContinue(level) }
                     }
                 }
                 WitgridCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
-                    ListRow(stringResource(R.string.game_daily_name, stringResource(gameNameResource(state.gameId))),
-                        subtitle = stringResource(if (dailyCompletedToday) R.string.game_daily_solved else R.string.game_daily_entry),
-                        trailingValue = if (dailyCompletedToday) stringResource(R.string.game_done_tick) else null,
-                        onClick = onOpenDaily, showChevron = !dailyCompletedToday)
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .clickable(role = Role.Button, onClick = onOpenDaily)
+                            .heightIn(min = 88.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier.size(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(colors.accent.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_calendar),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = colors.accent,
+                            )
+                        }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                stringResource(R.string.game_daily_name, stringResource(gameNameResource(state.gameId))),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Text(
+                                stringResource(if (dailyCompletedToday) R.string.game_daily_solved else R.string.game_daily_entry),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.mutedInk,
+                            )
+                        }
+                        if (dailyCompletedToday) {
+                            DailyCompletedIcon()
+                        } else {
+                            RowChevron()
+                        }
+                    }
                 }
                 SectionHeader(stringResource(R.string.game_packs))
                 state.packs.forEach { pack ->
@@ -162,9 +214,144 @@ fun GameScreen(
                 }
             }
             if (!premiumEnabled) {
-                ListRow(stringResource(R.string.game_saved_credits, hintCredits, checkCredits),
-                    onClick = { showRewards = true })
+                val hintCount = context.resources.getQuantityString(
+                    R.plurals.game_hint_credit_count,
+                    hintCredits,
+                    hintCredits,
+                )
+                val checkCount = context.resources.getQuantityString(
+                    R.plurals.game_check_credit_count,
+                    checkCredits,
+                    checkCredits,
+                )
+                SavedCreditsRow(
+                    title = stringResource(R.string.game_saved_credits, hintCount, checkCount),
+                    onClick = { showRewards = true },
+                )
             }
         }
     }
+}
+
+@Composable
+private fun ContinueButton(onClick: () -> Unit) {
+    val colors = WitgridTheme.colors
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colors.accent,
+            contentColor = colors.onAccent,
+        ),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Canvas(Modifier.size(16.dp)) {
+                val play = Path().apply {
+                    moveTo(size.width * 0.2f, size.height * 0.1f)
+                    lineTo(size.width * 0.88f, size.height * 0.5f)
+                    lineTo(size.width * 0.2f, size.height * 0.9f)
+                    close()
+                }
+                drawPath(play, colors.onAccent)
+            }
+            Text(stringResource(R.string.button_continue))
+        }
+    }
+}
+
+@Composable
+private fun DailyCompletedIcon() {
+    val colors = WitgridTheme.colors
+    Canvas(Modifier.size(40.dp)) {
+        drawCircle(colors.accent)
+        val check = Path().apply {
+            moveTo(size.width * 0.27f, size.height * 0.52f)
+            lineTo(size.width * 0.43f, size.height * 0.68f)
+            lineTo(size.width * 0.73f, size.height * 0.36f)
+        }
+        drawPath(
+            path = check,
+            color = colors.onAccent,
+            style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round),
+        )
+    }
+}
+
+@Composable
+private fun RowChevron() {
+    val colors = WitgridTheme.colors
+    Icon(
+        painter = painterResource(R.drawable.ic_back),
+        contentDescription = null,
+        modifier = Modifier.size(20.dp).rotate(
+            if (LocalLayoutDirection.current == LayoutDirection.Ltr) 180f else 0f,
+        ),
+        tint = colors.mutedInk,
+    )
+}
+
+@Composable
+private fun SavedCreditsRow(title: String, onClick: () -> Unit) {
+    val colors = WitgridTheme.colors
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .clickable(role = Role.Button, onClick = onClick)
+            .heightIn(min = 64.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HintCreditsIcon()
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(R.string.game_get_more), style = MaterialTheme.typography.bodyMedium, color = colors.mutedInk)
+        }
+        RowChevron()
+    }
+}
+
+@Composable
+private fun HintCreditsIcon() {
+    val color = WitgridTheme.colors.mutedInk
+    Canvas(Modifier.size(24.dp)) {
+        val stroke = 1.8.dp.toPx()
+        val center = androidx.compose.ui.geometry.Offset(size.width * 0.5f, size.height * 0.39f)
+        drawCircle(color, radius = size.minDimension * 0.25f, center = center, style = Stroke(stroke))
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * 0.38f, size.height * 0.61f),
+            androidx.compose.ui.geometry.Offset(size.width * 0.42f, size.height * 0.7f), stroke)
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * 0.62f, size.height * 0.61f),
+            androidx.compose.ui.geometry.Offset(size.width * 0.58f, size.height * 0.7f), stroke)
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * 0.42f, size.height * 0.73f),
+            androidx.compose.ui.geometry.Offset(size.width * 0.58f, size.height * 0.73f), stroke)
+        drawLine(color, androidx.compose.ui.geometry.Offset(size.width * 0.44f, size.height * 0.83f),
+            androidx.compose.ui.geometry.Offset(size.width * 0.56f, size.height * 0.83f), stroke)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GameRulesSheet(gameId: String, onDismiss: () -> Unit) {
+    val colors = WitgridTheme.colors
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.card) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(24.dp)) {
+            Text(
+                stringResource(R.string.play_rules_title, stringResource(gameNameResource(gameId))),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                stringResource(gameRulesResource(gameId)),
+                Modifier.padding(top = 16.dp, bottom = 32.dp),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+    }
+}
+
+private fun gameRulesResource(gameId: String): Int = when (gameId) {
+    "crowns" -> R.string.play_rules_crowns
+    "binary" -> R.string.play_rules_binary
+    "nonogram" -> R.string.play_rules_nonogram
+    else -> R.string.play_rules_minisudoku
 }

@@ -24,9 +24,14 @@ import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.data.progress.LevelProgress
 import com.datathecodie.witgrid.data.settings.StreakData
+import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.crowns.CrownsState
+import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.games.crowns.CrownsGameModule
 import com.datathecodie.witgrid.ui.layout.TopBarAction
 import com.datathecodie.witgrid.ui.layout.WitgridScreenFrame
 import com.datathecodie.witgrid.ui.layout.WitgridTopBar
@@ -67,6 +72,7 @@ class HomeGameScreensTest {
     @Test
     fun gamePackActionsStayIndependentAndRewardsAreBehindSheet() {
         var selected: LevelRef? = null
+        var dailyOpens = 0
         var hints = 0
         val easy = level("crowns", 613)
         val medium = level("crowns", 27, Pack.MEDIUM)
@@ -74,12 +80,15 @@ class HomeGameScreensTest {
             WitgridTheme {
                 GameScreen(GameUiState("crowns", listOf(PackProgress(Pack.EASY, easy, 6..6),
                     PackProgress(Pack.MEDIUM, medium, 7..7)), medium, false),
-                    {}, { selected = it }, {}, dailyCompletedToday = true, hintCredits = 3, checkCredits = 1,
+                    {}, { selected = it }, { dailyOpens++ }, dailyCompletedToday = true, hintCredits = 3, checkCredits = 1,
                     onEarnHintCredit = { hints++; com.datathecodie.witgrid.ads.AdShowResult.RewardGranted })
             }
         }
+        composeRule.onNodeWithText("Daily Crowns").performScrollTo().performClick()
+        assertEquals(1, dailyOpens)
         composeRule.onNodeWithText("Next: level 613").performScrollTo().performClick()
         assertEquals(easy, selected)
+        composeRule.onNodeWithText("3 hints and 1 check saved").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Get more", substring = true).performScrollTo().performClick()
         composeRule.onNodeWithText("Watch an ad to earn one hint credit").assertIsDisplayed().performClick()
         composeRule.waitForIdle()
@@ -90,6 +99,26 @@ class HomeGameScreensTest {
     fun captureLightAndDarkAtDefaultAndLargeText() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val directory = File(context.cacheDir, "u6-screens").apply { mkdirs() }
+        val bankSource = AssetBankSource(context.assets)
+        val puzzleRef = CrownsGameModule.levelRefs(Pack.EASY, bankSource).first { !it.isIntro }
+        val puzzleLevel = CrownsGameModule.loadLevel(puzzleRef, bankSource)
+        val boardState = CrownsState(
+            puzzleLevel.puzzle,
+            List(puzzleLevel.size * puzzleLevel.size) { index ->
+                if (index == 0 || index == puzzleLevel.size + 2) Mark.FILLED else Mark.EMPTY
+            },
+        )
+        val continueRef = level("crowns", 14)
+        val continueProgress = LevelProgress(
+            gameId = "crowns",
+            levelId = continueRef.levelId,
+            stateBytes = CrownsGameModule.encodeState(boardState),
+            elapsedTimeMillis = 102_000,
+            hintsUsed = 1,
+            completed = false,
+            bestTimeMillis = null,
+            attemptNumber = 14,
+        )
         var dark by mutableStateOf(false)
         var game by mutableStateOf(false)
         var scale by mutableStateOf(1f)
@@ -100,15 +129,17 @@ class HomeGameScreensTest {
                         color = WitgridTheme.colors.paper, contentColor = WitgridTheme.colors.ink) {
                         WitgridScreenFrame(topBar = {
                             WitgridTopBar(if (game) "Crowns" else "Witgrid", onBack = if (game) ({}) else null,
-                                showLogo = !game, actions = if (game) emptyList() else listOf(
+                                showLogo = !game, actions = if (game) listOf(TopBarAction(R.drawable.ic_info, "Rules", {})) else listOf(
                                     TopBarAction(R.drawable.ic_calendar, "Calendar", {}),
                                     TopBarAction(R.drawable.ic_statistics, "Statistics", {}),
                                     TopBarAction(R.drawable.ic_settings, "Settings", {})))
                         }) {
                             if (game) {
                                 GameScreen(GameUiState("crowns", Pack.entries.mapIndexed { index, pack ->
-                                    PackProgress(pack, level("crowns", if (index == 0) 14 else 1, pack), (6 + index)..(6 + index))
-                                }, level("crowns"), false), {}, {}, {}, dailyCompletedToday = true,
+                                    val sizeRange = if (pack == Pack.EXPERT) 9..10 else (6 + index)..(6 + index)
+                                    PackProgress(pack, level("crowns", if (index == 0) 14 else 1, pack), sizeRange)
+                                }, continueRef, false, continueProgress = continueProgress,
+                                    continueState = boardState), {}, {}, {}, dailyCompletedToday = true,
                                     hintCredits = 3, checkCredits = 1)
                             } else {
                                 HomeScreen(HomeUiState(ids.map { HomeGameProgress(it, level(it)) }, false),

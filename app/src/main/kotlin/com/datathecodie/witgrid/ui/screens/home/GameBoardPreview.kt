@@ -67,4 +67,3 @@ internal fun GameBoardPreview(gameId: String, modifier: Modifier = Modifier, boa
         drawRoundRect(colors.ink, cornerRadius = CornerRadius(8.dp.toPx()), style = Stroke(1.5.dp.toPx()))
     }
 }
-

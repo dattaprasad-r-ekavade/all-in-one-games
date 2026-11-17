@@ -4,6 +4,7 @@ import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.data.progress.LevelProgress
 import com.datathecodie.witgrid.data.progress.nextGameLevel
 import com.datathecodie.witgrid.data.progress.nextPackLevel
+import com.datathecodie.witgrid.engine.core.BankLine
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.BankSource
 import com.datathecodie.witgrid.games.GameRegistry
@@ -52,8 +53,10 @@ class GameViewModel(
         val module = GameRegistry.find(gameId)
         val packs = Pack.entries.map { pack ->
             val refs = levelRefsByPack[pack].orEmpty()
-            val sizes = if (bankSource != null && module != null) {
-                refs.filterNot { it.isIntro }.map { module.loadLevel(it, bankSource).size }
+            val sizes = if (bankSource != null && refs.any { !it.isIntro }) {
+                bankSource.open(bankAssetPath(gameId, pack)).bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines.map { BankLine.decode(it).size }.toList()
+                }
             } else emptyList()
             PackProgress(pack, nextPackLevel(refs, progress),
                 if (sizes.isEmpty()) null else sizes.min()..sizes.max())
@@ -67,4 +70,7 @@ class GameViewModel(
             continueState = saved?.let { runCatching { module?.decodeState(it.stateBytes) }.getOrNull() },
         )
     }
+
+    private fun bankAssetPath(gameId: String, pack: Pack): String =
+        "bank/$gameId-${pack.name.lowercase()}.txt.gz"
 }

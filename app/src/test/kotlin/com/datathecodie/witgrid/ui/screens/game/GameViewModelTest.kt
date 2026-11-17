@@ -2,8 +2,11 @@ package com.datathecodie.witgrid.ui.screens.game
 
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.data.progress.LevelProgress
+import com.datathecodie.witgrid.engine.core.BankLine
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.games.BankSource
 import com.datathecodie.witgrid.games.LevelRef
+import java.io.ByteArrayInputStream
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -67,6 +70,35 @@ class GameViewModelTest {
         assertEquals(legacy, refresh(listOf(legacy)).continueProgress)
     }
 
+    @Test
+    fun packSizeRangesComeFromBankEnvelopesWithoutDecodingPuzzles() = runBlocking {
+        val lines = mapOf(
+            "bank/binary-easy.txt.gz" to listOf(
+                bankLine("easy", 6, Pack.EASY),
+                bankLine("easy-large", 8, Pack.EASY),
+            ),
+            "bank/binary-medium.txt.gz" to listOf(bankLine("medium", 7, Pack.MEDIUM)),
+        )
+        val bank = object : BankSource {
+            override fun open(path: String) = ByteArrayInputStream(
+                lines.getValue(path).joinToString("\n").toByteArray(),
+            )
+        }
+        val viewModel = GameViewModel(
+            "binary",
+            catalog,
+            object : GameProgressSummaryRepository {
+                override suspend fun getProgressForGame(gameId: String) = emptyList<LevelProgress>()
+            },
+            bank,
+        )
+
+        viewModel.refresh()
+
+        assertEquals(6..8, viewModel.state.value.packs.first().boardSizes)
+        assertEquals(7..7, viewModel.state.value.packs[1].boardSizes)
+    }
+
     private suspend fun refresh(progress: List<LevelProgress>): GameUiState {
         val viewModel = GameViewModel("binary", catalog, object : GameProgressSummaryRepository {
             override suspend fun getProgressForGame(gameId: String) = progress
@@ -85,4 +117,7 @@ class GameViewModelTest {
         bestTimeMillis = null,
         attemptNumber = number,
     )
+
+    private fun bankLine(id: String, size: Int, pack: Pack) =
+        BankLine(id, size, "payload", "solution", pack, "grade").encode()
 }

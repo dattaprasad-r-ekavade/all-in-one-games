@@ -1,5 +1,6 @@
 package com.datathecodie.witgrid.ui.screens.home
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -9,9 +10,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,7 +28,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
@@ -34,7 +47,6 @@ import com.datathecodie.witgrid.data.settings.StreakData
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.ui.components.Chip
-import com.datathecodie.witgrid.ui.components.ListRow
 import com.datathecodie.witgrid.ui.components.PrimaryButton
 import com.datathecodie.witgrid.ui.components.SectionHeader
 import com.datathecodie.witgrid.ui.components.WitgridCard
@@ -136,12 +148,61 @@ fun HomeScreen(
                 }
             }
             Spacer(Modifier.height(8.dp))
-            WitgridCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
-                ListRow(stringResource(R.string.home_premium_row), subtitle = stringResource(
-                    if (premiumEnabled) R.string.premium_owned else R.string.home_premium_subtitle),
-                    onClick = { showPremiumOffer = true })
+            WitgridCard(
+                Modifier.fillMaxWidth(),
+                onClick = { showPremiumOffer = true },
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    PremiumCrownIcon()
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(stringResource(R.string.home_premium_row), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            stringResource(if (premiumEnabled) R.string.premium_owned else R.string.home_premium_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = WitgridTheme.colors.mutedInk,
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_back),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp).rotate(
+                            if (LocalLayoutDirection.current == LayoutDirection.Ltr) 180f else 0f,
+                        ),
+                        tint = WitgridTheme.colors.mutedInk,
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun PremiumCrownIcon() {
+    val color = WitgridTheme.colors.ink
+    Canvas(Modifier.size(24.dp)) {
+        val crown = Path().apply {
+            moveTo(size.width * 0.13f, size.height * 0.34f)
+            lineTo(size.width * 0.28f, size.height * 0.52f)
+            lineTo(size.width * 0.43f, size.height * 0.28f)
+            lineTo(size.width * 0.52f, size.height * 0.52f)
+            lineTo(size.width * 0.76f, size.height * 0.30f)
+            lineTo(size.width * 0.88f, size.height * 0.76f)
+            lineTo(size.width * 0.14f, size.height * 0.76f)
+            close()
+        }
+        drawPath(crown, color, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(size.width * 0.15f, size.height * 0.88f),
+            androidx.compose.ui.geometry.Offset(size.width * 0.87f, size.height * 0.88f),
+            2.dp.toPx(),
+            cap = StrokeCap.Round,
+        )
     }
 }
 
