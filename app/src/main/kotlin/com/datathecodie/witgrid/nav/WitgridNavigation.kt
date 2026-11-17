@@ -344,16 +344,20 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         showRegionAids = playerData.settings.crownsShowRegionAids,
                         autoXEnabled = playerData.settings.crownsAutoXEnabled,
                         hapticsEnabled = playerData.settings.hapticsEnabled,
+                        reduceMotion = playerData.settings.reduceMotion,
                     ),
                     LocalBinaryBoardOptions provides BinaryBoardOptions(
                         hapticsEnabled = playerData.settings.hapticsEnabled,
+                        reduceMotion = playerData.settings.reduceMotion,
                     ),
                     LocalNonogramBoardOptions provides NonogramBoardOptions(
                         autoCrossCompletedLines = playerData.settings.nonogramAutoCrossEnabled,
                         hapticsEnabled = playerData.settings.hapticsEnabled,
+                        reduceMotion = playerData.settings.reduceMotion,
                     ),
                     LocalMiniSudokuBoardOptions provides MiniSudokuBoardOptions(
                         hapticsEnabled = playerData.settings.hapticsEnabled,
+                        reduceMotion = playerData.settings.reduceMotion,
                     ),
                 ) {
                     PlayScreenRoute(

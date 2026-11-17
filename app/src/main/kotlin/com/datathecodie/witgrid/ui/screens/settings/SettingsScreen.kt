@@ -244,6 +244,13 @@ fun SettingsScreen(
                 checked = editedSettings.soundEnabled,
                 onCheckedChange = { updateSettings(editedSettings.copy(soundEnabled = it)) },
             )
+            HorizontalDivider()
+            SettingsSectionTitle(R.string.settings_accessibility)
+            SwitchSetting(
+                title = stringResource(R.string.settings_reduce_motion),
+                checked = editedSettings.reduceMotion,
+                onCheckedChange = { updateSettings(editedSettings.copy(reduceMotion = it)) },
+            )
 
             HorizontalDivider()
             SettingsSectionTitle(R.string.settings_reminder)

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,6 +58,8 @@ import com.datathecodie.witgrid.play.HintUi
 import com.datathecodie.witgrid.play.LevelSolvedEvent
 import com.datathecodie.witgrid.play.PlayController
 import com.datathecodie.witgrid.ui.board.LocalBoardHighlightCells
+import com.datathecodie.witgrid.ui.board.BoardViewportMode
+import com.datathecodie.witgrid.ui.board.LocalBoardViewportMode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -253,6 +257,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
         var highlightedCells by remember(controller) { mutableStateOf(emptySet<Cell>()) }
         var feedbackGeneration by remember(controller) { mutableStateOf(0L) }
         var hintOperationPending by remember(controller) { mutableStateOf(false) }
+        var enlargedBoardMode by remember(controller) { mutableStateOf(false) }
 
         fun clearFeedback() {
             feedbackGeneration += 1
@@ -345,6 +350,8 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 introCoachLine = introCoachLine,
                 statusMessage = visibleStatusMessage,
                 hintOperationPending = hintOperationPending,
+                enlargedBoardMode = enlargedBoardMode,
+                onToggleEnlargedBoard = { enlargedBoardMode = !enlargedBoardMode },
                 board = board,
                 gameControls = controls,
                 onUndo = onUndo,
@@ -355,7 +362,10 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
             )
         }
         val flaggedCells = if (snapshot.mistakeLimitEnabled) snapshot.mistakes.toSet() else emptySet()
-        CompositionLocalProvider(LocalBoardHighlightCells provides (highlightedCells + flaggedCells)) {
+        CompositionLocalProvider(
+            LocalBoardHighlightCells provides (highlightedCells + flaggedCells),
+            LocalBoardViewportMode provides BoardViewportMode(enlargedBoardMode),
+        ) {
             when (val state = snapshot.state) {
                 is MiniSudokuState -> MiniSudokuBoard(state, onMoves, onUndo, layout = layout)
                 is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = layout)
@@ -432,6 +442,8 @@ internal fun PlayScreenLayout(
     introCoachLine: String?,
     statusMessage: String?,
     hintOperationPending: Boolean,
+    enlargedBoardMode: Boolean = false,
+    onToggleEnlargedBoard: () -> Unit = {},
     board: @Composable () -> Unit,
     gameControls: @Composable () -> Unit,
     onUndo: () -> Unit,
@@ -478,6 +490,8 @@ internal fun PlayScreenLayout(
                         showCoachLine = true,
                         statusMessage = statusMessage,
                         hintOperationPending = hintOperationPending,
+                        enlargedBoardMode = enlargedBoardMode,
+                        onToggleEnlargedBoard = onToggleEnlargedBoard,
                         timerVisible = timerVisible,
                         gameControls = gameControls,
                         onUndo = onUndo,
@@ -525,6 +539,8 @@ internal fun PlayScreenLayout(
                     showCoachLine = false,
                     statusMessage = statusMessage,
                     hintOperationPending = hintOperationPending,
+                    enlargedBoardMode = enlargedBoardMode,
+                    onToggleEnlargedBoard = onToggleEnlargedBoard,
                     timerVisible = timerVisible,
                     gameControls = gameControls,
                     onUndo = onUndo,
@@ -541,7 +557,7 @@ internal fun PlayScreenLayout(
 
 @Composable
 private fun PlayHeader(levelRef: LevelRef, height: androidx.compose.ui.unit.Dp) {
-    Column(modifier = Modifier.fillMaxWidth().height(height).padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().heightIn(min = height).padding(16.dp)) {
         Text(stringResource(gameNameResource(levelRef.gameId)), style = MaterialTheme.typography.titleLarge)
     }
 }
@@ -557,6 +573,8 @@ private fun PlayControls(
     showCoachLine: Boolean,
     statusMessage: String?,
     hintOperationPending: Boolean,
+    enlargedBoardMode: Boolean,
+    onToggleEnlargedBoard: () -> Unit,
     timerVisible: Boolean,
     gameControls: @Composable () -> Unit,
     onUndo: () -> Unit,
@@ -580,6 +598,23 @@ private fun PlayControls(
             }
         }
         gameControls()
+        FilterChip(
+            selected = enlargedBoardMode,
+            onClick = onToggleEnlargedBoard,
+            label = {
+                Text(
+                    stringResource(
+                        if (enlargedBoardMode) R.string.button_board_fit else R.string.button_board_enlarge,
+                    ),
+                )
+            },
+        )
+        if (enlargedBoardMode) {
+            Text(
+                stringResource(R.string.board_enlarged_gesture_help),
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
         if (saveFailed) {
             Text(stringResource(R.string.play_save_failed), color = MaterialTheme.colorScheme.error)
         }

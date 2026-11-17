@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,6 +41,7 @@ fun BoardCanvas(
     reduceMotion: Boolean = false,
     hapticsEnabled: Boolean = true,
     dragPaintEnabled: Boolean = true,
+    panningEnabled: Boolean = false,
     drawCell: DrawBoardCell = { _, _ -> },
     onCellTap: (Cell) -> Unit,
     onDragPaint: (List<Cell>) -> Unit,
@@ -52,21 +54,12 @@ fun BoardCanvas(
 
     val colors = WitgridTheme.colors
     val highlightedCells = LocalBoardHighlightCells.current
+    val viewportMode = LocalBoardViewportMode.current
     val haptics = rememberBoardHaptics(hapticsEnabled)
     var dragPreviewCells by remember { mutableStateOf(emptySet<Cell>()) }
     val latestOnCellTap = rememberUpdatedState(onCellTap)
     val latestOnLongPress = rememberUpdatedState(onLongPress)
     val latestOnUndo = rememberUpdatedState(onUndo)
-    val gestureModifier = Modifier.boardGestureInput(
-        gridSize = gridSize,
-        haptics = haptics,
-        dragPaintEnabled = dragPaintEnabled,
-        onCellTap = onCellTap,
-        onDragPaint = onDragPaint,
-        onDragPreview = { cells -> dragPreviewCells = cells.toSet() },
-        onLongPress = onLongPress,
-        onUndo = onUndo,
-    )
     val highlightedCellDescription: @Composable (Cell) -> String = { cell ->
         val description = cellDescription(cell)
         if (cell in highlightedCells) {
@@ -89,88 +82,116 @@ fun BoardCanvas(
         }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = Spacing.screenMargin)
             .aspectRatio(1f),
     ) {
-        Canvas(modifier = Modifier.fillMaxSize().then(gestureModifier)) {
-            drawRect(colors.paper)
-            val cellWidth = size.width / gridSize
-            val cellHeight = size.height / gridSize
-            for (row in 0 until gridSize) {
-                for (column in 0 until gridSize) {
-                    val cell = Cell(row * gridSize + column)
-                    val bounds = Rect(
-                        left = column * cellWidth,
-                        top = row * cellHeight,
-                        right = (column + 1) * cellWidth,
-                        bottom = (row + 1) * cellHeight,
-                    )
-                    drawCell(cell, bounds)
-                    if (cell in highlightedCells) {
-                        drawRect(
-                            color = colors.accent.copy(alpha = HINT_HIGHLIGHT_ALPHA),
-                            topLeft = bounds.topLeft,
-                            size = bounds.size,
-                        )
-                        val inset = HINT_HIGHLIGHT_STROKE_DP.dp.toPx() / 2f
-                        drawRect(
-                            color = colors.accent,
-                            topLeft = bounds.topLeft + Offset(inset, inset),
-                            size = Size(bounds.width - 2f * inset, bounds.height - 2f * inset),
-                            style = Stroke(width = 2f * inset),
-                        )
+        val viewportSide = maxWidth
+        val contentSide = if (viewportMode.enlarged) {
+            maxOf(viewportSide, MIN_BOARD_CELL_SIZE * gridSize)
+        } else {
+            viewportSide
+        }
+        val panEnabled = panningEnabled || (viewportMode.enlarged && contentSide > viewportSide)
+        val activeGestureModifier = Modifier.boardGestureInput(
+            gridSize = gridSize,
+            haptics = haptics,
+            dragPaintEnabled = dragPaintEnabled && !panEnabled,
+            panEnabled = panEnabled,
+            onCellTap = onCellTap,
+            onDragPaint = onDragPaint,
+            onDragPreview = { cells -> dragPreviewCells = cells.toSet() },
+            onLongPress = onLongPress,
+            onUndo = onUndo,
+        )
+
+        PannableBoardViewport(
+            modifier = Modifier.fillMaxSize(),
+            contentWidth = contentSide,
+            contentHeight = contentSide,
+            enabled = panEnabled,
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Canvas(modifier = Modifier.fillMaxSize().then(activeGestureModifier)) {
+                    drawRect(colors.paper)
+                    val cellWidth = size.width / gridSize
+                    val cellHeight = size.height / gridSize
+                    for (row in 0 until gridSize) {
+                        for (column in 0 until gridSize) {
+                            val cell = Cell(row * gridSize + column)
+                            val bounds = Rect(
+                                left = column * cellWidth,
+                                top = row * cellHeight,
+                                right = (column + 1) * cellWidth,
+                                bottom = (row + 1) * cellHeight,
+                            )
+                            drawCell(cell, bounds)
+                            if (cell in highlightedCells) {
+                                drawRect(
+                                    color = colors.accent.copy(alpha = HINT_HIGHLIGHT_ALPHA),
+                                    topLeft = bounds.topLeft,
+                                    size = bounds.size,
+                                )
+                                val inset = HINT_HIGHLIGHT_STROKE_DP.dp.toPx() / 2f
+                                drawRect(
+                                    color = colors.accent,
+                                    topLeft = bounds.topLeft + Offset(inset, inset),
+                                    size = Size(bounds.width - 2f * inset, bounds.height - 2f * inset),
+                                    style = Stroke(width = 2f * inset),
+                                )
+                            }
+                            if (cell in dragPreviewCells) {
+                                drawRect(
+                                    color = colors.accent.copy(alpha = DRAG_PREVIEW_ALPHA),
+                                    topLeft = bounds.topLeft,
+                                    size = bounds.size,
+                                )
+                            }
+                        }
                     }
-                    if (cell in dragPreviewCells) {
+
+                    val lineWidth = GRID_LINE_WIDTH_DP.dp.toPx()
+                    val lineColor = colors.ink.copy(alpha = GRID_LINE_ALPHA)
+                    for (line in 0..gridSize) {
+                        val x = line * cellWidth
+                        val y = line * cellHeight
+                        drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), lineWidth)
+                        drawLine(lineColor, Offset(0f, y), Offset(size.width, y), lineWidth)
+                    }
+
+                    if (solved && !reduceMotion && waveProgress.value < 1f) {
+                        val waveX = waveProgress.value * size.width
+                        val waveWidth = WAVE_WIDTH_DP.dp.toPx()
                         drawRect(
-                            color = colors.accent.copy(alpha = DRAG_PREVIEW_ALPHA),
-                            topLeft = bounds.topLeft,
-                            size = bounds.size,
+                            color = colors.accent.copy(alpha = WAVE_ALPHA),
+                            topLeft = Offset((waveX - waveWidth / 2f).coerceAtLeast(0f), 0f),
+                            size = Size(width = waveWidth, height = size.height),
+                        )
+                        drawLine(
+                            color = colors.accent,
+                            start = Offset(waveX, 0f),
+                            end = Offset(waveX, size.height),
+                            strokeWidth = WAVE_EDGE_WIDTH_DP.dp.toPx(),
+                            cap = StrokeCap.Round,
                         )
                     }
                 }
-            }
 
-            val lineWidth = GRID_LINE_WIDTH_DP.dp.toPx()
-            val lineColor = colors.ink.copy(alpha = GRID_LINE_ALPHA)
-            for (line in 0..gridSize) {
-                val x = line * cellWidth
-                val y = line * cellHeight
-                drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), lineWidth)
-                drawLine(lineColor, Offset(0f, y), Offset(size.width, y), lineWidth)
-            }
-
-            if (solved && !reduceMotion && waveProgress.value < 1f) {
-                val waveX = waveProgress.value * size.width
-                val waveWidth = WAVE_WIDTH_DP.dp.toPx()
-                drawRect(
-                    color = colors.accent.copy(alpha = WAVE_ALPHA),
-                    topLeft = Offset((waveX - waveWidth / 2f).coerceAtLeast(0f), 0f),
-                    size = Size(width = waveWidth, height = size.height),
-                )
-                drawLine(
-                    color = colors.accent,
-                    start = Offset(waveX, 0f),
-                    end = Offset(waveX, size.height),
-                    strokeWidth = WAVE_EDGE_WIDTH_DP.dp.toPx(),
-                    cap = StrokeCap.Round,
+                AccessibilityCells(
+                    gridSize = gridSize,
+                    cellDescription = latestCellDescription,
+                    onCellTap = latestOnCellTap,
+                    onLongPress = latestOnLongPress,
+                    onUndo = latestOnUndo,
+                    haptics = haptics,
+                    clearActionLabel = clearActionLabel,
+                    undoActionLabel = undoActionLabel,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
         }
-
-        AccessibilityCells(
-            gridSize = gridSize,
-            cellDescription = latestCellDescription,
-            onCellTap = latestOnCellTap,
-            onLongPress = latestOnLongPress,
-            onUndo = latestOnUndo,
-            haptics = haptics,
-            clearActionLabel = clearActionLabel,
-            undoActionLabel = undoActionLabel,
-            modifier = Modifier.fillMaxSize(),
-        )
     }
 }
 

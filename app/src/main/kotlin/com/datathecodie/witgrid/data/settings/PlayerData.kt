@@ -9,6 +9,7 @@ data class AppSettings(
     val crownsShowRegionAids: Boolean = true,
     val crownsAutoXEnabled: Boolean = false,
     val nonogramAutoCrossEnabled: Boolean = false,
+    val reduceMotion: Boolean = false,
 )
 
 enum class ThemeMode(val storageId: String) {

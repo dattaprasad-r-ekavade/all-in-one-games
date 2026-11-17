@@ -16,6 +16,7 @@ internal fun Modifier.boardGestureInput(
     gridSize: Int,
     haptics: BoardHaptics,
     dragPaintEnabled: Boolean,
+    panEnabled: Boolean = false,
     onCellTap: (Cell) -> Unit,
     onDragPaint: (List<Cell>) -> Unit,
     onDragPreview: (List<Cell>) -> Unit,
@@ -29,10 +30,10 @@ internal fun Modifier.boardGestureInput(
     val latestLongPress = rememberUpdatedState(onLongPress)
     val latestUndo = rememberUpdatedState(onUndo)
 
-    return pointerInput(gridSize, haptics, dragPaintEnabled, viewConfiguration) {
+    return pointerInput(gridSize, haptics, dragPaintEnabled, panEnabled, viewConfiguration) {
         awaitEachGesture {
             val firstDown = awaitFirstDown(requireUnconsumed = false)
-            firstDown.consume()
+            if (!panEnabled) firstDown.consume()
 
             val boardWidth = size.width.toFloat()
             val boardHeight = size.height.toFloat()
@@ -100,6 +101,7 @@ internal fun Modifier.boardGestureInput(
                     val primaryPointer = event.changes.firstOrNull { change -> change.id == firstDown.id }
                     if (
                         dragPaintEnabled &&
+                        !panEnabled &&
                         !isMultiTouch &&
                         !longPressHandled &&
                         hasMoved &&
@@ -158,11 +160,15 @@ internal fun Modifier.boardGestureInput(
                                 }
                             }
                         }
-                        event.changes.forEach(PointerInputChange::consume)
+                        if (!panEnabled) {
+                            event.changes.forEach(PointerInputChange::consume)
+                        }
                         break
                     }
 
-                    event.changes.forEach(PointerInputChange::consume)
+                    if (!panEnabled) {
+                        event.changes.forEach(PointerInputChange::consume)
+                    }
                 }
             } finally {
                 latestDragPreview.value(emptyList())
