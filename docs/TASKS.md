@@ -67,12 +67,13 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U0 | Hotfix: invisible text in dark mode | M | Claude (lead) | — | — | done |
 | U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | done |
 | U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | done |
-| U3 | Shared components and tokens | H | Claude (lead) | Codex | U1 | todo |
-| U4 | Play screen layout and board fit | H | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
-| U5 | Board looks for the four games | M | Claude (`builder`) | Lead screenshots | U4 | todo |
-| U6 | Home and Game screens | M | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
-| U7 | Result, Failed, Calendar, Statistics, Settings | M | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
-| U8 | Screenshot matrix and visual QA gate | M | Claude (lead) | Human | U4–U7 | todo |
+| U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | ready |
+| U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | todo |
+| U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | todo |
+| U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
+| U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
+| U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
+| U9 | Endless level numbers and looping | H | Codex | Claude | U2 | ready |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
@@ -481,34 +482,59 @@ Tier H · Lead · Review Codex
 
 Lead note (U2): The navigation wraps Home, Game, Calendar, Statistics and Settings in `WitgridScreenFrame` + `WitgridTopBar` (`ui/layout/`). The old screen titles and "Home" buttons are removed, but the unused `onHome`, `onOpenStatistics` and `onOpenSettings` parameters stay until U6 and U7 rebuild those screens. Play, Result and Level failed have no shared bar yet (U4, U7). The welcome flag is `AppSettings.welcomeSeen` (outside the card's Owns, needed to show the pages once). Card, edge and muted-ink colours were added to `WitgridColors` early for the welcome page. Icons are vector drawables `ic_back`, `ic_close`, `ic_calendar`, `ic_statistics`, `ic_settings`, `ic_info`.
 
+Hand-off note (17 Nov 2026): U3 to U9 go to Codex (`gpt-6.1-sol`). The design target is `docs/design/` (PNGs and README) and plan section 4.1. The rules at the top of this section apply to every card, especially "Endless levels" and "No fixed game count". Claude (lead) reviews each card with a screenshot sheet (light and dark, font scale 1.0 and 1.3) before merge. Order: U3 and U9 first (they do not overlap), then U4, U6 and U7 in parallel, then U5, then U8.
+
 ### U3 — Shared components and tokens
-Tier H · Lead · Review Codex
-**Owns:** `ui/theme/**`, new `ui/components/**`.
-**Do:** Card, primary and secondary buttons, list row, section header, progress bar, stat tile, icon button, and the bottom tool bar item (icon over label). Type scale and spacing from A1. Dark paper stays true black; cards use a raised dark surface with a visible edge.
+Tier H · Build Codex · Review Claude (lead screenshots)
+Plan: 4, 4.1. Design: `docs/design/`.
+**Owns:** `ui/theme/**`, new `ui/components/**`, `ui/layout/**`.
+**Do:**
+- Map the tokens in `WitgridColors` (`paper`, `card`, `cardEdge`, `ink`, `mutedInk`, `accent`, `onAccent`) into the Material 3 scheme too (`surface`, `surfaceContainer*`, `outline`, `onSurfaceVariant`), so default Material parts look correct. Add `accentSoft` (light `#E5E8F5`; dark: accent at low alpha on black).
+- Components in `ui/components/`: `WitgridCard` (card colour, 1 dp edge, 16–18 dp radius, optional onClick), `PrimaryButton` (accent, 54 dp min height, 14 dp radius), `SecondaryButton` (outlined), `ListRow` (title, optional subtitle, optional trailing value, chevron or switch), `SectionHeader`, `StatTile` (big number over a label), `Chip` (streak chip, status chip), `SegmentedControl` (theme switch, Fill/Cross), `ToolBarItem` (icon over label, optional badge, selected state), `IconActionButton` (48 dp).
+- A `@Preview` for each component in light and dark.
+- No progress bar component (endless rule).
+**Done when:** `./gradlew check` passes. A preview screenshot sheet of all components in light and dark matches the mockup style.
 
 ### U4 — Play screen layout and board fit
-Tier H · Build Claude `builder` · Lead review
-**Owns:** `ui/screens/play/**`, `ui/board/**`.
-**Do:** The board size is the smaller of the free width and the free height, so it never clips. 16 dp margins. Top bar: back, game and level, timer (tap to hide). Rules move into an info sheet from the top bar. Bottom tool bar with icons: Undo, Redo, mode switch (when the game has one), Hint, Check. "Larger cells" becomes a zoom icon. Mini Sudoku digit pad and Nonogram clues always stay visible.
+Tier H · Build Codex · Review Claude (lead screenshots)
+Plan: 4, 4.1, 9. Design: `docs/design/play-*.png`.
+**Owns:** `ui/screens/play/**`, `ui/board/**`, `res/values/strings.xml` (play strings only).
+**Do:** Top bar: back, game name with "Pack · Level N" below, timer chip (tap to hide), info icon that opens the rules in a bottom sheet. The board is the largest square that fits the free width and height with 16 dp margins, so it never clips (today Mini Sudoku and Binary clip at font scale 1.3, and Nonogram runs off the right edge). Bottom tool bar of `ToolBarItem`s: Undo, Redo, Restart or the game's mode tools, Hint with a credit badge, Check. "Larger cells" becomes a zoom icon in the top bar. The Mini Sudoku digit pad (with a "left" count for each digit) and the Nonogram clues always stay visible. A status line under the board for in-puzzle counts (for example "2 of 7 crowns placed", mistakes).
+**Done when:** `./gradlew check` passes. Screenshots of all four games on a 360 dp and a large phone, light and dark, font 1.0 and 1.3, show no clipping.
 
 ### U5 — Board looks for each game
-Tier M · Build Claude `builder` · Lead review
-**Owns:** `games/*/…Board.kt`, `settings` defaults for aids.
-**Do:** Crowns: region aids off by default, thin region borders inside, thick between regions, a drawn crown and a soft X. Binary: two symbols (for example a filled circle and a ring) in two colours, with a letter fallback only in TalkBack. Nonogram: clue band sized from the longest clue, the grid fits the width, a 5-cell guide line. Mini Sudoku: given digits darker than player digits, selected row, column and box tint.
+Tier M · Build Codex · Review Claude (lead screenshots)
+Plan: 4.1. Design: `docs/design/play-*.png`.
+**Owns:** `games/*/…Board.kt`, `games/*/…BoardOptions.kt`, the default of `AppSettings.crownsShowRegionAids` in `data/settings/PlayerData.kt`.
+**Do:** Crowns: region aids off by default, thin lines inside a region, thick lines between regions, a drawn crown, a soft X. Binary: a filled accent dot and an orange ring (`#C2622F` light, `#E9A27A` dark), not letters; letters only in TalkBack labels. Nonogram: clue band sized from the longest clue, active row and column tint, finished clues fade, 5-cell guide lines. Mini Sudoku: given digits darker than player digits, selected row, column and box tint, notes in small digits.
+**Done when:** `./gradlew check` passes. Screenshots match the mockups in light and dark.
 
 ### U6 — Home and Game screens
-Tier M · Build Claude `builder` · Lead review
-**Owns:** `ui/screens/home/**`, `ui/screens/game/**`.
-**Do:** Home: a daily card at the top (today's state and streak), then four game cards, each with a small drawn board preview, the name and a progress bar. One quiet Premium row at the bottom. Game screen: Continue as the main button, four pack cards with progress bars, the daily puzzle, and one quiet "Earn hint and check credits" row instead of two ad buttons.
+Tier M · Build Codex · Review Claude (lead screenshots)
+Plan: 4.1, 9. Design: `docs/design/home-*.png`, `game-*.png`.
+**Owns:** `ui/screens/home/**`, `ui/screens/game/**`, `ui/layout/ScreenPreviews.kt`, `res/values/strings.xml` (home and game strings).
+**Do:** Home: "Today's puzzles" card (date, streak chip, one status chip for each game in a wrapping row, "Play daily <game>" button for the first unfinished game), then a 2-column grid of game cards (small drawn board preview, name, "Level N · Pack"), then one quiet Premium row. The grid works for any number of games. Game screen: Continue card (preview, "Level N", in-puzzle status), daily row with a done tick, pack cards with name, board size and "Next: level N", and one quiet row "N hints and N checks saved · Get more" that opens a sheet with the two rewarded offers. Remove `home_progress`, `game_pack_progress`, the "x of 4 daily puzzles" text, and every other level total. Remove the unused `onHome`, `onOpenStatistics` and `onOpenSettings` parameters (U2 moved those actions into the top bar).
+**Done when:** `./gradlew check` passes. Screenshots match the mockups. No level total appears on these screens.
 
 ### U7 — Result, Failed, Calendar, Statistics, Settings
-Tier M · Build Claude `builder` · Lead review
-**Owns:** `ui/screens/result/**`, `failed/**`, `calendar/**`, `stats/**`, `settings/**`.
-**Do:** Result: a clear "Solved" header, time and best time tiles, streak change, Next as the main button. Calendar: month grid with done and missed marks; the daily buttons become one list. Statistics: one card for each game with stat tiles. Settings: grouped list rows with one-line values; colourway as colour swatches, not radio buttons.
+Tier M · Build Codex · Review Claude (lead screenshots)
+Plan: 4.1, 9. Design: `docs/design/result-*.png`, `settings-*.png`.
+**Owns:** `ui/screens/result/**` (not `ResultNavigation.kt`, which is U9), `ui/screens/failed/**`, `ui/screens/calendar/**`, `ui/screens/stats/**`, `ui/screens/settings/**`, `res/values/strings.xml` (these screens' strings).
+**Do:** Result: close icon, solved-board thumbnail, "Solved", "Game · Pack · Level N", Time / Best / Hints tiles, best-time banner, "Next level" (primary) and "Back to packs". Level failed: the same frame with Continue and Restart. Calendar: month grid with done and missed marks, today's daily puzzles as one list. Statistics: one card for each game with `StatTile`s (a solved count is permitted; no "of total"). Settings: theme as a segmented control, colourway swatches, assist switches with one-line subtitles, a "More" list (reminder, Premium, restore purchase, privacy, licences). Remove the unused `onHome` parameters.
+**Done when:** `./gradlew check` passes. Screenshots match the mockups.
 
 ### U8 — Screenshot matrix and visual QA gate
-Tier M · Lead
-**Do:** Extend `scripts/screenshots/` to capture every screen in light and dark, at font scale 1.0, 1.3 and 2.0, on a small and a large emulator profile, and build one contact sheet. The lead reviews the sheet before each U merge and before every closed-test upload.
+Tier M · Build Codex · Review Claude (lead)
+**Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`.
+**Do:** Extend the screenshot script to capture every screen (Welcome, Home, Game, the four Play boards, Result, Level failed, Calendar, Statistics, Settings) in light and dark, at font scale 1.0, 1.3 and 2.0, on a small (360 dp) and a large emulator profile. Build one contact sheet for each profile. Update the Play Store capture set to the new UI.
+**Done when:** The lead runs the script and reviews the sheets. This review is required before every closed-test upload.
+
+### U9 — Endless level numbers and looping
+Tier H · Build Codex · Review Claude
+Plan: 2 ("Level count"), 4 (principle 7), 7.5 ("Endless levels").
+**Owns:** `games/GameModule.kt` (`LevelRef`), `data/progress/**` (with a Room migration if the schema changes), `ui/screens/result/ResultNavigation.kt`, `ui/screens/home/HomeViewModel.kt`, `ui/screens/game/GameViewModel.kt`, and their tests.
+**Do:** Give each non-daily level a player-facing level number N that only goes up for each game and pack. Level N plays bank puzzle `(N − 1) mod packSize`. "Next" after the last bank puzzle goes to level N + 1, which plays bank puzzle 0 again from an empty board; `nextResultLevel` never returns null for a non-daily level. The Home and Game view models expose the next level number for each game and pack, not completed/total counts. Best time stays per bank puzzle. Existing saves keep working (a player on bank puzzle k is on level k + 1).
+**Done when:** `./gradlew check` passes. Unit tests cover the level-to-bank mapping, the wrap from the last puzzle to the first, level numbers above the pack size, and existing progress.
 
 ## Phase 5 — Closed test
 

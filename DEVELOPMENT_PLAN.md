@@ -1,6 +1,6 @@
 # Witgrid: Offline Logic Puzzles — Development Plan
 
-Plan date: 16 Nov 2026. Status: no code written yet. Agent workflow and task backlog added 16 Nov 2026 (section 16).
+Plan date: 16 Nov 2026. Status: no code written yet. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5).
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
 
@@ -39,6 +39,8 @@ Labels used in this plan:
 | Ad-free period | First 3 days | First session only |
 | Widget, leaderboards, share card, world median time | In scope | Not in the launch. Share card and widget are post-launch options. |
 | Closed test | Risk | Not a risk. Your app community supplies the 12 testers. |
+| Level count | Not stated | Endless. The UI never shows a level total, "x of y", a percent or a progress bar. Levels loop through the bank (section 7.5). Owner decision, 17 Nov 2026. |
+| Number of games in text | Not stated | No text states how many games there are. More games will come (section 12), and a number would lock the product. Owner decision, 17 Nov 2026. |
 
 ## 3. Goal, numbers and stop criteria
 
@@ -67,6 +69,8 @@ Labels used in this plan:
 4. **Fair puzzles.** Each puzzle has exactly one solution and needs no guess.
 5. **Hints explain.** A hint shows the next logical step and says why.
 6. **Generic names.** No name or look from another company's game.
+7. **Endless play.** Show only "Level N". Never show a total, "x of y", a percent or a progress bar for levels or packs. A total gives a sense of an end; the player must feel that the puzzles never run out. Counts inside one puzzle (for example "2 of 7 crowns placed", mistakes) are permitted.
+8. **No fixed game count.** No string, screen title or store text says how many games there are. Screen layouts must work for any number of games. Game descriptions do not go in titles.
 
 **Art style: flat "paper and ink".** Code draws all graphics. There are no sprites and no 3D.
 
@@ -82,13 +86,33 @@ Labels used in this plan:
 | Timer | Counts up. The player can hide it. It pauses when the app goes to the background. |
 | Accessibility | TalkBack label for each cell, font scaling, reduce-motion, haptics switch. Dense boards keep a fit-to-screen overview and offer an optional enlarged pannable mode with cell touch targets at least 48 dp. |
 
+### 4.1 Approved UI design (17 Nov 2026)
+
+The owner approved the mockups in `docs/design/` (light and dark PNGs for Welcome, Home, Game, the four Play boards, Result and Settings). `docs/design/README.md` lists the colour tokens. Where the images and older text in this plan differ, the images are correct.
+
+| Area | Decision |
+|---|---|
+| Tokens | Light: paper `#F6F1E7`, card `#FFFDF8`, card edge `#E3DCCD`, ink `#1C1B19`, muted ink `#65605A`, accent `#3B4FA0`. Dark: paper `#000000`, card `#151517`, card edge `#2C2C31`, ink `#EDE9E0`, muted ink `#A9A59C`, accent `#9AA8F0`. In `WitgridColors` (`ui/theme/Theme.kt`). |
+| Shape and spacing | Cards 16–18 dp corner radius with a 1 dp edge. Buttons 14 dp radius, at least 48 dp high (primary 54 dp). Screen margin 16 dp. No fixed text heights. |
+| Top bar | Every non-play screen: back arrow, title, icon actions. Home: logo, "Witgrid", Calendar, Statistics and Settings icons. Built in `ui/layout/WitgridTopBar.kt`. |
+| Icons | Vector drawables in `res/drawable/ic_*.xml`, 24 dp, round stroke. No icon library. |
+| Splash | Android 12+ system splash with the Witgrid mark on paper (`values-v31` themes). Older versions show the paper window background. |
+| Welcome | Three pages, shown once on first start: offline logic puzzles, hints, ads only between levels. Skip and Next. Stored as `AppSettings.welcomeSeen`. |
+| Home | Today's puzzles card (date, streak chip, one chip per game, "Play daily <game>" button). A 2-column grid of game cards: small board preview, name, "Level N · Pack". One quiet Premium row at the bottom. No ad buttons. |
+| Game | Top bar with the game name. Continue card (board preview, "Level N", in-puzzle status). Daily row with a done tick. Pack cards with name, board size and "Next: level N". One quiet row "N hints and N checks saved · Get more" that opens the rewarded offer. |
+| Play | Top bar: back, game name and "Pack · Level N", timer chip (tap to hide), info icon for the rules. The board is the largest square that fits the free space, with 16 dp margins; it never clips. Bottom icon tool bar: Undo, Redo, Restart (or the game's mode tools), Hint with a credit badge, Check. |
+| Boards | Crowns: region aids (letters, hatching) off by default, thin lines inside a region, thick lines between regions, a drawn crown, a soft X. Binary: a filled accent dot and an orange ring, not letters (letters only for TalkBack). Nonogram: clue band sized from the longest clue, active row and column tint, finished clues fade, 5-cell guide lines, Fill/Cross switch, zoom icon. Mini Sudoku: given digits darker than player digits, row/column/box tint, digit pad always visible with a "left" count for each digit, Notes and Erase tools. |
+| Result | Close icon, solved-board thumbnail, "Solved", "Game · Pack · Level N", Time / Best / Hints tiles, best-time banner, "Next level" (primary) and "Back to packs". |
+| Settings | Theme as a 3-way segmented control, colourway swatches, assist switches with one-line subtitles, a "More" list (reminder, Premium, restore purchase, privacy). |
+
 **Art work that you must make:** app icon, feature graphic (1024 x 500), 6 to 8 screenshots, and the colour palette.
 
 ## 5. Launch scope
 
 **In the launch**
 - 4 games, each with 4 difficulty packs and one daily puzzle.
-- Home screen with the game list, progress, and streak.
+- First-run welcome (3 pages) and the Android 12+ splash.
+- Home screen with the game list, the next level of each game, and the streak.
 - Play screen with undo, redo, mark mode, hint, check, and timer.
 - Result screen, statistics, settings.
 - Streak with one free freeze each week, calendar of daily puzzles.
@@ -234,6 +258,7 @@ One text line for each puzzle, in a gzip file for each game and pack:
 
 - Save the level state after each move. A crash or a closed app loses nothing.
 - Store for each level: state, elapsed time, hints used, completed flag, best time.
+- **Endless levels.** Each game and pack has a level number that only goes up. Level N plays bank puzzle `(N − 1) mod packSize` (0-based). For example, with 600 puzzles, level 601 plays bank puzzle 1 again. The player sees only "Level N". A looped level starts from an empty board; its best time is kept per bank puzzle.
 - One shared streak day is earned by completing any one of that local date's four daily puzzles. Completing more daily puzzles that date does not add another day.
 - Keep at most one free streak freeze. Refill it to one each local Monday; unused freezes do not accumulate. Automatically use it to cover one missed local day.
 - Store the streak and freeze state with the device date. There is no server check.
@@ -344,9 +369,10 @@ All keys have a default in the app, so the app works offline from the first star
 
 | Screen | Content | Ad or offer |
 |---|---|---|
-| Home | Game cards with progress, daily puzzle state, streak and freeze count | One quiet Premium row |
-| Game | Four packs with progress, the daily puzzle, "Continue" | Optional rewarded hint and check credits before entering Play |
-| Play | Grid, undo, redo, mark mode, hint, check, timer | None; use free, offline or previously earned credits |
+| Welcome | Three pages on first start only (section 4.1) | None |
+| Home | Game cards with the next level, daily puzzle state, streak and freeze count. No totals. | One quiet Premium row |
+| Game | Packs with the next level (no totals), the daily puzzle, "Continue" | One quiet row for rewarded hint and check credits before entering Play |
+| Play | Grid, bottom icon tool bar (undo, redo, mark mode, hint, check), timer chip, rules behind an info icon | None; use free, offline or previously earned credits |
 | Result | Time, best time, streak update, "Next" | Interstitial after "Next" (section 8.1) |
 | Level failed | "Continue" and "Restart" | Rewarded continue |
 | Calendar | Month view of daily puzzles and streak | Rewarded streak repair |
@@ -412,6 +438,7 @@ Open-source references with the MIT licence: Simon Tatham's Portable Puzzle Coll
 
 ### Phase 5 — Closed test (weeks 8 to 10)
 - S1 store listing and policy form drafts · S2 screenshot script · S3 release build configuration.
+- U0 to U8 UI cleanup (`docs/TASKS.md`, section "UI cleanup") before the closed test. U0, U1 and U2 are done.
 - H5 (you): art approval, upload keystore, closed test with 12 or more testers for 14 continuous days, policy forms, production access. Tester bugs become new cards.
 
 **Exit:** Google approves production access.
