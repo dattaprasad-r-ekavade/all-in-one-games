@@ -463,6 +463,8 @@ Rules for every U card:
 - No fixed heights for text. Every screen must work at font scale 1.0, 1.3 and 2.0, on a 360 dp wide phone and on a large phone, in light and dark.
 - **Done when** for U2 to U7: `./gradlew check` passes, and the lead has reviewed a screenshot sheet of each changed screen in light and dark at font scale 1.0 and 1.3.
 - No new library unless the card says so.
+- **Endless levels (owner decision, 17 Nov 2026).** Never show a level total, "x of y", a percent or a progress bar for levels or packs. Show only "Level N". After the last bank puzzle of a pack, the level number keeps going up and the puzzles loop (level 601 plays bank puzzle 1 again). Remove `home_progress` and `game_pack_progress`. Puzzle-internal counts (for example "2 of 7 crowns", mistakes) are permitted.
+- **No fixed game count.** No text may say how many games there are ("four games"), and screen titles do not include game descriptions. Layouts must work for any number of games.
 
 ### U0 — Hotfix: invisible text in dark mode (done)
 Root `Surface` sets `contentColor = onBackground` in `MainActivity`.
@@ -487,7 +489,7 @@ Tier H · Build Claude `builder` · Lead review
 **Owns:** `ui/screens/play/**`, `ui/board/**`.
 **Do:** The board size is the smaller of the free width and the free height, so it never clips. 16 dp margins. Top bar: back, game and level, timer (tap to hide). Rules move into an info sheet from the top bar. Bottom tool bar with icons: Undo, Redo, mode switch (when the game has one), Hint, Check. "Larger cells" becomes a zoom icon. Mini Sudoku digit pad and Nonogram clues always stay visible.
 
-### U5 — Board looks for the four games
+### U5 — Board looks for each game
 Tier M · Build Claude `builder` · Lead review
 **Owns:** `games/*/…Board.kt`, `settings` defaults for aids.
 **Do:** Crowns: region aids off by default, thin region borders inside, thick between regions, a drawn crown and a soft X. Binary: two symbols (for example a filled circle and a ring) in two colours, with a letter fallback only in TalkBack. Nonogram: clue band sized from the longest clue, the grid fits the width, a 5-cell guide line. Mini Sudoku: given digits darker than player digits, selected row, column and box tint.
