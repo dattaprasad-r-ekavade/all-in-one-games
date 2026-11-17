@@ -563,7 +563,7 @@ Plan: 8.7, 13.
 
 ### S2 — Screenshot capture script
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
-**Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayout.kt`.
+**Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`.
 **Do:** A script that captures 8 screens (one board per game, dark mode, result, home, offline message) on an emulator at Play sizes.
 **Done when:** The lead runs it and gets the image files.
 **Lead completion note (17 Nov 2026):** The lead ran the script on the Pixel 6a Play emulator; all eight 1080×1920 captures were committed. GPT-6.1-Sol reviewed and approved the task.
