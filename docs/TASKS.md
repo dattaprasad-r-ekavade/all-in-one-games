@@ -53,13 +53,13 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | done |
 | R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | done |
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | done |
-| R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | ready |
+| R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | active |
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | done |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | done |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | done |
-| M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | active |
+| M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | done |
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | ready |
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
@@ -357,8 +357,8 @@ Plan: 9 (Settings).
 ### R6 — Accessibility pass
 Tier M · Build Claude (`builder`) · Review Codex
 Plan: 4 (accessibility).
-**Owns:** accessibility changes in board and screen files (list in handoff).
-**Do:** TalkBack label for each cell, font scaling to 200 %, reduce-motion, colour-blind letters and patterns, touch targets ≥ 48 dp.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/**`, `app/src/main/kotlin/com/datathecodie/witgrid/games/crowns/CrownsBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/binary/BinaryBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/nonogram/NonogramBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/minisudoku/MiniSudokuBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/**`, `app/src/main/res/values/strings.xml`.
+**Do:** TalkBack label for each cell, font scaling to 200 %, reduce-motion, colour-blind letters and patterns, touch targets ≥ 48 dp. Dense boards retain a fit-to-screen overview and add an optional enlarged pannable mode whose cell touch targets are at least 48 dp.
 **Done when:** `./gradlew check` passes. The handoff lists each screen and its result.
 
 ---
@@ -419,8 +419,8 @@ Plan: 8.5.
 ### M7 — Analytics, Crashlytics, Remote Config
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 8.6, 10.
-**Owns:** `app/…/analytics/**`, `app/…/play/**`, `app/…/nav/WitgridNavigation.kt`, `app/…/ui/screens/home/**`, `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/ui/screens/settings/**`, `app/…/ads/flow/**`, `app/…/billing/**`, `app/…/domain/daily/**`, `app/…/MainActivity.kt`, `gradle/libs.versions.toml`, `build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
-**Do:** `Analytics` interface with Firebase and fake implementations. Instrument every event in plan 10 at its source. Remote Config bound to `Config` from M1, in-app defaults first. The build works when `google-services.json` is missing (CI and agents): use the fake.
+**Owns:** `app/…/analytics/**`, `app/…/play/**`, `app/…/nav/WitgridNavigation.kt`, `app/…/ui/screens/home/**`, `app/…/ui/screens/play/**`, `app/…/ui/screens/result/**`, `app/…/ui/screens/failed/**`, `app/…/ui/screens/calendar/**`, `app/…/ui/screens/settings/**`, `app/…/ads/flow/**`, `app/…/billing/**`, `app/…/domain/daily/**`, `app/…/MainActivity.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/res/values/strings.xml`, `gradle/libs.versions.toml`, `build.gradle.kts`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
+**Do:** `Analytics` interface with Firebase and fake implementations. Instrument every event in plan 10 at its source. Analytics and Crashlytics are disabled by default; enable them only after explicit Settings opt-in and disable them when consent is withdrawn. This is separate from UMP ad consent. Remote Config bound to `Config` from M1, in-app defaults first. The build works when `google-services.json` is missing (CI and agents): use the fake.
 **Done when:** `./gradlew check` passes in CI without `google-services.json`.
 
 ---

@@ -80,7 +80,7 @@ Labels used in this plan:
 | Gestures | Tap, drag to paint marks, long-press to clear, two-finger tap to undo |
 | Feedback | Light haptic tick on each mark, a stronger tick on a placement, sound off by default, a completion wave across the grid |
 | Timer | Counts up. The player can hide it. It pauses when the app goes to the background. |
-| Accessibility | TalkBack label for each cell, font scaling, reduce-motion, haptics switch |
+| Accessibility | TalkBack label for each cell, font scaling, reduce-motion, haptics switch. Dense boards keep a fit-to-screen overview and offer an optional enlarged pannable mode with cell touch targets at least 48 dp. |
 
 **Art work that you must make:** app icon, feature graphic (1024 x 500), 6 to 8 screenshots, and the colour palette.
 
@@ -94,6 +94,7 @@ Labels used in this plan:
 - Streak with one free freeze each week, calendar of daily puzzles.
 - One optional local reminder notification.
 - Ads, consent, Premium purchase, analytics, crash reports, Remote Config.
+- Analytics and Crashlytics collection start only after explicit opt-in in Settings and stop when the player opts out.
 
 **Not in the launch**
 - Path mode, widget, leaderboards, share card, cloud save, accounts, subscription, banner ads, app-open ads, on-device puzzle generation, iOS, web.
@@ -363,6 +364,8 @@ All keys have a default in the app, so the app works offline from the first star
 | `premium_offer_shown`, `premium_purchased` | source screen |
 | `daily_complete`, `streak_changed`, `streak_freeze_used` | game, streak length |
 | `offline_session` | — |
+
+Analytics and Crashlytics are disabled by default. An explicit Settings opt-in enables both; opting out disables both. This choice is separate from UMP ad consent, which does not enable analytics or crash reporting.
 
 Measures to watch: day-1, day-7 and day-30 retention, levels for each session, interstitials for each daily player, rewarded ads for each daily player, Premium conversion, share of offline sessions, crash-free sessions.
 
