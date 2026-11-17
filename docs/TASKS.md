@@ -84,6 +84,7 @@ Plan: 11 (phase 0), 8.7, 15.
 - [ ] Export GDD section 7 (ASO, launch, closed test) again. The PDF in the repo stops after section 6; save the new export as `docs/reports/GDD-section-7.pdf`.
 **Done when:** Trademark searches are dated and recorded; Play Console and AdMob accounts are verified; the public HTTPS privacy policy and `app-ads.txt` URLs are live; and `docs/reports/GDD-section-7.pdf` is available. Send the public privacy-policy URL and support email to the lead so the app setting and store drafts can be finalized. Record public URLs and account status, never credentials.
 **Lead progress note (17 Nov 2026):** The privacy policy at `https://datathecodie.com/witgrid/privacy-policy.html` and `https://datathecodie.com/app-ads.txt` are live and were verified on 17 Nov; the policy matches the committed page and the Settings URL. Trademark searches, Play Console/AdMob verification, and the GDD section 7 export remain.
+**Lead source check (17 Nov 2026):** Searched Drive for Witgrid, the GDD title, and DataTheCodie Studios. No matching GDD source was found; a broader ASO search returned only an unrelated LLM Clicker GDD. The repository copy still ends at section 6, so the correct section 7 source/export remains outstanding.
 
 ### H0.2 — Developer machine and repo setup (Human)
 Do the steps in `docs/AGENT_WORKFLOW.md` section 3.
