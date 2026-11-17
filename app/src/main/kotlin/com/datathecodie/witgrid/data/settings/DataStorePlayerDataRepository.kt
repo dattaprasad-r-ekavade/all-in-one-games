@@ -13,6 +13,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -39,7 +40,7 @@ private object PlayerSettingsWriteOwner {
                     write.completion.complete(Unit)
                 } catch (cancellationException: CancellationException) {
                     write.completion.completeExceptionally(cancellationException)
-                    throw cancellationException
+                    if (!scope.isActive) throw cancellationException
                 } catch (exception: Exception) {
                     write.completion.completeExceptionally(exception)
                 }

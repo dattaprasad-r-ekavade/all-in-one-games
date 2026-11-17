@@ -1,18 +1,23 @@
 package com.datathecodie.witgrid.data.settings
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import java.nio.file.Files
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -21,6 +26,39 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class PlayerDataRepositoryTest {
+    @Test
+    fun cancelledDataStoreUpdateDoesNotStopSettingsWriter() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-cancelled-store-update")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val dataStoreScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val backingStore = PreferenceDataStoreFactory.create(
+            scope = dataStoreScope,
+            produceFile = { file },
+        )
+        val repository = DataStorePlayerDataRepository(CancelFirstUpdateDataStore(backingStore))
+        val laterSettings = AppSettings(themeMode = ThemeMode.LIGHT, colourwayId = "forest")
+
+        try {
+            val firstWriteFailed = try {
+                repository.updateSettings(AppSettings(themeMode = ThemeMode.DARK))
+                false
+            } catch (_: CancellationException) {
+                true
+            }
+            assertTrue(firstWriteFailed)
+
+            repository.updateSettings(laterSettings)
+            val persistedPlayerData = withTimeout(2_000) {
+                repository.playerData.first { it.settings == laterSettings }
+            }
+            assertEquals(laterSettings, persistedPlayerData.settings)
+        } finally {
+            dataStoreScope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
+
     @Test
     fun acceptedSettingsWriteCompletesAfterCallerIsCancelled() = runBlocking {
         val directory = Files.createTempDirectory("witgrid-cancelled-settings-write")
@@ -156,5 +194,20 @@ class PlayerDataRepositoryTest {
             Files.deleteIfExists(file.toPath())
             Files.deleteIfExists(directory)
         }
+    }
+}
+
+private class CancelFirstUpdateDataStore(
+    private val delegate: DataStore<Preferences>,
+) : DataStore<Preferences> {
+    override val data: Flow<Preferences> = delegate.data
+    private var shouldCancelNextUpdate = true
+
+    override suspend fun updateData(transform: suspend (Preferences) -> Preferences): Preferences {
+        if (shouldCancelNextUpdate) {
+            shouldCancelNextUpdate = false
+            throw CancellationException("Simulated cancelled storage update")
+        }
+        return delegate.updateData(transform)
     }
 }
