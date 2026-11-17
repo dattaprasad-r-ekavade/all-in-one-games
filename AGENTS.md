@@ -64,7 +64,7 @@ Package root: `com.datathecodie.witgrid`. Each game has its own package, for exa
 
 **bankgen/**
 - Output goes to `app/src/main/assets/bank/`. The bank files are committed.
-- Generation is slow and runs on the developer PC. CI runs only `validate`.
+- Generation is slow and runs on the developer PC. CI runs only `validate`. GitHub CI runs only when started by hand.
 
 **app/**
 - Game rules and policy logic (ads, streaks, hints, premium) go in plain Kotlin classes with JVM unit tests. Compose code only shows state and sends events.

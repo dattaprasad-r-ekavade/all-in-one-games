@@ -36,7 +36,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 |---|---|
 | H0.2 | Developer machine ready: Android SDK (platforms 34 to 37), JDK 17, GitHub CLI, Codex CLI, Claude Code. Repository pushed to GitHub. |
 | T0.1 | Gradle project with three modules: `engine` (pure Kotlin), `bankgen` (command-line tool), `app` (Android + Compose). Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk 37, targetSdk 36, minSdk 24. The empty app builds. |
-| T0.2 | GitHub Actions CI: the `build` job runs `./gradlew check :app:assembleDebug` on each push and pull request to `main`. |
+| T0.2 | GitHub Actions CI: the `build` job runs `./gradlew check :app:assembleDebug` on request only (`gh workflow run CI --ref main`). Automatic runs on push are off to save Actions minutes; the local `./gradlew check` is the merge gate. |
 | T0.3 | Ads SDK decision: Google Mobile Ads **Next-Gen SDK** (`ads-mobile-sdk` 1.6.0 or later), AdMob only at launch. See [docs/decisions/ads-sdk.md](docs/decisions/ads-sdk.md). |
 | E1 | Engine contracts, deterministic SplitMix64, grid geometry, moves/history, bank-line codec and typed game stubs. `:engine:test` and `check` pass; reviewed by `gpt-6.1-sol` with no blockers. |
 | A1 | Paper-and-ink themes, five colourways, eight tested region hues, Inter typography, spacing/type tokens and light/dark previews. App tests and `check` pass; `gpt-6.1-sol` approved with no blockers. The preview source compiled; a direct IDE screenshot was unavailable. |
@@ -108,7 +108,9 @@ None.
 
 | M6 | Premium purchase and restore | Waiting for H4's Play product and licence tester; code and review are complete. |
 
-**Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
+**CI is green.** The first GitHub run on 17 Nov 2026 passed (`check` and `assembleDebug`, 8 min). Automatic CI runs are now off; start one manually only before a release.
+
+**Phase 0 exit:** CI is green. Run the app on a phone to close the exit check. H0.1 (accounts) is the last open Phase 0 card.
 
 ## Build
 

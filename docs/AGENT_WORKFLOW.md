@@ -88,7 +88,7 @@ Do these steps for each task.
 
 ## 6. Rules for the lead
 
-- **Gate before merge.** `./gradlew check` passes on the branch. CI passes on the pull request.
+- **Gate before merge.** `./gradlew check` passes on the branch. GitHub CI runs only on request (`gh workflow run CI --ref main`), for example before a release.
 - **Contract tasks get a human read.** E1 and A3 define the interfaces that every later card depends on. Read them yourself before merge.
 - **Small cards.** If a builder fails two times, split the card or escalate one tier. Do not keep retrying.
 - **Spec changes go to the plan first.** If a review shows the plan is wrong, change `DEVELOPMENT_PLAN.md` on `main`. Then restart the task.

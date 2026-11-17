@@ -1,12 +1,10 @@
 name: CI
 
+# Manual runs only, to save GitHub Actions minutes.
+# Start a run with: gh workflow run CI --ref main
+# The local gate (./gradlew check) is the merge gate.
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build:
