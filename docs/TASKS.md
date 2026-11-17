@@ -65,8 +65,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **UI cleanup (before the closed test)** |||||||
 | U0 | Hotfix: invisible text in dark mode | M | Claude (lead) | — | — | done |
-| U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | ready |
-| U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | todo |
+| U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | done |
+| U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | in progress |
 | U3 | Shared components and tokens | H | Claude (lead) | Codex | U1 | todo |
 | U4 | Play screen layout and board fit | H | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
 | U5 | Board looks for the four games | M | Claude (`builder`) | Lead screenshots | U4 | todo |
@@ -469,7 +469,7 @@ Rules for every U card:
 ### U0 — Hotfix: invisible text in dark mode (done)
 Root `Surface` sets `contentColor = onBackground` in `MainActivity`.
 
-### U1 — Visual design target and approval
+### U1 — Visual design target and approval (done)
 Tier H · Lead
 **Do:** Mockups of Home, Game, Play (all four boards), Result and Settings in light and dark, from the plan's paper-and-ink direction and the existing tokens. Decide: the top bar style, the icon set (drawn as vector resources, no icon library), the Play toolbar, Binary symbols, card style and progress bars.
 **Done when:** the owner approves the mockups. The approved images go in `docs/design/`.
@@ -477,7 +477,7 @@ Tier H · Lead
 ### U2 — App shell
 Tier H · Lead · Review Codex
 **Owns:** `MainActivity.kt`, `nav/**`, `ui/layout/**`, `res/values*/themes.xml`, `res/drawable/**`, `strings.xml`.
-**Do:** One `Scaffold` per screen with a top bar (title, back arrow, actions). Home actions: Calendar, Statistics, Settings as icons. System splash with the app icon (theme attributes; Android 12+ API, window background below). A first-run welcome of two or three short pages (the four games, how hints work, ads only between levels), shown once. The UMP consent form keeps its current place before the first ad request.
+**Do:** One `Scaffold` per screen with a top bar (title, back arrow, actions). Home actions: Calendar, Statistics, Settings as icons. System splash with the app icon (theme attributes; Android 12+ API, window background below). A first-run welcome of two or three short pages (logic puzzles that work offline, how hints work, ads only between levels), shown once. No game count and no game list. The UMP consent form keeps its current place before the first ad request.
 
 ### U3 — Shared components and tokens
 Tier H · Lead · Review Codex
