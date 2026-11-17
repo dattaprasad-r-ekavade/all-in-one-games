@@ -400,7 +400,7 @@ Plan: 8.1–8.3, 8.5 (offer placement).
 ### M5 — Mistake limit and continue flow
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 Plan: 8.4.
-**Owns:** `app/…/play/MistakeLimit.kt`, `app/…/play/PlayController.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/**`, `app/src/main/res/values/strings.xml`.
+**Owns:** `app/…/play/MistakeLimit.kt`, `app/…/play/PlayController.kt`, `app/…/ui/screens/play/**`, `app/…/ui/screens/failed/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/progress/**`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/domain/monetisation/AllowanceLedger.kt`, `app/src/main/res/values/strings.xml`.
 **Do:** With the setting on, three mistakes fail a logic level. Persist the mistake count with level progress and restore it when the level is reopened. Continue grants exactly one additional mistake and leaves the board as-is; each later Continue grants one more. Restart is always free and never shows an ad.
 **Done when:** `./gradlew check` passes. Restart never shows an ad.
 
