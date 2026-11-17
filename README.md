@@ -96,7 +96,7 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 ## Next steps
 
 1. **Complete H0.1, then H4:** the policy page and `app-ads.txt` are live. Finish the dated trademark searches, Play Console/AdMob verification, and GDD section 7 export; then set up Firebase/AdMob/UMP and the Play product/licence tester. Run M6's device purchase and restore check afterward.
-2. **Prepare the closed test:** S1's listing and policy drafts are ready; S2's eight screenshots are committed; an app-icon draft is committed for approval. S3 follows M6 and M7; H5 still needs the feature graphic, final artwork approval, keystore and closed-test rollout.
+2. **Prepare the closed test:** S1's listing and policy drafts are ready; S2's eight screenshots are committed; app-icon and 1024×500 feature-graphic drafts are ready for approval. S3 follows M6 and M7; H5 still needs final artwork/screenshot approval, keystore and closed-test rollout.
 3. **Hand-test the bank:** the [H1 test log](docs/reports/bank-hand-test.md) is prefilled with the first 20 regular bank IDs per game/pack; record all 320 solve times, guess use, and any issues. The lead creates bug cards for issues.
 4. **Continue monetisation setup:** M7 follows H4; Analytics and Crashlytics remain opt-in. H4 also configures Firebase and AdMob.
 

@@ -460,7 +460,7 @@ Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 
 ### H5 — Art, keystore, closed test, production access (Human)
 Plan: 11 phase 5, 4 (art).
-**Lead progress note (17 Nov 2026):** A launcher and Play icon draft with preview is committed. Human approval, feature graphic, final screenshot approval, keystore, closed-test upload, and production-access steps remain.
+**Lead progress note (17 Nov 2026):** Launcher/Play icon and 1024×500 feature-graphic drafts are committed. The graphic uses first Easy puzzle examples from the committed bank; GPT-6.1-Sol found no visual/spec blockers. Human artwork/screenshot approval, keystore, closed-test upload, and production-access steps remain.
 - [ ] App icon, feature graphic, final screenshots (agents may draft; you approve).
 - [ ] Create the upload keystore. Back it up outside the PC.
 - [ ] Upload to the closed test track. 12+ testers for 14 days.
