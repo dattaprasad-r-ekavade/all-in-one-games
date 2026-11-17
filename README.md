@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 77 %** (49 of 64 task cards done; 4 ready; 0 active)
+**Overall: about 77 %** (49 of 64 task cards done; 3 ready; 1 active)
 
 ```
 [###############################---------]  77 %
@@ -24,11 +24,11 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
-| 3 - Retention | 6 | 3 | 1 | 0 | 0 | 0 | 50 % |
+| 3 - Retention | 6 | 3 | 0 | 1 | 0 | 0 | 50 % |
 | 4 — Monetisation and data | 8 | 3 | 0 | 0 | 0 | 0 | 38 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **49** | **4** | **0** | **0** | **0** | **77 %** |
+| **Total** | **64** | **49** | **3** | **1** | **0** | **0** | **77 %** |
 
 ## Done
 
@@ -88,14 +88,14 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Start R4:** reminder notification is the next ready build card.
+1. **Complete R4:** optional local reminder notifications.
 2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website. These details do not block app coding.
 4. **Continue the monetisation flow:** finish R5 after R4, then M4 wires ad placements and verifies a test ad on device.
 
 ## In progress
 
-No build card is active. R4 is ready to start.
+| R4 | Reminder notification | Codex |
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
