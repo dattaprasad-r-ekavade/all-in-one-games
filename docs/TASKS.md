@@ -65,7 +65,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | ready |
-| S2 | Screenshot capture script | M | Codex | Claude | A14 | active |
+| S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
 | S3 | Release build configuration | M | Codex | Claude | M3, M6, M7 | todo |
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
 | **Phase 6 — Launch** |||||||
@@ -440,6 +440,7 @@ Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 **Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`.
 **Do:** A script that captures 8 screens (one board per game, dark mode, result, home, offline message) on an emulator at Play sizes.
 **Done when:** The lead runs it and gets the image files.
+**Lead completion note (17 Nov 2026):** The lead ran the script on the Pixel 6a Play emulator; all eight 1080×1920 captures were committed. GPT-6.1-Sol reviewed and approved the task.
 
 ### S3 — Release build configuration
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
