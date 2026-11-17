@@ -124,4 +124,8 @@
     <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
     <string name="intro_coach_nonogram">A clue gives the length of a filled run; a 5 fills the whole column.</string>
     <string name="intro_coach_minisudoku">Each row, column, and 2 by 3 box uses digits 1 through 6 once; fill the cell with only one possible digit.</string>
+    <string name="reminder_notification_channel_name">Daily puzzle reminder</string>
+    <string name="reminder_notification_channel_description">A reminder at the time you choose.</string>
+    <string name="reminder_notification_title">Your daily puzzle is ready</string>
+    <string name="reminder_notification_body">Open Witgrid for today’s logic puzzle.</string>
 </resources>

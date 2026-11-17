@@ -28,6 +28,11 @@ class DataStorePlayerDataRepository(
                 hapticsEnabled = preferences[HAPTICS_ENABLED] ?: true,
                 mistakeLimitEnabled = preferences[MISTAKE_LIMIT_ENABLED] ?: false,
             ),
+            reminder = ReminderSettings(
+                enabled = preferences[REMINDER_ENABLED] ?: false,
+                hourOfDay = (preferences[REMINDER_HOUR_OF_DAY] ?: 9).coerceIn(0, 23),
+                minute = (preferences[REMINDER_MINUTE] ?: 0).coerceIn(0, 59),
+            ),
             streak = StreakData(
                 currentDays = preferences[STREAK_DAYS] ?: 0,
                 lastActivityEpochDay = preferences[LAST_ACTIVITY_EPOCH_DAY],
@@ -53,6 +58,14 @@ class DataStorePlayerDataRepository(
             preferences[SOUND_ENABLED] = settings.soundEnabled
             preferences[HAPTICS_ENABLED] = settings.hapticsEnabled
             preferences[MISTAKE_LIMIT_ENABLED] = settings.mistakeLimitEnabled
+        }
+    }
+
+    override suspend fun updateReminderSettings(settings: ReminderSettings) {
+        dataStore.edit { preferences ->
+            preferences[REMINDER_ENABLED] = settings.enabled
+            preferences[REMINDER_HOUR_OF_DAY] = settings.hourOfDay
+            preferences[REMINDER_MINUTE] = settings.minute
         }
     }
 
@@ -175,6 +188,9 @@ class DataStorePlayerDataRepository(
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val MISTAKE_LIMIT_ENABLED = booleanPreferencesKey("mistake_limit_enabled")
+        val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
+        val REMINDER_HOUR_OF_DAY = intPreferencesKey("reminder_hour_of_day")
+        val REMINDER_MINUTE = intPreferencesKey("reminder_minute")
         val STREAK_DAYS = intPreferencesKey("streak_days")
         val LAST_ACTIVITY_EPOCH_DAY = longPreferencesKey("last_activity_epoch_day")
         val FREEZES_AVAILABLE = intPreferencesKey("freezes_available")

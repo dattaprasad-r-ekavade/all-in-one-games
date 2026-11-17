@@ -6,6 +6,22 @@ data class AppSettings(
     val mistakeLimitEnabled: Boolean = false,
 )
 
+data class ReminderSettings(
+    val enabled: Boolean = false,
+    val hourOfDay: Int = DEFAULT_HOUR_OF_DAY,
+    val minute: Int = DEFAULT_MINUTE,
+) {
+    init {
+        require(hourOfDay in 0..23) { "Reminder hour must be between 0 and 23" }
+        require(minute in 0..59) { "Reminder minute must be between 0 and 59" }
+    }
+
+    private companion object {
+        const val DEFAULT_HOUR_OF_DAY = 9
+        const val DEFAULT_MINUTE = 0
+    }
+}
+
 data class StreakData(
     val currentDays: Int = 0,
     val lastActivityEpochDay: Long? = null,
@@ -53,6 +69,7 @@ data class PlayerData(
     val levelsSinceLastInterstitial: Map<String, Int> = emptyMap(),
     val lastInterstitialShownEpochMillis: Long? = null,
     val hasStartedAppSession: Boolean = false,
+    val reminder: ReminderSettings = ReminderSettings(),
 )
 
 fun PlayerData.toMonetisationData(): MonetisationData = MonetisationData(
