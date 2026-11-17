@@ -99,6 +99,8 @@ Plan: 11 (phase 0), 8.7, 15.
 
 **Lead progress note (18 Nov 2026):** An initial USPTO Wordmark query for “Witgrid” returned 0 records on the [official Trademark Search](https://tmsearch.uspto.gov/search/) with all statuses included. This is a preliminary name lookup, not a clearance search. EUIPO/TMview and UKIPO checks and remaining H0.1 items are still open.
 
+**Lead source check (18 Nov 2026):** Repeated Drive searches for “Witgrid GDD”, “Witgrid game design document”, and “GDD” found no Witgrid source; the only GDD result was `LLM_Clicker_GDD_v1.docx`, which is unrelated. The correct section 7 source/export remains outstanding.
+
 ### H0.2 — Developer machine and repo setup (Human)
 Do the steps in `docs/AGENT_WORKFLOW.md` section 3.
 - [ ] `ANDROID_HOME` set. `gh auth login` done. First commit pushed. Codex trusts the folder.
