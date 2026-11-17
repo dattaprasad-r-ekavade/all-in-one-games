@@ -63,6 +63,16 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | blocked |
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
+| **UI cleanup (before the closed test)** |||||||
+| U0 | Hotfix: invisible text in dark mode | M | Claude (lead) | — | — | done |
+| U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | ready |
+| U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | todo |
+| U3 | Shared components and tokens | H | Claude (lead) | Codex | U1 | todo |
+| U4 | Play screen layout and board fit | H | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
+| U5 | Board looks for the four games | M | Claude (`builder`) | Lead screenshots | U4 | todo |
+| U6 | Home and Game screens | M | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
+| U7 | Result, Failed, Calendar, Statistics, Settings | M | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
+| U8 | Screenshot matrix and visual QA gate | M | Claude (lead) | Human | U4–U7 | todo |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
@@ -433,6 +443,68 @@ Plan: 8.6, 10.
 **Done when:** `./gradlew check` passes in CI without `google-services.json`.
 
 ---
+
+## UI cleanup (before the closed test)
+
+The owner tested the app on a phone (17 Nov 2026) and rejected the UI. The lead's audit on the emulator (light and dark, font scale 1.0 and 1.3) found:
+
+- **Dark mode:** text without an explicit colour was black on black. All titles, Settings labels, the rules line and the timer were invisible. Fixed in U0.
+- **No app shell:** no top bar, no back arrow, no icons. Navigation is text links ("Calendar", "Statistics", "Settings") at the bottom of Home and text buttons ("Home", "Back").
+- **Board fit:** the board is clipped at the bottom (Mini Sudoku, Binary at 1.3 font), the Nonogram grid runs off the right edge, and the Crowns board touches the screen edges (the plan asks for 16 dp margins).
+- **Play tools:** a row of plain text buttons (Undo, Redo, Hide timer, Hint, Check, Back) plus a "Larger cells" chip in the middle of the screen. A large empty band above the board.
+- **Crowns:** region letters and hatching are on by default, so the board looks noisy. They are colour-blind aids and must be off by default.
+- **Binary:** cells show the letters A and B. Use two clear symbols instead.
+- **Game screen:** two "Watch an ad" buttons sit above Continue and the packs. The plan says one quiet offer, not a wall of ads.
+- **Home:** flat grey cards with text only; no game preview, no progress bar, the streak and the daily puzzle look like plain notes.
+- **First run:** no splash and no welcome. The app opens straight into a list.
+
+Rules for every U card:
+- Follow plan section 4 (paper and ink, 16 dp margins, tools in the bottom third, nothing tappable in the top 15 % during play) and section 9 (one job per screen).
+- No fixed heights for text. Every screen must work at font scale 1.0, 1.3 and 2.0, on a 360 dp wide phone and on a large phone, in light and dark.
+- **Done when** for U2 to U7: `./gradlew check` passes, and the lead has reviewed a screenshot sheet of each changed screen in light and dark at font scale 1.0 and 1.3.
+- No new library unless the card says so.
+
+### U0 — Hotfix: invisible text in dark mode (done)
+Root `Surface` sets `contentColor = onBackground` in `MainActivity`.
+
+### U1 — Visual design target and approval
+Tier H · Lead
+**Do:** Mockups of Home, Game, Play (all four boards), Result and Settings in light and dark, from the plan's paper-and-ink direction and the existing tokens. Decide: the top bar style, the icon set (drawn as vector resources, no icon library), the Play toolbar, Binary symbols, card style and progress bars.
+**Done when:** the owner approves the mockups. The approved images go in `docs/design/`.
+
+### U2 — App shell
+Tier H · Lead · Review Codex
+**Owns:** `MainActivity.kt`, `nav/**`, `ui/layout/**`, `res/values*/themes.xml`, `res/drawable/**`, `strings.xml`.
+**Do:** One `Scaffold` per screen with a top bar (title, back arrow, actions). Home actions: Calendar, Statistics, Settings as icons. System splash with the app icon (theme attributes; Android 12+ API, window background below). A first-run welcome of two or three short pages (the four games, how hints work, ads only between levels), shown once. The UMP consent form keeps its current place before the first ad request.
+
+### U3 — Shared components and tokens
+Tier H · Lead · Review Codex
+**Owns:** `ui/theme/**`, new `ui/components/**`.
+**Do:** Card, primary and secondary buttons, list row, section header, progress bar, stat tile, icon button, and the bottom tool bar item (icon over label). Type scale and spacing from A1. Dark paper stays true black; cards use a raised dark surface with a visible edge.
+
+### U4 — Play screen layout and board fit
+Tier H · Build Claude `builder` · Lead review
+**Owns:** `ui/screens/play/**`, `ui/board/**`.
+**Do:** The board size is the smaller of the free width and the free height, so it never clips. 16 dp margins. Top bar: back, game and level, timer (tap to hide). Rules move into an info sheet from the top bar. Bottom tool bar with icons: Undo, Redo, mode switch (when the game has one), Hint, Check. "Larger cells" becomes a zoom icon. Mini Sudoku digit pad and Nonogram clues always stay visible.
+
+### U5 — Board looks for the four games
+Tier M · Build Claude `builder` · Lead review
+**Owns:** `games/*/…Board.kt`, `settings` defaults for aids.
+**Do:** Crowns: region aids off by default, thin region borders inside, thick between regions, a drawn crown and a soft X. Binary: two symbols (for example a filled circle and a ring) in two colours, with a letter fallback only in TalkBack. Nonogram: clue band sized from the longest clue, the grid fits the width, a 5-cell guide line. Mini Sudoku: given digits darker than player digits, selected row, column and box tint.
+
+### U6 — Home and Game screens
+Tier M · Build Claude `builder` · Lead review
+**Owns:** `ui/screens/home/**`, `ui/screens/game/**`.
+**Do:** Home: a daily card at the top (today's state and streak), then four game cards, each with a small drawn board preview, the name and a progress bar. One quiet Premium row at the bottom. Game screen: Continue as the main button, four pack cards with progress bars, the daily puzzle, and one quiet "Earn hint and check credits" row instead of two ad buttons.
+
+### U7 — Result, Failed, Calendar, Statistics, Settings
+Tier M · Build Claude `builder` · Lead review
+**Owns:** `ui/screens/result/**`, `failed/**`, `calendar/**`, `stats/**`, `settings/**`.
+**Do:** Result: a clear "Solved" header, time and best time tiles, streak change, Next as the main button. Calendar: month grid with done and missed marks; the daily buttons become one list. Statistics: one card for each game with stat tiles. Settings: grouped list rows with one-line values; colourway as colour swatches, not radio buttons.
+
+### U8 — Screenshot matrix and visual QA gate
+Tier M · Lead
+**Do:** Extend `scripts/screenshots/` to capture every screen in light and dark, at font scale 1.0, 1.3 and 2.0, on a small and a large emulator profile, and build one contact sheet. The lead reviews the sheet before each U merge and before every closed-test upload.
 
 ## Phase 5 — Closed test
 
