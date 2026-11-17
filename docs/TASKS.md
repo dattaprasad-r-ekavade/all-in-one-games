@@ -52,15 +52,15 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | done |
 | R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | done |
 | R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | done |
-| R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | active |
-| R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
+| R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | done |
+| R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | ready |
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
 | M2 | Policy tests from the spec | L | Claude | Codex | M1 | done |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | done |
-| M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
+| M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | active |
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
-| M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | todo |
+| M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | ready |
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
@@ -351,7 +351,7 @@ Plan: 5 (one optional reminder).
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Settings).
 **Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/MainActivity.kt`, `app/…/ui/screens/settings/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/StubScreens.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/layout/ScreenPreviews.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
-**Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences. Add a privacy-options entry that calls the consent options exposed by M3. Wire reminders through `ReminderController`; request API-33+ notification permission only from the explicit reminder-enable action and retry after a grant. Do not prompt at app startup.
+**Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences. Read the policy destination from the `settings_privacy_policy_url` resource and open only a valid HTTPS link; H0.1 supplies the published URL before release. Add a privacy-options entry that calls the consent options exposed by M3. Wire reminders through `ReminderController`; request API-33+ notification permission only from the explicit reminder-enable action and retry after a grant, including after activity recreation. Do not prompt at app startup.
 **Done when:** `./gradlew check` passes.
 
 ### R6 — Accessibility pass
