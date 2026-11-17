@@ -20,6 +20,7 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.ads.AdShowResult
 import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
 import com.datathecodie.witgrid.ads.flow.RewardedActionButton
+import com.datathecodie.witgrid.billing.BillingUiState
 import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
@@ -30,9 +31,18 @@ fun LevelFailedScreen(
     premiumEnabled: Boolean = false,
     continueCreditAvailable: Boolean = false,
     onRewardedContinue: suspend () -> AdShowResult = { AdShowResult.Unavailable },
+    billingState: BillingUiState = BillingUiState(),
+    onPurchasePremium: () -> Unit = {},
 ) {
     var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
-    if (showPremiumOffer) PremiumOfferDialog(onDismiss = { showPremiumOffer = false })
+    if (showPremiumOffer) {
+        PremiumOfferDialog(
+            premiumEnabled = premiumEnabled,
+            billingState = billingState,
+            onPurchasePremium = onPurchasePremium,
+            onDismiss = { showPremiumOffer = false },
+        )
+    }
 
     AdaptiveScreen {
         Column(
@@ -61,6 +71,7 @@ fun LevelFailedScreen(
                     }
                 },
                 onOpenPremiumOffer = { showPremiumOffer = true },
+                alwaysShowPremiumOffer = !premiumEnabled,
             )
             OutlinedButton(onClick = onRestart) {
                 Text(stringResource(R.string.button_restart))

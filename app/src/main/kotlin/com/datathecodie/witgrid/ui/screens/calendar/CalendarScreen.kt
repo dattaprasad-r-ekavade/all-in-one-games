@@ -37,6 +37,7 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.ads.AdShowResult
 import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
 import com.datathecodie.witgrid.ads.flow.RewardedActionButton
+import com.datathecodie.witgrid.billing.BillingUiState
 import com.datathecodie.witgrid.data.progress.DailyPuzzleCompletion
 import com.datathecodie.witgrid.data.progress.DailyPuzzleCompletionRepository
 import com.datathecodie.witgrid.data.settings.StreakData
@@ -60,6 +61,8 @@ fun CalendarScreenRoute(
     premiumEnabled: Boolean = false,
     streakRepairCreditAvailable: Boolean = false,
     onRepairStreak: suspend () -> AdShowResult = { AdShowResult.Unavailable },
+    billingState: BillingUiState = BillingUiState(),
+    onPurchasePremium: () -> Unit = {},
 ) {
     if (dailyProgress == null) {
         AdaptiveScreen {
@@ -121,6 +124,8 @@ fun CalendarScreenRoute(
         premiumEnabled = premiumEnabled,
         streakRepairCreditAvailable = streakRepairCreditAvailable,
         onRepairStreak = onRepairStreak,
+        billingState = billingState,
+        onPurchasePremium = onPurchasePremium,
         completions = completions,
         gameIds = gameIds,
         canAdvanceMonth = visibleMonthStart < currentMonthStart,
@@ -155,6 +160,8 @@ private fun CalendarScreen(
     repairAvailable: Boolean,
     premiumEnabled: Boolean,
     streakRepairCreditAvailable: Boolean,
+    billingState: BillingUiState,
+    onPurchasePremium: () -> Unit,
     completions: List<DailyPuzzleCompletion>,
     gameIds: List<String>,
     canAdvanceMonth: Boolean,
@@ -166,7 +173,14 @@ private fun CalendarScreen(
     onHome: () -> Unit,
 ) {
     var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
-    if (showPremiumOffer) PremiumOfferDialog(onDismiss = { showPremiumOffer = false })
+    if (showPremiumOffer) {
+        PremiumOfferDialog(
+            premiumEnabled = premiumEnabled,
+            billingState = billingState,
+            onPurchasePremium = onPurchasePremium,
+            onDismiss = { showPremiumOffer = false },
+        )
+    }
 
     val completedByDay = completions.groupBy { it.dateEpochDay }
         .mapValues { (_, rows) -> rows.map { it.gameId }.toSet() }
@@ -204,6 +218,7 @@ private fun CalendarScreen(
                     successResource = R.string.calendar_repair_streak_done,
                     onReward = onRepairStreak,
                     onOpenPremiumOffer = { showPremiumOffer = true },
+                    alwaysShowPremiumOffer = !premiumEnabled,
                 )
             }
 

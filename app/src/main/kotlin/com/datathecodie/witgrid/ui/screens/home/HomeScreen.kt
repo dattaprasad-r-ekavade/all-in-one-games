@@ -16,11 +16,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
+import com.datathecodie.witgrid.billing.BillingUiState
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.data.settings.StreakData
 import com.datathecodie.witgrid.games.LevelRef
@@ -37,6 +42,9 @@ fun HomeScreenRoute(
     onOpenCalendar: () -> Unit,
     onOpenStatistics: () -> Unit,
     onOpenSettings: () -> Unit,
+    premiumEnabled: Boolean = false,
+    billingState: BillingUiState = BillingUiState(),
+    onPurchasePremium: () -> Unit = {},
 ) {
     val viewModel = remember(gameIds, levelRefsByGame, progressRepository) {
         HomeViewModel(gameIds, levelRefsByGame, progressRepository)
@@ -52,6 +60,9 @@ fun HomeScreenRoute(
         onOpenCalendar = onOpenCalendar,
         onOpenStatistics = onOpenStatistics,
         onOpenSettings = onOpenSettings,
+        premiumEnabled = premiumEnabled,
+        billingState = billingState,
+        onPurchasePremium = onPurchasePremium,
     )
 }
 
@@ -64,7 +75,19 @@ fun HomeScreen(
     onOpenCalendar: () -> Unit,
     onOpenStatistics: () -> Unit,
     onOpenSettings: () -> Unit,
+    premiumEnabled: Boolean = false,
+    billingState: BillingUiState = BillingUiState(),
+    onPurchasePremium: () -> Unit = {},
 ) {
+    var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
+    if (showPremiumOffer) {
+        PremiumOfferDialog(
+            premiumEnabled = premiumEnabled,
+            billingState = billingState,
+            onPurchasePremium = onPurchasePremium,
+            onDismiss = { showPremiumOffer = false },
+        )
+    }
     AdaptiveScreen {
         Column(
             modifier = Modifier
@@ -127,12 +150,20 @@ fun HomeScreen(
                 }
             }
 
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(R.string.home_premium_row),
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+            Card(onClick = { showPremiumOffer = true }, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.home_premium_row), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = if (premiumEnabled) {
+                            stringResource(R.string.premium_owned)
+                        } else {
+                            billingState.productPrice?.let { price ->
+                                stringResource(R.string.premium_home_offer, price)
+                            } ?: stringResource(R.string.premium_product_unavailable)
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
 
             TextButtonRow(

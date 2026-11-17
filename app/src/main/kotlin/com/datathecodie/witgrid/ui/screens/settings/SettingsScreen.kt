@@ -41,6 +41,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.billing.BillingUiState
+import com.datathecodie.witgrid.ads.flow.PremiumPurchaseControls
 import com.datathecodie.witgrid.data.settings.AppSettings
 import com.datathecodie.witgrid.data.settings.ReminderSettings
 import com.datathecodie.witgrid.data.settings.ThemeMode
@@ -67,6 +69,10 @@ fun SettingsScreen(
     onUpdateReminderTime: suspend (Int, Int) -> Unit,
     onShowPrivacyOptions: suspend () -> Unit,
     onHome: () -> Unit,
+    premiumEnabled: Boolean = false,
+    billingState: BillingUiState = BillingUiState(),
+    onPurchasePremium: () -> Unit = {},
+    onRestorePurchases: () -> Unit = {},
 ) {
     var editedSettings by remember { mutableStateOf(settings) }
     var pendingSettings by remember { mutableStateOf<AppSettings?>(null) }
@@ -281,15 +287,11 @@ fun SettingsScreen(
 
             HorizontalDivider()
             SettingsSectionTitle(R.string.settings_account)
-            ActionSetting(
-                title = stringResource(R.string.home_premium_row),
-                value = stringResource(R.string.settings_available_later),
-                onClick = { informationDialog = R.string.settings_premium_later },
-            )
-            ActionSetting(
-                title = stringResource(R.string.settings_restore_purchases),
-                value = stringResource(R.string.settings_available_later),
-                onClick = { informationDialog = R.string.settings_restore_later },
+            PremiumPurchaseControls(
+                premiumEnabled = premiumEnabled,
+                billingState = billingState,
+                onPurchasePremium = onPurchasePremium,
+                onRestorePurchases = onRestorePurchases,
             )
 
             HorizontalDivider()
