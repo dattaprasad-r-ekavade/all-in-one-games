@@ -71,7 +71,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | done |
 | U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | done |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | done |
-| U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | active |
+| U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | done |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
 | U9 | Endless level numbers and looping | H | Codex | Claude | U2 | done |
 | **Phase 5 — Closed test** |||||||
@@ -532,6 +532,8 @@ Plan: 4.1, 9. Design: `docs/design/result-*.png`, `settings-*.png`.
 **Done when:** `./gradlew check` passes. Screenshots match the mockups.
 **Lead scope extension (17 Nov 2026):** Added `WitgridNavigation.kt` for Result/Failed framing and pack-return routing after removing old Home callbacks; added `ScreenPreviews.kt` and `ScreenshotCaptureTest.kt` because they call the screens whose U7 APIs are being rebuilt.
 **Lead scope extension (18 Nov 2026):** Added `ads/flow/RewardedActionButton.kt` so Level Failed can use the approved 54 dp primary-button treatment while retaining the shared rewarded and Premium-offer behavior. Its new styling option defaults off for existing callers.
+
+**Lead completion note (18 Nov 2026):** Integrated locally as `8680275` from task commit `82fa041`. The full `check :app:assembleDebug :app:assembleDebugAndroidTest` gate passed; bank validation covered 3,864 puzzles in 24 files. The lead reviewed the changed screen captures and actual reminder-dialog captures at 360 dp and 480 dp, font scale 2.0, light and dark. GPT-6.1-Sol reviewed the final diff and captures and found no blockers. The local debug APK was rebuilt; no APK was published.
 
 ### U8 — Screenshot matrix and visual QA gate
 Tier M · Build Codex · Review Claude (lead)
