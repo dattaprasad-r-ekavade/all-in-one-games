@@ -527,7 +527,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                 val currentActivity = activity
                                 val firstSession = firstSessionAfterInstall
                                 try {
-                                    if (currentActivity != null && firstSession != null) {
+                                    if (next != null && currentActivity != null && firstSession != null) {
                                         val module = requireNotNull(GameRegistry.find(levelRef.gameId))
                                         val boardSize = withContext(Dispatchers.IO) {
                                             module.loadLevel(levelRef, bankSource).size
@@ -545,8 +545,13 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                     // Ad or tracking failures must never prevent the player from continuing.
                                 }
                                 if (navigator.destination.value == currentDestination) {
-                                    navigator.goBack()
-                                    if (next != null) navigator.navigate(AppDestination.Play(next))
+                                    if (next == null) {
+                                        navigator.returnHome()
+                                        navigator.navigate(AppDestination.Calendar)
+                                    } else {
+                                        navigator.goBack()
+                                        navigator.navigate(AppDestination.Play(next))
+                                    }
                                 }
                             } finally {
                                 resultNextInProgress = false
@@ -554,33 +559,51 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         }
                     }
                 },
-                onHome = navigator::returnHome,
+                onBackToPacks = {
+                    navigator.returnHome()
+                    navigator.navigate(AppDestination.Game(currentDestination.levelRef.gameId))
+                },
             )
 
-            is AppDestination.LevelFailed -> LevelFailedScreen(
-                onContinue = {
-                    continueRequest = PlayContinueRequest(
-                        currentDestination.levelRef,
-                        UUID.randomUUID().toString(),
-                    )
-                    navigator.goBack()
-                },
-                onRestart = {
-                    nextRestartRequestId += 1
-                    restartRequest = PlayRestartRequest(currentDestination.levelRef, nextRestartRequestId)
-                    navigator.goBack()
-                },
-                onHome = navigator::returnHome,
-                premiumEnabled = playerData.premiumEnabled,
-                continueCreditAvailable =
-                    (playerData.rewardBalances[RewardType.EXTRA_LIFE] ?: 0) > 0,
-                billingState = billingState,
-                onPurchasePremium = { activity?.let(billingService::launchPurchase) },
-                onRewardedContinue = {
-                    activity?.let { rewardedAdFlow.grantReward(it, RewardType.EXTRA_LIFE) }
-                        ?: AdShowResult.Unavailable
-                },
-            )
+            is AppDestination.LevelFailed -> {
+                val failedBoardState by produceState<Any?>(null, currentDestination.levelRef) {
+                    value = withContext(Dispatchers.IO) {
+                        val ref = currentDestination.levelRef
+                        val saved = progressRepository.getAttemptProgress(ref.gameId, ref.levelId, ref.levelNumber ?: 0)
+                        saved?.let { runCatching { GameRegistry.find(ref.gameId)?.decodeState(it.stateBytes) }.getOrNull() }
+                    }
+                }
+                LevelFailedScreen(
+                    onContinue = {
+                        continueRequest = PlayContinueRequest(
+                            currentDestination.levelRef,
+                            UUID.randomUUID().toString(),
+                        )
+                        navigator.goBack()
+                    },
+                    onRestart = {
+                        nextRestartRequestId += 1
+                        restartRequest = PlayRestartRequest(currentDestination.levelRef, nextRestartRequestId)
+                        navigator.goBack()
+                    },
+                    onClose = {
+                        navigator.returnHome()
+                        navigator.navigate(AppDestination.Game(currentDestination.levelRef.gameId))
+                    },
+                    levelRef = currentDestination.levelRef,
+                    boardState = failedBoardState,
+                    premiumEnabled = playerData.premiumEnabled,
+                    continueCreditAvailable =
+                        (playerData.rewardBalances[RewardType.EXTRA_LIFE] ?: 0) > 0,
+                    billingState = billingState,
+                    onPurchasePremium = { activity?.let(billingService::launchPurchase) },
+                    onRewardedContinue = {
+                        activity?.let { rewardedAdFlow.grantReward(it, RewardType.EXTRA_LIFE) }
+                            ?: AdShowResult.Unavailable
+                    },
+                )
+
+            }
 
             AppDestination.Calendar -> WitgridScreenFrame(
                 topBar = { WitgridTopBar(title = stringResource(R.string.screen_calendar), onBack = goBack) },
@@ -659,7 +682,6 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         }
                     }
                 },
-                onHome = navigator::returnHome,
             ) }
             AppDestination.Statistics -> WitgridScreenFrame(
                 topBar = { WitgridTopBar(title = stringResource(R.string.screen_statistics), onBack = goBack) },
@@ -668,7 +690,6 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 levelRefsByGame = levelRefsByGame,
                 progressRepository = progressRepository,
                 dailyPuzzleCompletionRepository = dailyCompletionRepository,
-                onHome = navigator::returnHome,
             ) }
             AppDestination.Settings -> WitgridScreenFrame(
                 topBar = { WitgridTopBar(title = stringResource(R.string.screen_settings), onBack = goBack) },
@@ -706,7 +727,6 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 onRestorePurchases = {
                     scope.launch { billingService.restorePurchases() }
                 },
-                onHome = navigator::returnHome,
             ) }
         }
     }

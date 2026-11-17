@@ -138,10 +138,10 @@ class ScreenshotCaptureTest {
                 elapsedTimeMillis = 74_000L,
                 bestTimeMillis = 74_000L,
                 onNext = {},
-                onHome = {},
+                onBackToPacks = {},
             )
         }
-        waitForText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.screen_result))
+        waitForText(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.result_solved))
     }
 
     private fun showOfflineMessage(context: android.content.Context) {
