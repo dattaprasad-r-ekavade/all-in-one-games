@@ -19,12 +19,12 @@ import com.datathecodie.witgrid.engine.nonogram.NonogramState
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
-import com.datathecodie.witgrid.ui.screens.CalendarScreen
+import com.datathecodie.witgrid.ui.screens.calendar.CalendarScreen
 import com.datathecodie.witgrid.ui.screens.settings.SettingsScreen
 import com.datathecodie.witgrid.data.settings.AppSettings
 import com.datathecodie.witgrid.data.settings.ReminderSettings
 import com.datathecodie.witgrid.reminder.ReminderEnableResult
-import com.datathecodie.witgrid.ui.screens.StatisticsScreen
+import com.datathecodie.witgrid.ui.screens.stats.StatisticsScreen
 import com.datathecodie.witgrid.ui.screens.failed.LevelFailedScreen
 import com.datathecodie.witgrid.ui.screens.game.GameScreen
 import com.datathecodie.witgrid.ui.screens.game.GameUiState
@@ -96,25 +96,25 @@ private fun FailedTabletPreview() = PreviewFrame { LevelFailedScreen({}, {}, {})
 
 @Preview(name = "Calendar · 360 dp", group = "A13 phone", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun CalendarPhonePreview() = PreviewFrame { CalendarScreen {} }
+private fun CalendarPhonePreview() = PreviewFrame { SampleCalendarScreen() }
 
 @Preview(name = "Calendar · 840 dp", group = "A13 tablet", widthDp = 840, heightDp = 1_000, showBackground = true)
 @Composable
-private fun CalendarTabletPreview() = PreviewFrame { CalendarScreen {} }
+private fun CalendarTabletPreview() = PreviewFrame { SampleCalendarScreen() }
 
 @Preview(name = "Statistics · 360 dp", group = "A13 phone", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun StatisticsPhonePreview() = PreviewFrame { StatisticsScreen {} }
+private fun StatisticsPhonePreview() = PreviewFrame { SampleStatisticsScreen() }
 
 @Preview(name = "Statistics · 840 dp", group = "A13 tablet", widthDp = 840, heightDp = 1_000, showBackground = true)
 @Composable
-private fun StatisticsTabletPreview() = PreviewFrame { StatisticsScreen {} }
+private fun StatisticsTabletPreview() = PreviewFrame { SampleStatisticsScreen() }
 
 @Preview(name = "Settings · 360 dp", group = "A13 phone", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
 private fun SettingsPhonePreview() = PreviewFrame {
     SettingsScreen(
-        AppSettings(), ReminderSettings(), null, false, {}, { ReminderEnableResult.Enabled }, {}, { _, _ -> }, {}, {},
+        AppSettings(), ReminderSettings(), null, false, {}, { ReminderEnableResult.Enabled }, {}, { _, _ -> }, {},
     )
 }
 
@@ -122,8 +122,41 @@ private fun SettingsPhonePreview() = PreviewFrame {
 @Composable
 private fun SettingsTabletPreview() = PreviewFrame {
     SettingsScreen(
-        AppSettings(), ReminderSettings(), null, false, {}, { ReminderEnableResult.Enabled }, {}, { _, _ -> }, {}, {},
+        AppSettings(), ReminderSettings(), null, false, {}, { ReminderEnableResult.Enabled }, {}, { _, _ -> }, {},
     )
+}
+
+
+@Composable
+private fun SampleCalendarScreen() {
+    CalendarScreen(
+        todayEpochDay = 20774,
+        timeZone = java.util.TimeZone.getTimeZone("UTC"),
+        locale = java.util.Locale.US,
+        visibleMonthStartEpochDay = 20758,
+        selectedEpochDay = 20774,
+        streak = com.datathecodie.witgrid.data.settings.StreakData(currentDays = 3),
+        repairAvailable = false,
+        premiumEnabled = false,
+        streakRepairCreditAvailable = false,
+        billingState = com.datathecodie.witgrid.billing.BillingUiState(),
+        onPurchasePremium = {},
+        completions = emptyList(),
+        gameIds = listOf("crowns", "binary", "nonogram", "minisudoku"),
+        canAdvanceMonth = false,
+        onPreviousMonth = {},
+        onNextMonth = {},
+        onSelectDay = {},
+        onOpenDailyPuzzle = {},
+        onRepairStreak = { com.datathecodie.witgrid.ads.AdShowResult.Unavailable },
+    )
+}
+
+@Composable
+private fun SampleStatisticsScreen() {
+    StatisticsScreen(false, listOf("crowns", "binary", "nonogram", "minisudoku").map {
+        com.datathecodie.witgrid.domain.stats.GameStatistics(it, 14, 3, 98_000, 125_000)
+    })
 }
 
 @Composable

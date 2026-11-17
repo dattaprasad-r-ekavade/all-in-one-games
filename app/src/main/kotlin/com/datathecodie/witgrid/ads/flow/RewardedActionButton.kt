@@ -4,10 +4,13 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -26,6 +29,7 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.ads.AdShowResult
 import com.datathecodie.witgrid.billing.BillingNotice
 import com.datathecodie.witgrid.billing.BillingUiState
+import com.datathecodie.witgrid.ui.theme.WitgridTheme
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -37,6 +41,7 @@ fun RewardedActionButton(
     onOpenPremiumOffer: () -> Unit,
     alwaysShowPremiumOffer: Boolean = false,
     modifier: Modifier = Modifier,
+    primaryStyle: Boolean = false,
 ) {
     var pending by remember { mutableStateOf(false) }
     var messageResource by remember { mutableStateOf<Int?>(null) }
@@ -71,12 +76,23 @@ fun RewardedActionButton(
                     }
                 }
             },
+            modifier = if (primaryStyle) Modifier.fillMaxWidth().heightIn(min = 54.dp) else Modifier,
             enabled = !pending,
+            shape = if (primaryStyle) RoundedCornerShape(14.dp) else ButtonDefaults.shape,
+            colors = if (primaryStyle) {
+                ButtonDefaults.buttonColors(
+                    containerColor = WitgridTheme.colors.accent,
+                    contentColor = WitgridTheme.colors.onAccent,
+                )
+            } else {
+                ButtonDefaults.buttonColors()
+            },
         ) {
             if (pending) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(18.dp),
                     strokeWidth = 2.dp,
+                    color = if (primaryStyle) WitgridTheme.colors.onAccent else MaterialTheme.colorScheme.primary,
                 )
             } else {
                 Text(stringResource(titleResource))

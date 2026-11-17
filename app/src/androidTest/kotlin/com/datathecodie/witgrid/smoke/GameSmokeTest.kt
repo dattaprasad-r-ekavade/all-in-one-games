@@ -137,7 +137,7 @@ class GameSmokeTest {
     }
 
     private fun assertResult(context: android.content.Context) {
-        val resultTitle = context.getString(R.string.screen_result)
+        val resultTitle = context.getString(R.string.result_solved)
         waitForText(resultTitle)
         composeRule.onNodeWithText(resultTitle).assertIsDisplayed()
     }

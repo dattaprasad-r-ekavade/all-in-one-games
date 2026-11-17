@@ -2,13 +2,14 @@ package com.datathecodie.witgrid.ui.screens.stats
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +27,8 @@ import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.domain.stats.GameStatistics
 import com.datathecodie.witgrid.domain.stats.StatisticsViewModel
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.ui.components.StatTile
+import com.datathecodie.witgrid.ui.components.WitgridCard
 import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
@@ -34,7 +37,6 @@ fun StatisticsScreenRoute(
     levelRefsByGame: Map<String, List<LevelRef>>,
     progressRepository: GameProgressSummaryRepository,
     dailyPuzzleCompletionRepository: DailyPuzzleCompletionRepository,
-    onHome: () -> Unit,
 ) {
     val regularLevelIdsByGame = remember(levelRefsByGame) {
         levelRefsByGame.mapValues { (_, refs) ->
@@ -63,22 +65,20 @@ fun StatisticsScreenRoute(
     StatisticsScreen(
         isLoading = state.isLoading,
         games = state.games,
-        onHome = onHome,
     )
 }
 
 @Composable
-private fun StatisticsScreen(
+fun StatisticsScreen(
     isLoading: Boolean,
     games: List<GameStatistics>,
-    onHome: () -> Unit,
 ) {
     AdaptiveScreen {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (isLoading) {
@@ -94,19 +94,24 @@ private fun StatisticsScreen(
 
 @Composable
 private fun GameStatisticsCard(game: GameStatistics) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                text = stringResource(gameNameResource(game.gameId)),
-                style = MaterialTheme.typography.titleLarge,
+    WitgridCard(modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(gameNameResource(game.gameId)), style = MaterialTheme.typography.titleLarge)
+        val fontScale = LocalDensity.current.fontScale
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val columns = if (maxWidth.value / fontScale >= 220) 2 else 1
+            val statistics = listOf(
+                game.solvedRegularLevels.toString() to stringResource(R.string.stats_solved_label),
+                game.dailyCompletions.toString() to stringResource(R.string.stats_daily_label),
+                formatDuration(game.bestTimeMillis) to stringResource(R.string.result_best_label),
+                formatDuration(game.averageBestTimeMillis) to stringResource(R.string.stats_average_label),
             )
-            Text(stringResource(R.string.stats_solved_levels, game.solvedRegularLevels))
-            Text(stringResource(R.string.stats_daily_completions, game.dailyCompletions))
-            Text(stringResource(R.string.stats_best_time, formatDuration(game.bestTimeMillis)))
-            Text(stringResource(R.string.stats_average_best_time, formatDuration(game.averageBestTimeMillis)))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                statistics.chunked(columns).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { (value, label) -> StatTile(value, label, Modifier.weight(1f)) }
+                    }
+                }
+            }
         }
     }
 }
