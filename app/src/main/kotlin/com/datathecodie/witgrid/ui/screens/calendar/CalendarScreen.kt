@@ -70,7 +70,6 @@ fun CalendarScreenRoute(
                 modifier = Modifier.fillMaxSize().padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(stringResource(R.string.screen_calendar), style = MaterialTheme.typography.headlineMedium)
                 CircularProgressIndicator()
             }
         }
@@ -197,7 +196,6 @@ private fun CalendarScreen(
                 .padding(horizontal = 12.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.screen_calendar), style = MaterialTheme.typography.headlineMedium)
             Text(
                 stringResource(R.string.calendar_streak_status, streak.currentDays, streak.freezesAvailable),
                 style = MaterialTheme.typography.bodyLarge,
@@ -296,8 +294,6 @@ private fun CalendarScreen(
             } else {
                 Text(stringResource(R.string.calendar_no_completions), style = MaterialTheme.typography.bodyMedium)
             }
-
-            TextButton(onClick = onHome) { Text(stringResource(R.string.button_home)) }
         }
     }
 }

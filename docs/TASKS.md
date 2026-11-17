@@ -66,7 +66,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **UI cleanup (before the closed test)** |||||||
 | U0 | Hotfix: invisible text in dark mode | M | Claude (lead) | — | — | done |
 | U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | done |
-| U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | in progress |
+| U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | done |
 | U3 | Shared components and tokens | H | Claude (lead) | Codex | U1 | todo |
 | U4 | Play screen layout and board fit | H | Claude (`builder`) | Lead screenshots | U2, U3 | todo |
 | U5 | Board looks for the four games | M | Claude (`builder`) | Lead screenshots | U4 | todo |
@@ -474,10 +474,12 @@ Tier H · Lead
 **Do:** Mockups of Home, Game, Play (all four boards), Result and Settings in light and dark, from the plan's paper-and-ink direction and the existing tokens. Decide: the top bar style, the icon set (drawn as vector resources, no icon library), the Play toolbar, Binary symbols, card style and progress bars.
 **Done when:** the owner approves the mockups. The approved images go in `docs/design/`.
 
-### U2 — App shell
+### U2 — App shell (done)
 Tier H · Lead · Review Codex
 **Owns:** `MainActivity.kt`, `nav/**`, `ui/layout/**`, `res/values*/themes.xml`, `res/drawable/**`, `strings.xml`.
 **Do:** One `Scaffold` per screen with a top bar (title, back arrow, actions). Home actions: Calendar, Statistics, Settings as icons. System splash with the app icon (theme attributes; Android 12+ API, window background below). A first-run welcome of two or three short pages (logic puzzles that work offline, how hints work, ads only between levels), shown once. No game count and no game list. The UMP consent form keeps its current place before the first ad request.
+
+Lead note (U2): The navigation wraps Home, Game, Calendar, Statistics and Settings in `WitgridScreenFrame` + `WitgridTopBar` (`ui/layout/`). The old screen titles and "Home" buttons are removed, but the unused `onHome`, `onOpenStatistics` and `onOpenSettings` parameters stay until U6 and U7 rebuild those screens. Play, Result and Level failed have no shared bar yet (U4, U7). The welcome flag is `AppSettings.welcomeSeen` (outside the card's Owns, needed to show the pages once). Card, edge and muted-ink colours were added to `WitgridColors` early for the welcome page. Icons are vector drawables `ic_back`, `ic_close`, `ic_calendar`, `ic_statistics`, `ic_settings`, `ic_info`.
 
 ### U3 — Shared components and tokens
 Tier H · Lead · Review Codex

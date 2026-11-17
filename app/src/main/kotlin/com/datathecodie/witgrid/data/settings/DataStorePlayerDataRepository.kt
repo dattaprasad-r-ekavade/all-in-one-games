@@ -76,6 +76,7 @@ class DataStorePlayerDataRepository(
                 crownsAutoXEnabled = preferences[CROWNS_AUTO_X_ENABLED] ?: false,
                 nonogramAutoCrossEnabled = preferences[NONOGRAM_AUTO_CROSS_ENABLED] ?: false,
                 reduceMotion = preferences[REDUCE_MOTION] ?: false,
+                welcomeSeen = preferences[WELCOME_SEEN] ?: false,
             ),
             reminder = ReminderSettings(
                 enabled = preferences[REMINDER_ENABLED] ?: false,
@@ -106,6 +107,7 @@ class DataStorePlayerDataRepository(
                 preferences[CROWNS_AUTO_X_ENABLED] = settings.crownsAutoXEnabled
                 preferences[NONOGRAM_AUTO_CROSS_ENABLED] = settings.nonogramAutoCrossEnabled
                 preferences[REDUCE_MOTION] = settings.reduceMotion
+                preferences[WELCOME_SEEN] = settings.welcomeSeen
             }
         }
     }
@@ -310,6 +312,7 @@ class DataStorePlayerDataRepository(
         val CROWNS_AUTO_X_ENABLED = booleanPreferencesKey("crowns_auto_x_enabled")
         val NONOGRAM_AUTO_CROSS_ENABLED = booleanPreferencesKey("nonogram_auto_cross_enabled")
         val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
+        val WELCOME_SEEN = booleanPreferencesKey("welcome_seen")
         val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
         val REMINDER_HOUR_OF_DAY = intPreferencesKey("reminder_hour_of_day")
         val REMINDER_MINUTE = intPreferencesKey("reminder_minute")

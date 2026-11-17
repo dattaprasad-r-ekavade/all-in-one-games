@@ -197,7 +197,6 @@ fun SettingsScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.screen_settings), style = MaterialTheme.typography.headlineMedium)
             SettingsSectionTitle(R.string.settings_appearance)
             ThemeMode.entries.forEach { mode ->
                 RadioSetting(
@@ -339,7 +338,6 @@ fun SettingsScreen(
                     showLicences = true
                 },
             )
-            Button(onClick = onHome) { Text(stringResource(R.string.button_home)) }
         }
     }
 }

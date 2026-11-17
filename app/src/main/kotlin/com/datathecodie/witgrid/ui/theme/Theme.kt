@@ -18,6 +18,9 @@ data class WitgridColors(
     val ink: Color,
     val accent: Color,
     val onAccent: Color,
+    val card: Color,
+    val cardEdge: Color,
+    val mutedInk: Color,
     val regions: List<RegionStyle>,
     val isDark: Boolean,
 )
@@ -40,6 +43,9 @@ fun witgridColors(colourway: Colourway, darkTheme: Boolean): WitgridColors {
             ink = rgb(PaperInk.DARK_INK),
             accent = rgb(colourway.darkAccent),
             onAccent = rgb(PaperInk.ON_DARK_ACCENT),
+            card = rgb(PaperInk.DARK_CARD),
+            cardEdge = rgb(PaperInk.DARK_CARD_EDGE),
+            mutedInk = rgb(PaperInk.DARK_MUTED_INK),
             regions = regions,
             isDark = true,
         )
@@ -49,6 +55,9 @@ fun witgridColors(colourway: Colourway, darkTheme: Boolean): WitgridColors {
             ink = rgb(PaperInk.LIGHT_INK),
             accent = rgb(colourway.lightAccent),
             onAccent = rgb(PaperInk.ON_LIGHT_ACCENT),
+            card = rgb(PaperInk.LIGHT_CARD),
+            cardEdge = rgb(PaperInk.LIGHT_CARD_EDGE),
+            mutedInk = rgb(PaperInk.LIGHT_MUTED_INK),
             regions = regions,
             isDark = false,
         )

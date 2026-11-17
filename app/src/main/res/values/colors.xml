@@ -2,4 +2,6 @@
 <resources>
     <color name="witgrid_paper">#FFF6F1E7</color>
     <color name="witgrid_ink">#FF1C1B19</color>
+    <color name="witgrid_accent">#FF3B4FA0</color>
+    <color name="witgrid_grid_line">#FFC9C2B3</color>
 </resources>

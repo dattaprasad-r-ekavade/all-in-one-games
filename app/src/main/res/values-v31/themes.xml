@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ draws its own splash; older versions show the paper window background. -->
+    <style name="Theme.Witgrid" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/witgrid_paper</item>
+        <item name="android:colorBackground">@color/witgrid_paper</item>
+        <item name="android:windowSplashScreenBackground">@color/witgrid_paper</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+    </style>
+</resources>

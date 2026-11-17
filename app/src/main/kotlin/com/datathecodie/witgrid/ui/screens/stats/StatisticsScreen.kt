@@ -81,18 +81,12 @@ private fun StatisticsScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.screen_statistics), style = MaterialTheme.typography.headlineMedium)
-
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
                 games.forEach { game ->
                     GameStatisticsCard(game)
                 }
-            }
-
-            Button(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.button_home))
             }
         }
     }

@@ -103,11 +103,6 @@ fun GameScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                stringResource(R.string.screen_game, stringResource(gameNameResource(state.gameId))),
-                style = MaterialTheme.typography.headlineMedium,
-            )
-
             OutlinedButton(onClick = onOpenDaily, modifier = Modifier.fillMaxWidth()) {
                 Text(
                     stringResource(
@@ -170,10 +165,6 @@ fun GameScreen(
                         }
                     }
                 }
-            }
-
-            OutlinedButton(onClick = onHome, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.button_home))
             }
         }
     }

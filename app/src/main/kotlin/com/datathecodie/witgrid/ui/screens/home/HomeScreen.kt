@@ -96,8 +96,6 @@ fun HomeScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(stringResource(R.string.screen_home), style = MaterialTheme.typography.headlineMedium)
-
             if (state.isLoading) {
                 CircularProgressIndicator()
             } else {
@@ -165,27 +163,7 @@ fun HomeScreen(
                     )
                 }
             }
-
-            TextButtonRow(
-                label = stringResource(R.string.screen_calendar),
-                onClick = onOpenCalendar,
-            )
-            TextButtonRow(
-                label = stringResource(R.string.screen_statistics),
-                onClick = onOpenStatistics,
-            )
-            TextButtonRow(
-                label = stringResource(R.string.screen_settings),
-                onClick = onOpenSettings,
-            )
         }
-    }
-}
-
-@Composable
-private fun TextButtonRow(label: String, onClick: () -> Unit) {
-    TextButton(onClick = onClick) {
-        Text(label)
     }
 }
 

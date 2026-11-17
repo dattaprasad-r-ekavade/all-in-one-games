@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -78,6 +79,10 @@ import com.datathecodie.witgrid.ui.screens.play.PlayPersistenceScope
 import com.datathecodie.witgrid.ui.screens.result.ResultScreenRoute
 import com.datathecodie.witgrid.ui.screens.result.nextResultLevel
 import com.datathecodie.witgrid.ui.screens.stats.StatisticsScreenRoute
+import com.datathecodie.witgrid.ui.screens.welcome.WelcomeScreen
+import com.datathecodie.witgrid.ui.layout.TopBarAction
+import com.datathecodie.witgrid.ui.layout.WitgridScreenFrame
+import com.datathecodie.witgrid.ui.layout.WitgridTopBar
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -262,6 +267,35 @@ fun WitgridNavigation(navigator: AppNavigator) {
         }
     }
 
+    val storedWelcomeSeen by produceState<Boolean?>(null, playerDataRepository) {
+        value = try {
+            playerDataRepository.playerData.first().settings.welcomeSeen
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            // A storage failure must not block play; skip the welcome instead.
+            true
+        }
+    }
+    var welcomeDismissed by rememberSaveable { mutableStateOf(false) }
+    when (storedWelcomeSeen) {
+        // The splash and the paper window background cover this short read.
+        null -> return
+        false -> if (!welcomeDismissed) {
+            WelcomeScreen(
+                onFinish = {
+                    welcomeDismissed = true
+                    persistence.scope.launch {
+                        val settings = playerDataRepository.playerData.first().settings
+                        playerDataRepository.updateSettings(settings.copy(welcomeSeen = true))
+                    }
+                },
+            )
+            return
+        }
+        true -> Unit
+    }
+
     val levelRefsByGame = catalog
     if (levelRefsByGame == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -269,6 +303,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
         }
         return
     }
+    val goBack: () -> Unit = { navigator.goBack() }
 
     Box(
         modifier = Modifier
@@ -283,7 +318,25 @@ fun WitgridNavigation(navigator: AppNavigator) {
             },
     ) {
         when (val currentDestination = destination) {
-            AppDestination.Home -> HomeScreenRoute(
+            AppDestination.Home -> WitgridScreenFrame(
+                topBar = {
+                    WitgridTopBar(
+                        title = stringResource(R.string.app_name),
+                        showLogo = true,
+                        actions = listOf(
+                            TopBarAction(R.drawable.ic_calendar, stringResource(R.string.action_calendar)) {
+                                navigator.navigate(AppDestination.Calendar)
+                            },
+                            TopBarAction(R.drawable.ic_statistics, stringResource(R.string.action_statistics)) {
+                                navigator.navigate(AppDestination.Statistics)
+                            },
+                            TopBarAction(R.drawable.ic_settings, stringResource(R.string.action_settings)) {
+                                navigator.navigate(AppDestination.Settings)
+                            },
+                        ),
+                    )
+                },
+            ) { HomeScreenRoute(
                 gameIds = GameRegistry.games.map { it.id },
                 levelRefsByGame = levelRefsByGame,
                 progressRepository = progressRepository,
@@ -296,7 +349,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 onOpenCalendar = { navigator.navigate(AppDestination.Calendar) },
                 onOpenStatistics = { navigator.navigate(AppDestination.Statistics) },
                 onOpenSettings = { navigator.navigate(AppDestination.Settings) },
-            )
+            ) }
 
             is AppDestination.Game -> {
                 val module = requireNotNull(GameRegistry.find(currentDestination.gameId))
@@ -305,7 +358,14 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         levelRefsByGame[currentDestination.gameId].orEmpty().filter { it.pack == pack }
                     }
                 }
-                GameScreenRoute(
+                WitgridScreenFrame(
+                    topBar = {
+                        WitgridTopBar(
+                            title = stringResource(gameTitleResource(currentDestination.gameId)),
+                            onBack = goBack,
+                        )
+                    },
+                ) { GameScreenRoute(
                     gameId = currentDestination.gameId,
                     levelRefsByPack = levelRefsByPack,
                     progressRepository = progressRepository,
@@ -334,7 +394,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         }
                     },
                     onHome = navigator::returnHome,
-                )
+                ) }
             }
 
             is AppDestination.Play -> {
@@ -502,7 +562,9 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 },
             )
 
-            AppDestination.Calendar -> CalendarScreenRoute(
+            AppDestination.Calendar -> WitgridScreenFrame(
+                topBar = { WitgridTopBar(title = stringResource(R.string.screen_calendar), onBack = goBack) },
+            ) { CalendarScreenRoute(
                 dailyProgress = dailyProgress,
                 completionRepository = dailyCompletionRepository,
                 gameIds = GameRegistry.games.map { it.id },
@@ -578,15 +640,19 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     }
                 },
                 onHome = navigator::returnHome,
-            )
-            AppDestination.Statistics -> StatisticsScreenRoute(
+            ) }
+            AppDestination.Statistics -> WitgridScreenFrame(
+                topBar = { WitgridTopBar(title = stringResource(R.string.screen_statistics), onBack = goBack) },
+            ) { StatisticsScreenRoute(
                 gameIds = GameRegistry.games.map { it.id },
                 levelRefsByGame = levelRefsByGame,
                 progressRepository = progressRepository,
                 dailyPuzzleCompletionRepository = dailyCompletionRepository,
                 onHome = navigator::returnHome,
-            )
-            AppDestination.Settings -> SettingsScreen(
+            ) }
+            AppDestination.Settings -> WitgridScreenFrame(
+                topBar = { WitgridTopBar(title = stringResource(R.string.screen_settings), onBack = goBack) },
+            ) { SettingsScreen(
                 settings = playerData.settings,
                 reminder = playerData.reminder,
                 reminderActionMessage = reminderActionMessage,
@@ -621,9 +687,17 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     scope.launch { billingService.restorePurchases() }
                 },
                 onHome = navigator::returnHome,
-            )
+            ) }
         }
     }
+}
+
+private fun gameTitleResource(gameId: String): Int = when (gameId) {
+    "crowns" -> R.string.game_crowns
+    "binary" -> R.string.game_binary
+    "nonogram" -> R.string.game_nonogram
+    "minisudoku" -> R.string.game_minisudoku
+    else -> R.string.game_unknown
 }
 
 private data class PlayRestartRequest(val levelRef: LevelRef, val id: Long)

@@ -201,4 +201,20 @@
     <string name="calendar_repair_streak_credit">Repair your streak with a saved credit</string>
     <string name="calendar_repair_streak_premium">Repair your streak with Premium</string>
     <string name="calendar_repair_streak_done">Your streak was repaired.</string>
+    <string name="welcome_skip">Skip</string>
+    <string name="welcome_next">Next</string>
+    <string name="welcome_start">Start playing</string>
+    <string name="welcome_page_position">Page %1$d of %2$d</string>
+    <string name="welcome_offline_title">Logic puzzles. No connection needed.</string>
+    <string name="welcome_offline_body">Every puzzle has one answer that you can reach by logic alone.</string>
+    <string name="welcome_point_offline">Plays with no connection</string>
+    <string name="welcome_point_daily">A new daily puzzle every day</string>
+    <string name="welcome_point_endless">Puzzles that never run out</string>
+    <string name="welcome_hints_title">Stuck? Ask for a hint.</string>
+    <string name="welcome_hints_body">A hint shows the next step and tells you why it is correct. You get one free hint every day.</string>
+    <string name="welcome_ads_title">Ads only between levels.</string>
+    <string name="welcome_ads_body">An ad never interrupts a puzzle. Premium removes the ads.</string>
+    <string name="action_calendar">Calendar</string>
+    <string name="action_statistics">Statistics</string>
+    <string name="action_settings">Settings</string>
 </resources>

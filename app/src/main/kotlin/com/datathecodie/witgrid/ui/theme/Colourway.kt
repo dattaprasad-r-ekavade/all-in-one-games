@@ -17,4 +17,10 @@ object PaperInk {
     const val DARK_INK = 0xEDE9E0
     const val ON_LIGHT_ACCENT = 0xFFFFFF
     const val ON_DARK_ACCENT = 0x000000
+    const val LIGHT_CARD = 0xFFFDF8
+    const val DARK_CARD = 0x151517
+    const val LIGHT_CARD_EDGE = 0xE3DCCD
+    const val DARK_CARD_EDGE = 0x2C2C31
+    const val LIGHT_MUTED_INK = 0x65605A
+    const val DARK_MUTED_INK = 0xA9A59C
 }
