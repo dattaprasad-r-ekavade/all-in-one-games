@@ -4,7 +4,18 @@ data class AppSettings(
     val soundEnabled: Boolean = true,
     val hapticsEnabled: Boolean = true,
     val mistakeLimitEnabled: Boolean = false,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val colourwayId: String = "indigo",
+    val crownsShowRegionAids: Boolean = true,
+    val crownsAutoXEnabled: Boolean = false,
+    val nonogramAutoCrossEnabled: Boolean = false,
 )
+
+enum class ThemeMode(val storageId: String) {
+    SYSTEM("system"),
+    LIGHT("light"),
+    DARK("dark"),
+}
 
 data class ReminderSettings(
     val enabled: Boolean = false,

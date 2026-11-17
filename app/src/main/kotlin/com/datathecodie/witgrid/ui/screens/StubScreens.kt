@@ -92,9 +92,6 @@ fun CalendarScreen(onHome: () -> Unit) = SimpleStubScreen(R.string.screen_calend
 fun StatisticsScreen(onHome: () -> Unit) = SimpleStubScreen(R.string.screen_statistics, onHome)
 
 @Composable
-fun SettingsScreen(onHome: () -> Unit) = SimpleStubScreen(R.string.screen_settings, onHome)
-
-@Composable
 private fun SimpleStubScreen(titleResource: Int, onHome: () -> Unit) {
     ScreenColumn {
         Text(stringResource(titleResource), style = MaterialTheme.typography.headlineMedium)

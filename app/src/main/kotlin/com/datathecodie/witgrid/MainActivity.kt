@@ -11,10 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.datathecodie.witgrid.nav.AppNavigator
 import com.datathecodie.witgrid.nav.WitgridNavigation
+import com.datathecodie.witgrid.data.settings.DataStorePlayerDataRepository
+import com.datathecodie.witgrid.data.settings.PlayerData
+import com.datathecodie.witgrid.data.settings.ThemeMode
+import com.datathecodie.witgrid.ui.theme.Colourway
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,7 +32,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WitgridTheme {
+            val playerDataRepository = remember(this) { DataStorePlayerDataRepository(this) }
+            val playerData by playerDataRepository
+                .playerData.collectAsState(initial = PlayerData())
+            val settings = playerData.settings
+            val colourway = Colourway.entries.firstOrNull { it.id == settings.colourwayId }
+                ?: Colourway.INDIGO
+            val darkTheme = when (settings.themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+            WitgridTheme(colourway = colourway, darkTheme = darkTheme) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

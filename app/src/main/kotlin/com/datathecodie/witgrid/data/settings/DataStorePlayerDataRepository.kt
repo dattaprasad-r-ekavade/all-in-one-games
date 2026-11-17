@@ -8,12 +8,51 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 private const val DATASTORE_NAME = "witgrid_settings"
 
 private val Context.playerDataStore: DataStore<Preferences> by preferencesDataStore(name = DATASTORE_NAME)
+
+private object PlayerSettingsWriteOwner {
+    private data class Write(
+        val persist: suspend () -> Unit,
+        val completion: CompletableDeferred<Unit>,
+    )
+
+    private val writes = Channel<Write>(Channel.UNLIMITED)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    init {
+        scope.launch {
+            for (write in writes) {
+                try {
+                    write.persist()
+                    write.completion.complete(Unit)
+                } catch (cancellationException: CancellationException) {
+                    write.completion.completeExceptionally(cancellationException)
+                    throw cancellationException
+                } catch (exception: Exception) {
+                    write.completion.completeExceptionally(exception)
+                }
+            }
+        }
+    }
+
+    suspend fun submit(persist: suspend () -> Unit) {
+        val completion = CompletableDeferred<Unit>()
+        writes.send(Write(persist, completion))
+        completion.await()
+    }
+}
 
 class DataStorePlayerDataRepository(
     private val dataStore: DataStore<Preferences>,
@@ -27,6 +66,13 @@ class DataStorePlayerDataRepository(
                 soundEnabled = preferences[SOUND_ENABLED] ?: true,
                 hapticsEnabled = preferences[HAPTICS_ENABLED] ?: true,
                 mistakeLimitEnabled = preferences[MISTAKE_LIMIT_ENABLED] ?: false,
+                themeMode = ThemeMode.entries.firstOrNull {
+                    it.storageId == preferences[THEME_MODE]
+                } ?: ThemeMode.SYSTEM,
+                colourwayId = preferences[COLOURWAY_ID] ?: "indigo",
+                crownsShowRegionAids = preferences[CROWNS_SHOW_REGION_AIDS] ?: true,
+                crownsAutoXEnabled = preferences[CROWNS_AUTO_X_ENABLED] ?: false,
+                nonogramAutoCrossEnabled = preferences[NONOGRAM_AUTO_CROSS_ENABLED] ?: false,
             ),
             reminder = ReminderSettings(
                 enabled = preferences[REMINDER_ENABLED] ?: false,
@@ -54,10 +100,17 @@ class DataStorePlayerDataRepository(
     }
 
     override suspend fun updateSettings(settings: AppSettings) {
-        dataStore.edit { preferences ->
-            preferences[SOUND_ENABLED] = settings.soundEnabled
-            preferences[HAPTICS_ENABLED] = settings.hapticsEnabled
-            preferences[MISTAKE_LIMIT_ENABLED] = settings.mistakeLimitEnabled
+        PlayerSettingsWriteOwner.submit {
+            dataStore.edit { preferences ->
+                preferences[SOUND_ENABLED] = settings.soundEnabled
+                preferences[HAPTICS_ENABLED] = settings.hapticsEnabled
+                preferences[MISTAKE_LIMIT_ENABLED] = settings.mistakeLimitEnabled
+                preferences[THEME_MODE] = settings.themeMode.storageId
+                preferences[COLOURWAY_ID] = settings.colourwayId
+                preferences[CROWNS_SHOW_REGION_AIDS] = settings.crownsShowRegionAids
+                preferences[CROWNS_AUTO_X_ENABLED] = settings.crownsAutoXEnabled
+                preferences[NONOGRAM_AUTO_CROSS_ENABLED] = settings.nonogramAutoCrossEnabled
+            }
         }
     }
 
@@ -188,6 +241,11 @@ class DataStorePlayerDataRepository(
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val MISTAKE_LIMIT_ENABLED = booleanPreferencesKey("mistake_limit_enabled")
+        val THEME_MODE = androidx.datastore.preferences.core.stringPreferencesKey("theme_mode")
+        val COLOURWAY_ID = androidx.datastore.preferences.core.stringPreferencesKey("colourway_id")
+        val CROWNS_SHOW_REGION_AIDS = booleanPreferencesKey("crowns_show_region_aids")
+        val CROWNS_AUTO_X_ENABLED = booleanPreferencesKey("crowns_auto_x_enabled")
+        val NONOGRAM_AUTO_CROSS_ENABLED = booleanPreferencesKey("nonogram_auto_cross_enabled")
         val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
         val REMINDER_HOUR_OF_DAY = intPreferencesKey("reminder_hour_of_day")
         val REMINDER_MINUTE = intPreferencesKey("reminder_minute")

@@ -1,14 +1,20 @@
 package com.datathecodie.witgrid.nav
 
+import android.Manifest
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import androidx.activity.BackEventCompat
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.PredictiveBackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -18,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +36,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.datathecodie.witgrid.data.progress.RoomDailyPuzzleCompletionRepository
 import com.datathecodie.witgrid.data.progress.RoomProgressRepository
 import com.datathecodie.witgrid.data.progress.WitgridDatabase
+import com.datathecodie.witgrid.ads.GoogleAdService
+import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.settings.DataStorePlayerDataRepository
 import com.datathecodie.witgrid.data.settings.PlayerData
 import com.datathecodie.witgrid.domain.daily.DailyClock
@@ -41,7 +50,19 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.LevelRef
-import com.datathecodie.witgrid.ui.screens.SettingsScreen
+import com.datathecodie.witgrid.games.binary.BinaryBoardOptions
+import com.datathecodie.witgrid.games.binary.LocalBinaryBoardOptions
+import com.datathecodie.witgrid.games.crowns.CrownsBoardOptions
+import com.datathecodie.witgrid.games.crowns.LocalCrownsBoardOptions
+import com.datathecodie.witgrid.games.minisudoku.LocalMiniSudokuBoardOptions
+import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoardOptions
+import com.datathecodie.witgrid.games.nonogram.LocalNonogramBoardOptions
+import com.datathecodie.witgrid.games.nonogram.NonogramBoardOptions
+import com.datathecodie.witgrid.reminder.AndroidReminderAlarmScheduler
+import com.datathecodie.witgrid.reminder.AndroidReminderPermissionStatus
+import com.datathecodie.witgrid.reminder.ReminderController
+import com.datathecodie.witgrid.reminder.ReminderEnableResult
+import com.datathecodie.witgrid.ui.screens.settings.SettingsScreen
 import com.datathecodie.witgrid.ui.screens.calendar.CalendarScreenRoute
 import com.datathecodie.witgrid.ui.screens.failed.LevelFailedScreen
 import com.datathecodie.witgrid.ui.screens.game.GameScreenRoute
@@ -55,6 +76,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -77,6 +99,30 @@ fun WitgridNavigation(navigator: AppNavigator) {
     val playerDataRepository = remember(applicationContext) {
         DataStorePlayerDataRepository(applicationContext)
     }
+    val reminderController = remember(applicationContext, playerDataRepository) {
+        ReminderController(
+            playerDataRepository = playerDataRepository,
+            permissionStatus = AndroidReminderPermissionStatus(applicationContext),
+            alarmScheduler = AndroidReminderAlarmScheduler(applicationContext),
+        )
+    }
+    val adService = remember(applicationContext) { GoogleAdService(applicationContext) }
+    val consentState by adService.consentState.collectAsState()
+    DisposableEffect(adService) {
+        onDispose { adService.close() }
+    }
+    val activity = LocalActivity.current
+    LaunchedEffect(adService, activity) {
+        if (activity != null) {
+            try {
+                adService.requestConsent(activity)
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                // Consent failures must not block offline puzzle play.
+            }
+        }
+    }
     val config = remember { DefaultConfig }
     val interstitialTracker = remember(playerDataRepository, config) {
         InterstitialTracker(playerDataRepository, config, System::currentTimeMillis)
@@ -94,6 +140,35 @@ fun WitgridNavigation(navigator: AppNavigator) {
     var dailyProgress by remember { mutableStateOf<DailyProgressSnapshot?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    var reminderPermissionPending by rememberSaveable { mutableStateOf(false) }
+    var reminderActionMessage by rememberSaveable { mutableStateOf<Int?>(null) }
+    val reminderPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (reminderPermissionPending) {
+            reminderPermissionPending = false
+            if (!granted) {
+                reminderActionMessage = R.string.settings_reminder_permission_denied
+            } else {
+                reminderActionMessage = null
+                scope.launch {
+                    try {
+                        val settings = playerDataRepository.playerData.first().reminder.copy(enabled = true)
+                        when (reminderController.enable(settings)) {
+                            ReminderEnableResult.Enabled -> reminderActionMessage = null
+                            ReminderEnableResult.NotificationPermissionRequired -> {
+                                reminderActionMessage = R.string.settings_reminder_permission_denied
+                            }
+                        }
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Exception) {
+                        reminderActionMessage = R.string.settings_action_failed
+                    }
+                }
+            }
+        }
+    }
     val currentDailyDay = dailyProgress?.today ?: dailyProgressCoordinator.today()
     val todayCompletionsFlow = remember(dailyCompletionRepository, currentDailyDay.epochDay) {
         dailyCompletionRepository.observeBetween(currentDailyDay.epochDay, currentDailyDay.epochDay)
@@ -218,43 +293,61 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     )
                 }
                 val matchingRestartRequest = restartRequest?.takeIf { it.levelRef == levelRef }
-                PlayScreenRoute(
-                    levelRef = levelRef,
-                    gameModule = module,
-                    bankSource = bankSource,
-                    progressRepository = progressRepository,
-                    persistence = persistence,
-                    allowance = allowance,
-                    restartRequestId = matchingRestartRequest?.id,
-                    onRestartRequestConsumed = { requestId ->
-                        if (restartRequest?.id == requestId) restartRequest = null
-                    },
-                    onRegisterBackAction = { action -> activeBackAction = action },
-                    onSolved = { solved ->
-                        if (solved.levelRef.daily) {
-                            persistence.scope.launch {
-                                dailyProgress = dailyProgressCoordinator.completeDailyPuzzle(
-                                    gameId = solved.levelRef.gameId,
-                                    levelId = solved.levelRef.levelId,
-                                )
-                                interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
-                                if (navigator.destination.value == currentDestination) {
-                                    navigator.goBack()
-                                    navigator.navigate(AppDestination.Result(solved.levelRef))
+                CompositionLocalProvider(
+                    LocalCrownsBoardOptions provides CrownsBoardOptions(
+                        showRegionAids = playerData.settings.crownsShowRegionAids,
+                        autoXEnabled = playerData.settings.crownsAutoXEnabled,
+                        hapticsEnabled = playerData.settings.hapticsEnabled,
+                    ),
+                    LocalBinaryBoardOptions provides BinaryBoardOptions(
+                        hapticsEnabled = playerData.settings.hapticsEnabled,
+                    ),
+                    LocalNonogramBoardOptions provides NonogramBoardOptions(
+                        autoCrossCompletedLines = playerData.settings.nonogramAutoCrossEnabled,
+                        hapticsEnabled = playerData.settings.hapticsEnabled,
+                    ),
+                    LocalMiniSudokuBoardOptions provides MiniSudokuBoardOptions(
+                        hapticsEnabled = playerData.settings.hapticsEnabled,
+                    ),
+                ) {
+                    PlayScreenRoute(
+                        levelRef = levelRef,
+                        gameModule = module,
+                        bankSource = bankSource,
+                        progressRepository = progressRepository,
+                        persistence = persistence,
+                        allowance = allowance,
+                        restartRequestId = matchingRestartRequest?.id,
+                        onRestartRequestConsumed = { requestId ->
+                            if (restartRequest?.id == requestId) restartRequest = null
+                        },
+                        onRegisterBackAction = { action -> activeBackAction = action },
+                        onSolved = { solved ->
+                            if (solved.levelRef.daily) {
+                                persistence.scope.launch {
+                                    dailyProgress = dailyProgressCoordinator.completeDailyPuzzle(
+                                        gameId = solved.levelRef.gameId,
+                                        levelId = solved.levelRef.levelId,
+                                    )
+                                    interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
+                                    if (navigator.destination.value == currentDestination) {
+                                        navigator.goBack()
+                                        navigator.navigate(AppDestination.Result(solved.levelRef))
+                                    }
+                                }
+                            } else {
+                                persistence.scope.launch {
+                                    interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
+                                    if (navigator.destination.value == currentDestination) {
+                                        navigator.goBack()
+                                        navigator.navigate(AppDestination.Result(solved.levelRef))
+                                    }
                                 }
                             }
-                        } else {
-                            persistence.scope.launch {
-                                interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
-                                if (navigator.destination.value == currentDestination) {
-                                    navigator.goBack()
-                                    navigator.navigate(AppDestination.Result(solved.levelRef))
-                                }
-                            }
-                        }
-                    },
-                    onBack = { navigator.goBack() },
-                )
+                        },
+                        onBack = { navigator.goBack() },
+                    )
+                }
             }
 
             is AppDestination.Result -> ResultScreenRoute(
@@ -305,7 +398,36 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 dailyPuzzleCompletionRepository = dailyCompletionRepository,
                 onHome = navigator::returnHome,
             )
-            AppDestination.Settings -> SettingsScreen(onHome = navigator::returnHome)
+            AppDestination.Settings -> SettingsScreen(
+                settings = playerData.settings,
+                reminder = playerData.reminder,
+                reminderActionMessage = reminderActionMessage,
+                privacyOptionsAvailable = consentState.privacyOptionsRequired,
+                onUpdateSettings = playerDataRepository::updateSettings,
+                onEnableReminder = {
+                    reminderActionMessage = null
+                    val settings = playerDataRepository.playerData.first().reminder.copy(enabled = true)
+                    val result = reminderController.enable(settings)
+                    if (result == ReminderEnableResult.NotificationPermissionRequired &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        !reminderPermissionPending
+                    ) {
+                        reminderPermissionPending = true
+                        reminderPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                    result
+                },
+                onDisableReminder = {
+                    reminderController.disable()
+                    reminderActionMessage = null
+                },
+                onUpdateReminderTime = reminderController::updateTime,
+                onShowPrivacyOptions = {
+                    val currentActivity = activity
+                    if (currentActivity != null) adService.showPrivacyOptions(currentActivity)
+                },
+                onHome = navigator::returnHome,
+            )
         }
     }
 }

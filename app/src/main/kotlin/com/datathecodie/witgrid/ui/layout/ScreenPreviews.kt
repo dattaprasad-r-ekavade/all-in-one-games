@@ -20,7 +20,10 @@ import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
 import com.datathecodie.witgrid.ui.screens.CalendarScreen
-import com.datathecodie.witgrid.ui.screens.SettingsScreen
+import com.datathecodie.witgrid.ui.screens.settings.SettingsScreen
+import com.datathecodie.witgrid.data.settings.AppSettings
+import com.datathecodie.witgrid.data.settings.ReminderSettings
+import com.datathecodie.witgrid.reminder.ReminderEnableResult
 import com.datathecodie.witgrid.ui.screens.StatisticsScreen
 import com.datathecodie.witgrid.ui.screens.failed.LevelFailedScreen
 import com.datathecodie.witgrid.ui.screens.game.GameScreen
@@ -111,11 +114,19 @@ private fun StatisticsTabletPreview() = PreviewFrame { StatisticsScreen {} }
 
 @Preview(name = "Settings · 360 dp", group = "A13 phone", widthDp = 360, heightDp = 800, showBackground = true)
 @Composable
-private fun SettingsPhonePreview() = PreviewFrame { SettingsScreen {} }
+private fun SettingsPhonePreview() = PreviewFrame {
+    SettingsScreen(
+        AppSettings(), ReminderSettings(), null, false, {}, { ReminderEnableResult.Enabled }, {}, { _, _ -> }, {}, {},
+    )
+}
 
 @Preview(name = "Settings · 840 dp", group = "A13 tablet", widthDp = 840, heightDp = 1_000, showBackground = true)
 @Composable
-private fun SettingsTabletPreview() = PreviewFrame { SettingsScreen {} }
+private fun SettingsTabletPreview() = PreviewFrame {
+    SettingsScreen(
+        AppSettings(), ReminderSettings(), null, false, {}, { ReminderEnableResult.Enabled }, {}, { _, _ -> }, {}, {},
+    )
+}
 
 @Composable
 private fun SampleGameScreen() {

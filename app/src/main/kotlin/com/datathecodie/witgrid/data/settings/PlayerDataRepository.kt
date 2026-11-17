@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 interface PlayerDataRepository {
     val playerData: Flow<PlayerData>
 
+    /** An accepted settings write must finish even if its screen is disposed or its caller is cancelled. */
     suspend fun updateSettings(settings: AppSettings)
 
     suspend fun updateReminderSettings(settings: ReminderSettings) {

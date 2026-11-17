@@ -4,10 +4,14 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import java.nio.file.Files
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,6 +21,40 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class PlayerDataRepositoryTest {
+    @Test
+    fun acceptedSettingsWriteCompletesAfterCallerIsCancelled() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-cancelled-settings-write")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val dataStoreScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val dataStore = PreferenceDataStoreFactory.create(
+            scope = dataStoreScope,
+            produceFile = { file },
+        )
+        val repository = DataStorePlayerDataRepository(dataStore)
+        val requestedSettings = AppSettings(
+            soundEnabled = false,
+            hapticsEnabled = false,
+            themeMode = ThemeMode.LIGHT,
+            colourwayId = "plum",
+        )
+
+        try {
+            val caller = launch(start = CoroutineStart.UNDISPATCHED) {
+                repository.updateSettings(requestedSettings)
+            }
+            caller.cancelAndJoin()
+
+            val persistedPlayerData = withTimeout(2_000) {
+                repository.playerData.first { it.settings == requestedSettings }
+            }
+            assertEquals(requestedSettings, persistedPlayerData.settings)
+        } finally {
+            dataStoreScope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
+
     @Test
     fun savedPlayerDataSurvivesRepositoryRecreation() = runBlocking {
         val directory = Files.createTempDirectory("witgrid-player-data")
@@ -34,6 +72,11 @@ class PlayerDataRepositoryTest {
                     soundEnabled = false,
                     hapticsEnabled = true,
                     mistakeLimitEnabled = true,
+                    themeMode = ThemeMode.DARK,
+                    colourwayId = "forest",
+                    crownsShowRegionAids = false,
+                    crownsAutoXEnabled = true,
+                    nonogramAutoCrossEnabled = true,
                 ),
             )
             writer.updateStreak(
@@ -70,6 +113,11 @@ class PlayerDataRepositoryTest {
                     soundEnabled = false,
                     hapticsEnabled = true,
                     mistakeLimitEnabled = true,
+                    themeMode = ThemeMode.DARK,
+                    colourwayId = "forest",
+                    crownsShowRegionAids = false,
+                    crownsAutoXEnabled = true,
+                    nonogramAutoCrossEnabled = true,
                 ),
                 streak = StreakData(
                     currentDays = 9,
