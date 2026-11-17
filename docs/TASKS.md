@@ -72,7 +72,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | done |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | done |
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | done |
-| U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | active |
+| U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | done |
 | U9 | Endless level numbers and looping | H | Codex | Claude | U2 | done |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
@@ -541,6 +541,8 @@ Tier M · Build Codex · Review Claude (lead)
 **Do:** Extend the screenshot script to capture every screen (Welcome, Home, Game, the four Play boards, Result, Level failed, Calendar, Statistics, Settings) in light and dark, at font scale 1.0, 1.3 and 2.0, on a small (360 dp) and a large emulator profile. Build one contact sheet for each profile. Update the Play Store capture set to the new UI.
 **Done when:** The lead runs the script and reviews the sheets. This review is required before every closed-test upload.
 **Lead scope extension (18 Nov 2026):** Added `PlayScreenLayout.kt` to repair game-toolbar labels splitting at 360dp and 480dp with system font scale 1.3 or 2.0, found in the screenshot matrix. Keep labels readable and touch targets accessible at every required profile.
+
+**Lead completion note (18 Nov 2026):** Integrated locally as `4cd71dc` from task commit `0195be4`. The complete capture script produced 144 screenshots, two contact sheets and 14 tracked store captures; `gradlew.bat check` passed on the task branch. GPT-6.1-Sol reviewed the final diff and sheets and found no blockers. Contact sheets show initial scroll positions; lower content retains the separate U7 scroll checks. Rebuilt the debug APK locally; no APK was published.
 
 ### U9 — Endless level numbers and looping
 Tier H · Build Codex · Review Claude
