@@ -1,0 +1,9 @@
+// Isolate preview captures from an installed app with a different debug signature.
+gradle.beforeProject { project ->
+    project.pluginManager.withPlugin('com.android.application') {
+        project.extensions.getByName('androidComponents').finalizeDsl { android ->
+            android.defaultConfig.applicationId = 'com.datathecodie.witgrid.u3preview'
+            android.defaultConfig.testApplicationId = 'com.datathecodie.witgrid.u3preview.test'
+        }
+    }
+}

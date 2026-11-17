@@ -1,6 +1,7 @@
 package com.datathecodie.witgrid.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 
 /** A region hue as Compose colour, with its letter and hatch pattern. */
 data class RegionStyle(val color: Color, val letter: Char, val hatch: HatchPattern)
@@ -21,6 +23,7 @@ data class WitgridColors(
     val card: Color,
     val cardEdge: Color,
     val mutedInk: Color,
+    val accentSoft: Color,
     val regions: List<RegionStyle>,
     val isDark: Boolean,
 )
@@ -46,6 +49,7 @@ fun witgridColors(colourway: Colourway, darkTheme: Boolean): WitgridColors {
             card = rgb(PaperInk.DARK_CARD),
             cardEdge = rgb(PaperInk.DARK_CARD_EDGE),
             mutedInk = rgb(PaperInk.DARK_MUTED_INK),
+            accentSoft = rgb(colourway.darkAccent).copy(alpha = 0.18f).compositeOver(Color.Black),
             regions = regions,
             isDark = true,
         )
@@ -58,10 +62,50 @@ fun witgridColors(colourway: Colourway, darkTheme: Boolean): WitgridColors {
             card = rgb(PaperInk.LIGHT_CARD),
             cardEdge = rgb(PaperInk.LIGHT_CARD_EDGE),
             mutedInk = rgb(PaperInk.LIGHT_MUTED_INK),
+            accentSoft = rgb(0xE5E8F5),
             regions = regions,
             isDark = false,
         )
     }
+}
+
+/** Keep default Material controls on the same paper and ink palette as custom components. */
+fun witgridColorScheme(colors: WitgridColors): ColorScheme {
+    val base = if (colors.isDark) darkColorScheme() else lightColorScheme()
+    return base.copy(
+        primary = colors.accent,
+        onPrimary = colors.onAccent,
+        primaryContainer = colors.accentSoft,
+        onPrimaryContainer = colors.ink,
+        inversePrimary = colors.paper,
+        secondary = colors.accent,
+        onSecondary = colors.onAccent,
+        secondaryContainer = colors.accentSoft,
+        onSecondaryContainer = colors.ink,
+        tertiary = colors.accent,
+        onTertiary = colors.onAccent,
+        tertiaryContainer = colors.accentSoft,
+        onTertiaryContainer = colors.ink,
+        background = colors.paper,
+        onBackground = colors.ink,
+        surface = colors.paper,
+        onSurface = colors.ink,
+        surfaceVariant = colors.card,
+        onSurfaceVariant = colors.mutedInk,
+        surfaceTint = colors.accent,
+        surfaceBright = colors.card,
+        surfaceDim = colors.paper,
+        surfaceContainerLowest = colors.paper,
+        surfaceContainerLow = colors.card,
+        surfaceContainer = colors.card,
+        surfaceContainerHigh = colors.card,
+        surfaceContainerHighest = colors.cardEdge,
+        // Material also uses outline for unchecked switch thumbs, which must stay visible.
+        outline = colors.mutedInk,
+        outlineVariant = colors.cardEdge,
+        inverseSurface = colors.ink,
+        inverseOnSurface = colors.paper,
+    )
 }
 
 @Composable
@@ -71,19 +115,7 @@ fun WitgridTheme(
     content: @Composable () -> Unit,
 ) {
     val colors = witgridColors(colourway, darkTheme)
-    val scheme = if (darkTheme) {
-        darkColorScheme(
-            primary = colors.accent, onPrimary = colors.onAccent,
-            background = colors.paper, onBackground = colors.ink,
-            surface = colors.paper, onSurface = colors.ink,
-        )
-    } else {
-        lightColorScheme(
-            primary = colors.accent, onPrimary = colors.onAccent,
-            background = colors.paper, onBackground = colors.ink,
-            surface = colors.paper, onSurface = colors.ink,
-        )
-    }
+    val scheme = witgridColorScheme(colors)
     CompositionLocalProvider(LocalWitgridColors provides colors) {
         MaterialTheme(colorScheme = scheme, typography = WitgridTypography, content = content)
     }

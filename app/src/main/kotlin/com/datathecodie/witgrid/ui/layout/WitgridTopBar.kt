@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.ui.components.IconActionButton
 import com.datathecodie.witgrid.ui.theme.Spacing
 
 /** One action icon in a top bar. */
@@ -81,13 +80,7 @@ fun WitgridTopBar(
 
 @Composable
 private fun TopBarIconButton(action: TopBarAction) {
-    IconButton(onClick = action.onClick, modifier = Modifier.size(Spacing.minTouchTarget)) {
-        Icon(
-            painter = painterResource(action.icon),
-            contentDescription = action.label,
-            modifier = Modifier.size(ICON_SIZE),
-        )
-    }
+    IconActionButton(icon = painterResource(action.icon), label = action.label, onClick = action.onClick)
 }
 
 /** A screen with a top bar and content below it. */
@@ -106,5 +99,4 @@ fun WitgridScreenFrame(
 }
 
 private val TOP_BAR_HEIGHT = 64.dp
-private val ICON_SIZE = 22.dp
 private val LOGO_SIZE = 26.dp
