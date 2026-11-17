@@ -232,6 +232,7 @@ Tier L · Build Claude (Haiku) · Review Claude (Sonnet)
 **Owns:** `docs/reports/bank-hand-test.md`.
 **Do:** Solve 20 puzzles for each of the four games in each of the four packs (320 solves) using the first app build. Record puzzle ID, elapsed time, whether a guess was needed, and any grade or clue issue. Give issue details to the lead for bug-card creation; do not edit `docs/TASKS.md` directly.
 **Done when:** The report has 20 records for every game/pack pair; the lead creates a bug card for every issue found before H1 closes. If no issues were found, record that explicitly.
+**Lead prep note (17 Nov 2026):** The log is prefilled with the first 20 regular bank IDs in app order for each game/pack pair (320 IDs total). H1 remains ready until the human records all solves and any issues.
 
 ---
 

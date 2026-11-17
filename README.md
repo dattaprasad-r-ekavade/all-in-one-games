@@ -97,7 +97,7 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 1. **Complete H0.1, then H4:** finish the verified accounts, public policy URLs, Firebase/AdMob setup, UMP messages, Play product, and licence tester listed in `docs/TASKS.md`. Then run M6's device purchase and restore check.
 2. **Prepare the closed test:** S1's listing and policy drafts are ready; S2's eight screenshots are committed. S3 follows M6 and M7.
-3. **Hand-test the bank:** H1 records 20 puzzles per game/pack in the [test log](docs/reports/bank-hand-test.md); the lead creates bug cards for issues.
+3. **Hand-test the bank:** the [H1 test log](docs/reports/bank-hand-test.md) is prefilled with the first 20 regular bank IDs per game/pack; record all 320 solve times, guess use, and any issues. The lead creates bug cards for issues.
 4. **Continue monetisation setup:** M7 follows H4; Analytics and Crashlytics remain opt-in. H4 also configures Firebase and AdMob.
 
 ## In progress
