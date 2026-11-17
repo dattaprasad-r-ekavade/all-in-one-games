@@ -15,6 +15,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
+import com.datathecodie.witgrid.play.AlwaysAllow
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
@@ -63,6 +64,7 @@ class PlayScreenRouteTest {
                     bankSource = bank,
                     progressRepository = repository,
                     persistence = persistence,
+                    allowance = AlwaysAllow,
                     restartRequestId = null,
                     onRestartRequestConsumed = {},
                     onSolved = { solved.set(true) },

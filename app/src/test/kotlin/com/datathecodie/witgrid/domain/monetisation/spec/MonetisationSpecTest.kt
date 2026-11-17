@@ -348,6 +348,7 @@ class MonetisationSpecTest {
                 rewardBalances = next.rewardBalances,
                 allowanceUsage = next.allowanceUsage,
                 processedRewardGrantIds = next.processedRewardGrantIds,
+                processedContinueTransactionIds = next.processedContinueTransactionIds,
                 levelsSinceLastInterstitial = next.levelsSinceLastInterstitial,
                 lastInterstitialShownEpochMillis = next.lastInterstitialShownEpochMillis,
                 hasStartedAppSession = next.hasStartedAppSession,

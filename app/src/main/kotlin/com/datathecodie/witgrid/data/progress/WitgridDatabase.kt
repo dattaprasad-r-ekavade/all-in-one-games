@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [LevelProgressEntity::class, DailyPuzzleCompletionEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class WitgridDatabase : RoomDatabase() {
@@ -24,11 +24,11 @@ abstract class WitgridDatabase : RoomDatabase() {
             context.applicationContext,
             WitgridDatabase::class.java,
             DATABASE_NAME,
-        ).addMigrations(MIGRATION_1_2).build()
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
     }
 }
 
-private val MIGRATION_1_2 = object : Migration(1, 2) {
+internal val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
             """
@@ -40,5 +40,13 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
             )
             """.trimIndent(),
         )
+    }
+}
+
+internal val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE level_progress ADD COLUMN mistakesMade INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE level_progress ADD COLUMN extraMistakesGranted INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE level_progress ADD COLUMN pendingContinueTransactionId TEXT DEFAULT NULL")
     }
 }

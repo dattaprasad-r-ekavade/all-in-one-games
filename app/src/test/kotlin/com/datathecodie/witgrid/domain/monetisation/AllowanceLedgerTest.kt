@@ -194,6 +194,25 @@ class AllowanceLedgerTest {
     }
 
     @Test
+    fun continueTransactionRetriesDoNotSpendTheSavedCreditTwice() = runBlocking {
+        val repository = FakePlayerDataRepository(
+            PlayerData(
+                rewardBalances = RewardType.entries.associateWith { type ->
+                    if (type == RewardType.EXTRA_LIFE) 1 else 0
+                },
+            ),
+        )
+        val ledger = ledger(repository, AtomicLong(100), isOnline = { true })
+
+        assertTrue(ledger.allowContinue("continue-transaction-1"))
+        assertEquals(0, repository.current.rewardBalances[RewardType.EXTRA_LIFE])
+        assertTrue(ledger.allowContinue("continue-transaction-1"))
+        assertEquals(0, repository.current.rewardBalances[RewardType.EXTRA_LIFE])
+        assertEquals(setOf("continue-transaction-1"), repository.current.processedContinueTransactionIds)
+        assertFalse(ledger.allowContinue("continue-transaction-2"))
+    }
+
+    @Test
     fun concurrentRewardGrantsDoNotOverwriteEachOther() = runBlocking {
         val repository = FakePlayerDataRepository()
         val ledger = ledger(repository, AtomicLong(100), isOnline = { true })
@@ -371,6 +390,7 @@ class AllowanceLedgerTest {
                 rewardBalances = next.rewardBalances,
                 allowanceUsage = next.allowanceUsage,
                 processedRewardGrantIds = next.processedRewardGrantIds,
+                processedContinueTransactionIds = next.processedContinueTransactionIds,
                 levelsSinceLastInterstitial = next.levelsSinceLastInterstitial,
                 lastInterstitialShownEpochMillis = next.lastInterstitialShownEpochMillis,
                 hasStartedAppSession = next.hasStartedAppSession,

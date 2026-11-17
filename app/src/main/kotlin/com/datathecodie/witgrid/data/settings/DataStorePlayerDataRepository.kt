@@ -86,6 +86,7 @@ class DataStorePlayerDataRepository(
             rewardBalances = monetisation.rewardBalances,
             allowanceUsage = monetisation.allowanceUsage,
             processedRewardGrantIds = monetisation.processedRewardGrantIds,
+            processedContinueTransactionIds = monetisation.processedContinueTransactionIds,
             levelsSinceLastInterstitial = monetisation.levelsSinceLastInterstitial,
             lastInterstitialShownEpochMillis = monetisation.lastInterstitialShownEpochMillis,
             hasStartedAppSession = monetisation.hasStartedAppSession,
@@ -237,6 +238,7 @@ class DataStorePlayerDataRepository(
             chargedHintKeys = preferences[CHARGED_HINT_KEYS] ?: emptySet(),
         ),
         processedRewardGrantIds = preferences[PROCESSED_REWARD_GRANT_IDS] ?: emptySet(),
+        processedContinueTransactionIds = preferences[PROCESSED_CONTINUE_TRANSACTION_IDS] ?: emptySet(),
         levelsSinceLastInterstitial = INTERSTITIAL_GAME_IDS.mapNotNull { gameId ->
             preferences[interstitialLevelKey(gameId)]?.let { gameId to it }
         }.toMap(),
@@ -261,6 +263,7 @@ class DataStorePlayerDataRepository(
         preferences[OFFLINE_HINTS_USED_TODAY] = data.allowanceUsage.offlineHintsUsedToday
         preferences[CHARGED_HINT_KEYS] = data.allowanceUsage.chargedHintKeys
         preferences[PROCESSED_REWARD_GRANT_IDS] = data.processedRewardGrantIds
+        preferences[PROCESSED_CONTINUE_TRANSACTION_IDS] = data.processedContinueTransactionIds
         (previouslyTrackedGames + data.levelsSinceLastInterstitial.keys).forEach { gameId ->
             val key = interstitialLevelKey(gameId)
             val count = data.levelsSinceLastInterstitial[gameId] ?: 0
@@ -274,6 +277,9 @@ class DataStorePlayerDataRepository(
     private fun validate(data: MonetisationData) {
         require(data.rewardBalances.values.all { it >= 0 }) { "Reward balances must not be negative" }
         require(data.processedRewardGrantIds.none(String::isBlank)) { "Reward grant IDs must not be blank" }
+        require(data.processedContinueTransactionIds.none(String::isBlank)) {
+            "Continue transaction IDs must not be blank"
+        }
         require(data.allowanceUsage.hintsUsedToday >= 0) { "Hint allowance use must not be negative" }
         require(data.allowanceUsage.offlineHintsUsedToday >= 0) {
             "Offline hint allowance use must not be negative"
@@ -316,6 +322,8 @@ class DataStorePlayerDataRepository(
         val CHARGED_HINT_KEYS = androidx.datastore.preferences.core.stringSetPreferencesKey("charged_hint_keys")
         val PROCESSED_REWARD_GRANT_IDS =
             androidx.datastore.preferences.core.stringSetPreferencesKey("processed_reward_grant_ids")
+        val PROCESSED_CONTINUE_TRANSACTION_IDS =
+            androidx.datastore.preferences.core.stringSetPreferencesKey("processed_continue_transaction_ids")
         val LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS = longPreferencesKey("last_interstitial_shown_epoch_millis")
         val HAS_STARTED_APP_SESSION = booleanPreferencesKey("has_started_app_session")
         val INTERSTITIAL_GAME_IDS = listOf("crowns", "binary", "nonogram", "minisudoku")

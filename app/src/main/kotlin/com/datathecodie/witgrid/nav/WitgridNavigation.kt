@@ -86,6 +86,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.TimeZone
+import java.util.UUID
 
 @Composable
 fun WitgridNavigation(navigator: AppNavigator) {
@@ -217,6 +218,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
     }
     var restartRequest by remember { mutableStateOf<PlayRestartRequest?>(null) }
     var nextRestartRequestId by remember { mutableStateOf(0L) }
+    var continueRequest by remember { mutableStateOf<PlayContinueRequest?>(null) }
     var activeBackAction by remember(destination) {
         mutableStateOf<suspend () -> Unit>({ navigator.goBack() })
     }
@@ -336,6 +338,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     )
                 }
                 val matchingRestartRequest = restartRequest?.takeIf { it.levelRef == levelRef }
+                val matchingContinueRequest = continueRequest?.takeIf { it.levelRef == levelRef }
                 CompositionLocalProvider(
                     LocalCrownsBoardOptions provides CrownsBoardOptions(
                         showRegionAids = playerData.settings.crownsShowRegionAids,
@@ -360,9 +363,17 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         progressRepository = progressRepository,
                         persistence = persistence,
                         allowance = allowance,
+                        mistakeLimitEnabled = playerData.settings.mistakeLimitEnabled,
                         restartRequestId = matchingRestartRequest?.id,
                         onRestartRequestConsumed = { requestId ->
                             if (restartRequest?.id == requestId) restartRequest = null
+                        },
+                        continueRequestId = matchingContinueRequest?.transactionId,
+                        onContinueRequestConsumed = { transactionId ->
+                            if (continueRequest?.transactionId == transactionId) continueRequest = null
+                        },
+                        onConsumeContinueTransaction = { transactionId ->
+                            rewardLedger.allowContinue(transactionId)
                         },
                         onRegisterBackAction = { action -> activeBackAction = action },
                         onSolved = { solved ->
@@ -386,6 +397,11 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                         navigator.navigate(AppDestination.Result(solved.levelRef))
                                     }
                                 }
+                            }
+                        },
+                        onFailed = {
+                            if (navigator.destination.value == currentDestination) {
+                                navigator.navigate(AppDestination.LevelFailed(levelRef))
                             }
                         },
                         onBack = { navigator.goBack() },
@@ -440,14 +456,22 @@ fun WitgridNavigation(navigator: AppNavigator) {
             )
 
             is AppDestination.LevelFailed -> LevelFailedScreen(
-                onContinue = { navigator.navigate(AppDestination.Play(currentDestination.levelRef)) },
+                onContinue = {
+                    continueRequest = PlayContinueRequest(
+                        currentDestination.levelRef,
+                        UUID.randomUUID().toString(),
+                    )
+                    navigator.goBack()
+                },
                 onRestart = {
                     nextRestartRequestId += 1
                     restartRequest = PlayRestartRequest(currentDestination.levelRef, nextRestartRequestId)
-                    navigator.navigate(AppDestination.Play(currentDestination.levelRef))
+                    navigator.goBack()
                 },
                 onHome = navigator::returnHome,
                 premiumEnabled = playerData.premiumEnabled,
+                continueCreditAvailable =
+                    (playerData.rewardBalances[RewardType.EXTRA_LIFE] ?: 0) > 0,
                 onRewardedContinue = {
                     activity?.let { rewardedAdFlow.grantReward(it, RewardType.EXTRA_LIFE) }
                         ?: AdShowResult.Unavailable
@@ -571,6 +595,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
 }
 
 private data class PlayRestartRequest(val levelRef: LevelRef, val id: Long)
+
+private data class PlayContinueRequest(val levelRef: LevelRef, val transactionId: String)
 
 private fun hasValidatedInternet(context: Context): Boolean {
     val connectivityManager = context.getSystemService(ConnectivityManager::class.java) ?: return false

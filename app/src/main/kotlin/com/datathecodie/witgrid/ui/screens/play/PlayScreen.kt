@@ -79,6 +79,11 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     onSolved: (LevelSolvedEvent) -> Unit,
     onBack: () -> Unit,
     onRegisterBackAction: ((suspend () -> Unit) -> Unit) = {},
+    mistakeLimitEnabled: Boolean = false,
+    continueRequestId: String? = null,
+    onContinueRequestConsumed: (String) -> Unit = {},
+    onConsumeContinueTransaction: suspend (String) -> Boolean = { false },
+    onFailed: () -> Unit = {},
 ) {
     val introCoachLineResourceId = levelRef.introCoachLineResourceId
     val introCoachLine = if (introCoachLineResourceId == null) {
@@ -91,23 +96,59 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     var loadFailed by remember(levelRef) { mutableStateOf(false) }
     var saveFailed by remember(levelRef) { mutableStateOf(false) }
     val latestOnSolved by rememberUpdatedState(onSolved)
+    val latestOnFailed by rememberUpdatedState(onFailed)
+    val latestConsumeContinueTransaction by rememberUpdatedState(onConsumeContinueTransaction)
     val scope = persistence.scope
     val interactionMutex = remember(levelRef) { Mutex() }
 
-    LaunchedEffect(levelRef, gameModule, bankSource, progressRepository) {
-        controllerState.value = null
-        loadFailed = false
+    LaunchedEffect(levelRef, gameModule, bankSource, progressRepository, restartRequestId, continueRequestId) {
         try {
+            val existingController = controllerState.value
+            if (existingController != null) {
+                when {
+                    restartRequestId != null -> {
+                        existingController.restart()
+                        existingController.resumeFromBackground()
+                        onRestartRequestConsumed(restartRequestId)
+                    }
+
+                    continueRequestId != null -> {
+                        check(existingController.continueAfterFailure(continueRequestId)) {
+                            "Level is no longer waiting for Continue"
+                        }
+                        finalizePendingContinue(existingController, latestConsumeContinueTransaction)
+                        existingController.resumeFromBackground()
+                        onContinueRequestConsumed(continueRequestId)
+                    }
+
+                    else -> finalizePendingContinue(existingController, latestConsumeContinueTransaction)
+                }
+                return@LaunchedEffect
+            }
+
+            loadFailed = false
             val controller = withContext(Dispatchers.IO) {
                 val level = gameModule.loadLevel(levelRef, bankSource)
-                PlayController.open(gameModule, level, progressRepository).also {
-                    if (restartRequestId != null || it.snapshot.value.solved) it.restart()
+                PlayController.open(
+                    gameModule = gameModule,
+                    level = level,
+                    progressRepository = progressRepository,
+                    mistakeLimitEnabled = mistakeLimitEnabled,
+                ).also { openedController ->
+                    when {
+                        restartRequestId != null || openedController.snapshot.value.solved -> openedController.restart()
+                        continueRequestId != null -> check(openedController.continueAfterFailure(continueRequestId)) {
+                            "Level is no longer waiting for Continue"
+                        }
+                    }
+                    finalizePendingContinue(openedController, latestConsumeContinueTransaction)
                     if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        it.pauseForBackground()
+                        openedController.pauseForBackground()
                     }
                 }
             }
             if (restartRequestId != null) onRestartRequestConsumed(restartRequestId)
+            if (continueRequestId != null) onContinueRequestConsumed(continueRequestId)
             persistence.registerController(controller::pauseForBackground)
             controllerState.value = controller
         } catch (exception: CancellationException) {
@@ -185,6 +226,18 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
             }
         }
         val snapshot by controller.snapshot.collectAsState()
+        LaunchedEffect(controller, snapshot.failed) {
+            if (snapshot.failed) {
+                try {
+                    interactionMutex.withLock { controller.pauseForBackground() }
+                    latestOnFailed()
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    saveFailed = true
+                }
+            }
+        }
         val hintController = remember(controller) {
             HintController(
                 currentMistakes = { controller.snapshot.value.mistakes },
@@ -277,6 +330,11 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 null -> null
             }
         }
+        val visibleStatusMessage = statusMessage ?: if (snapshot.mistakeLimitEnabled) {
+            stringResource(R.string.play_mistake_count, snapshot.mistakesMade, snapshot.mistakesAllowed)
+        } else {
+            null
+        }
         val layout: @Composable (@Composable () -> Unit, @Composable () -> Unit) -> Unit = { board, controls ->
             PlayScreenLayout(
                 levelRef = levelRef,
@@ -285,7 +343,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 canRedo = snapshot.canRedo,
                 saveFailed = saveFailed,
                 introCoachLine = introCoachLine,
-                statusMessage = statusMessage,
+                statusMessage = visibleStatusMessage,
                 hintOperationPending = hintOperationPending,
                 board = board,
                 gameControls = controls,
@@ -296,7 +354,8 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 onBack = leave,
             )
         }
-        CompositionLocalProvider(LocalBoardHighlightCells provides highlightedCells) {
+        val flaggedCells = if (snapshot.mistakeLimitEnabled) snapshot.mistakes.toSet() else emptySet()
+        CompositionLocalProvider(LocalBoardHighlightCells provides (highlightedCells + flaggedCells)) {
             when (val state = snapshot.state) {
                 is MiniSudokuState -> MiniSudokuBoard(state, onMoves, onUndo, layout = layout)
                 is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = layout)
@@ -329,6 +388,20 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
             )
             else -> Unit
         }
+    }
+}
+
+private suspend fun <P : Any, S : Any> finalizePendingContinue(
+    controller: PlayController<P, S>,
+    consumeContinueTransaction: suspend (String) -> Boolean,
+) {
+    val transactionId = controller.snapshot.value.pendingContinueTransactionId ?: return
+    if (!consumeContinueTransaction(transactionId)) {
+        controller.rollbackContinueTransaction(transactionId)
+        error("Continue credit is no longer available")
+    }
+    check(controller.completeContinueTransaction(transactionId)) {
+        "Continue transaction could not be completed"
     }
 }
 

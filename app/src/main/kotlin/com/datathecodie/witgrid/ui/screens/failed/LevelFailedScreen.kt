@@ -24,10 +24,11 @@ import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
 fun LevelFailedScreen(
-    onContinue: () -> Unit,
+    onContinue: suspend () -> Unit,
     onRestart: () -> Unit,
     onHome: () -> Unit,
     premiumEnabled: Boolean = false,
+    continueCreditAvailable: Boolean = false,
     onRewardedContinue: suspend () -> AdShowResult = { AdShowResult.Unavailable },
 ) {
     var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
@@ -43,14 +44,14 @@ fun LevelFailedScreen(
         ) {
             Text(stringResource(R.string.screen_level_failed), style = MaterialTheme.typography.headlineMedium)
             RewardedActionButton(
-                titleResource = if (premiumEnabled) {
-                    R.string.failed_continue_premium
-                } else {
-                    R.string.ads_continue_rewarded
+                titleResource = when {
+                    premiumEnabled -> R.string.failed_continue_premium
+                    continueCreditAvailable -> R.string.failed_continue_credit
+                    else -> R.string.ads_continue_rewarded
                 },
                 successResource = R.string.ads_continue_granted,
                 onReward = {
-                    if (premiumEnabled) {
+                    if (premiumEnabled || continueCreditAvailable) {
                         onContinue()
                         AdShowResult.RewardGranted
                     } else {

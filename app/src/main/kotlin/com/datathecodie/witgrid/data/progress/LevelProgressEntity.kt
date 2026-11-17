@@ -1,5 +1,6 @@
 package com.datathecodie.witgrid.data.progress
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 
 @Entity(
@@ -14,6 +15,12 @@ data class LevelProgressEntity(
     val hintsUsed: Int,
     val completed: Boolean,
     val bestTimeMillis: Long?,
+    @ColumnInfo(defaultValue = "0")
+    val mistakesMade: Int = 0,
+    @ColumnInfo(defaultValue = "0")
+    val extraMistakesGranted: Int = 0,
+    @ColumnInfo(defaultValue = "NULL")
+    val pendingContinueTransactionId: String? = null,
 )
 
 internal fun LevelProgressEntity.toModel(): LevelProgress = LevelProgress(
@@ -24,6 +31,9 @@ internal fun LevelProgressEntity.toModel(): LevelProgress = LevelProgress(
     hintsUsed = hintsUsed,
     completed = completed,
     bestTimeMillis = bestTimeMillis,
+    mistakesMade = mistakesMade,
+    extraMistakesGranted = extraMistakesGranted,
+    pendingContinueTransactionId = pendingContinueTransactionId,
 )
 
 internal fun LevelProgress.toEntity(): LevelProgressEntity = LevelProgressEntity(
@@ -34,4 +44,7 @@ internal fun LevelProgress.toEntity(): LevelProgressEntity = LevelProgressEntity
     hintsUsed = hintsUsed,
     completed = completed,
     bestTimeMillis = bestTimeMillis,
+    mistakesMade = mistakesMade,
+    extraMistakesGranted = extraMistakesGranted,
+    pendingContinueTransactionId = pendingContinueTransactionId,
 )

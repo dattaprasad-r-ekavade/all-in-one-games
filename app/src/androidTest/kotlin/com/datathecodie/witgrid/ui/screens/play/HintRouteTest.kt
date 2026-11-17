@@ -14,6 +14,7 @@ import com.datathecodie.witgrid.data.progress.ProgressRepository
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
+import com.datathecodie.witgrid.play.AlwaysAllow
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -39,7 +40,18 @@ class HintRouteTest {
         val persistence = PlayPersistenceScope(Dispatchers.Main.immediate)
         composeRule.setContent {
             WitgridTheme {
-                PlayScreenRoute(ref, module, bank, repository, persistence, null, {}, {}, {})
+                PlayScreenRoute(
+                    levelRef = ref,
+                    gameModule = module,
+                    bankSource = bank,
+                    progressRepository = repository,
+                    persistence = persistence,
+                    allowance = AlwaysAllow,
+                    restartRequestId = null,
+                    onRestartRequestConsumed = {},
+                    onSolved = {},
+                    onBack = {},
+                )
             }
         }
         composeRule.waitUntil(10_000) {

@@ -8,4 +8,7 @@ data class LevelProgress(
     val hintsUsed: Int,
     val completed: Boolean,
     val bestTimeMillis: Long?,
+    val mistakesMade: Int = 0,
+    val extraMistakesGranted: Int = 0,
+    val pendingContinueTransactionId: String? = null,
 )

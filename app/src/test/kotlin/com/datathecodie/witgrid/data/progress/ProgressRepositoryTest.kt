@@ -29,6 +29,9 @@ class ProgressRepositoryTest {
                 hintsUsed = 2,
                 completed = true,
                 bestTimeMillis = 39_500,
+                mistakesMade = 3,
+                extraMistakesGranted = 2,
+                pendingContinueTransactionId = "continue-1",
             )
             RoomProgressRepository(database.levelProgressDao()).saveLevelProgress(saved)
 
@@ -43,6 +46,9 @@ class ProgressRepositoryTest {
             assertEquals(saved.hintsUsed, restored.hintsUsed)
             assertEquals(saved.completed, restored.completed)
             assertEquals(saved.bestTimeMillis, restored.bestTimeMillis)
+            assertEquals(saved.mistakesMade, restored.mistakesMade)
+            assertEquals(saved.extraMistakesGranted, restored.extraMistakesGranted)
+            assertEquals(saved.pendingContinueTransactionId, restored.pendingContinueTransactionId)
         } finally {
             database.close()
         }

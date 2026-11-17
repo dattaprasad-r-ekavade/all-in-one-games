@@ -80,6 +80,35 @@ class AllowanceLedger(
         current.premiumEnabled
     }
 
+    /** Consumes at most one Continue credit for [transactionId], safely across retries. */
+    suspend fun allowContinue(transactionId: String): Boolean {
+        require(transactionId.isNotBlank()) { "Continue transaction ID must not be blank" }
+        var allowed = false
+        playerDataRepository.updateMonetisationData { current ->
+            val processedIds = current.processedContinueTransactionIds
+            if (transactionId in processedIds) {
+                allowed = true
+                current
+            } else {
+                val balance = current.rewardBalances[RewardType.EXTRA_LIFE] ?: 0
+                allowed = current.premiumEnabled || balance > 0
+                if (!allowed) {
+                    current
+                } else {
+                    current.copy(
+                        rewardBalances = if (current.premiumEnabled) {
+                            current.rewardBalances
+                        } else {
+                            current.rewardBalances + (RewardType.EXTRA_LIFE to balance - 1)
+                        },
+                        processedContinueTransactionIds = processedIds + transactionId,
+                    )
+                }
+            }
+        }
+        return allowed
+    }
+
     /**
      * [repairableMiss] must come from a freshly reconciled daily-progress snapshot. The stored
      * miss and deadline are checked again in the allowance transaction before a reward is spent.

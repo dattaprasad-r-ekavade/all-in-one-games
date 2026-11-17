@@ -43,6 +43,7 @@
     <string name="screen_play">Play</string>
     <string name="screen_result">Result</string>
     <string name="screen_level_failed">Level failed</string>
+    <string name="play_mistake_count">Mistakes: %1$d of %2$d</string>
     <string name="screen_calendar">Calendar</string>
     <string name="screen_statistics">Statistics</string>
     <string name="stats_solved_levels">Regular levels solved: %1$d</string>
@@ -180,6 +181,7 @@
     <string name="ads_continue_rewarded">Watch an ad to continue with one extra mistake</string>
     <string name="ads_continue_granted">Continue is ready.</string>
     <string name="failed_continue_premium">Continue with Premium and one extra mistake</string>
+    <string name="failed_continue_credit">Continue with a saved credit and one extra mistake</string>
     <string name="calendar_repair_streak_watch_ad">Watch an ad to repair your streak</string>
     <string name="calendar_repair_streak_credit">Repair your streak with a saved credit</string>
     <string name="calendar_repair_streak_premium">Repair your streak with Premium</string>

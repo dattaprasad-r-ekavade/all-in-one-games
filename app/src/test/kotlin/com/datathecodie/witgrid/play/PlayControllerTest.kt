@@ -11,9 +11,12 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 import com.datathecodie.witgrid.engine.core.Technique
+import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuEngine
+import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuPuzzle
 import com.datathecodie.witgrid.games.EngineGameModule
 import com.datathecodie.witgrid.games.GameLevel
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -293,6 +296,201 @@ class PlayControllerTest {
     }
 
     @Test
+    fun changingWrongDigitCountsAgainButNoOpAndNotesDoNot() = runBlocking {
+        val puzzle = MiniSudokuPuzzle(
+            id = "mistake-test",
+            givens = List(36) { null },
+            solution = List(36) { index ->
+                val row = index / 6
+                val column = index % 6
+                (row * 3 + row / 2 + column) % 6 + 1
+            },
+            pack = Pack.EASY,
+            storedGrade = "easy",
+        )
+        val level = GameLevel(
+            ref = LevelRef(MiniSudokuEngine.id, "mistake-test-easy", Pack.EASY),
+            size = 6,
+            puzzle = puzzle,
+        )
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(
+            gameModule = MiniSudokuGameModule,
+            level = level,
+            progressRepository = repository,
+            clock = FakeClock(10_000),
+            mistakeLimitEnabled = true,
+        )
+
+        controller.applyMove(Move.SetDigit(Cell(0), 2))
+        controller.applyMove(Move.SetNotes(Cell(1), 1))
+        controller.applyMove(Move.SetDigit(Cell(0), 3))
+        controller.applyMove(Move.SetDigit(Cell(0), 3))
+
+        assertEquals(2, controller.snapshot.value.mistakesMade)
+        assertEquals(2, repository.lastSaved().mistakesMade)
+        assertEquals(setOf(Cell(0)), controller.snapshot.value.mistakes.toSet())
+    }
+
+    @Test
+    fun gestureStopsAtFailureThresholdSoContinueAddsAUsableMistake() = runBlocking {
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(
+            gameModule = testModule,
+            level = fourCellTestLevel,
+            progressRepository = repository,
+            clock = FakeClock(10_000),
+            mistakeLimitEnabled = true,
+        )
+
+        controller.applyGesture(List(4) { index -> Move.SetMark(Cell(index), Mark.CROSSED) })
+        assertEquals(3, controller.snapshot.value.mistakesMade)
+        assertEquals(Mark.EMPTY, controller.snapshot.value.state.marks[3])
+
+        assertTrue(controller.continueAfterFailure("continue-transaction-1"))
+        assertFalse(controller.applyMove(Move.SetMark(Cell(3), Mark.CROSSED)))
+        assertTrue(controller.completeContinueTransaction("continue-transaction-1"))
+        assertTrue(controller.applyMove(Move.SetMark(Cell(3), Mark.CROSSED)))
+        assertEquals(4, controller.snapshot.value.mistakesMade)
+        assertTrue(controller.snapshot.value.failed)
+    }
+
+    @Test
+    fun enabledMistakeLimitFailsAtThreeAndLocksTheBoard() = runBlocking {
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(
+            gameModule = testModule,
+            level = fourCellTestLevel,
+            progressRepository = repository,
+            clock = FakeClock(10_000),
+            mistakeLimitEnabled = true,
+        )
+
+        assertTrue(
+            controller.applyGesture(
+                List(4) { index -> Move.SetMark(Cell(index), Mark.CROSSED) },
+            ),
+        )
+
+        assertEquals(3, controller.snapshot.value.mistakesMade)
+        assertEquals(3, controller.snapshot.value.mistakesAllowed)
+        assertTrue(controller.snapshot.value.failed)
+        assertEquals(3, controller.snapshot.value.mistakes.size)
+        assertEquals(List(3) { Mark.CROSSED } + Mark.EMPTY, controller.snapshot.value.state.marks)
+        assertFalse(controller.applyMove(Move.SetMark(Cell(3), Mark.CROSSED)))
+        assertEquals(3, controller.snapshot.value.mistakesMade)
+        assertEquals(3, repository.lastSaved().mistakesMade)
+    }
+
+    @Test
+    fun continuingPreservesBoardAndAllowanceAcrossReopen() = runBlocking {
+        val repository = FakeProgressRepository()
+        val clock = FakeClock(10_000)
+        val controller = PlayController.open(
+            gameModule = testModule,
+            level = fourCellTestLevel,
+            progressRepository = repository,
+            clock = clock,
+            mistakeLimitEnabled = true,
+        )
+        repeat(3) { index -> controller.applyMove(Move.SetMark(Cell(index), Mark.CROSSED)) }
+        val failedBoard = controller.snapshot.value.state
+        clock.advance(1_000)
+        controller.refreshTimer()
+        assertEquals(0, controller.snapshot.value.elapsedTimeMillis)
+
+        assertTrue(controller.continueAfterFailure("continue-transaction-1"))
+        assertEquals("continue-transaction-1", repository.lastSaved().pendingContinueTransactionId)
+        assertEquals(failedBoard, controller.snapshot.value.state)
+        assertEquals(3, controller.snapshot.value.mistakesMade)
+        assertEquals(4, controller.snapshot.value.mistakesAllowed)
+        assertFalse(controller.snapshot.value.failed)
+        assertEquals(1, repository.lastSaved().extraMistakesGranted)
+        clock.advance(200)
+        controller.refreshTimer()
+        assertEquals(200, controller.snapshot.value.elapsedTimeMillis)
+
+        val reopened = PlayController.open(
+            gameModule = testModule,
+            level = fourCellTestLevel,
+            progressRepository = repository,
+            clock = FakeClock(20_000),
+            mistakeLimitEnabled = true,
+        )
+        assertEquals(failedBoard, reopened.snapshot.value.state)
+        assertEquals(3, reopened.snapshot.value.mistakesMade)
+        assertFalse(reopened.snapshot.value.failed)
+        assertEquals("continue-transaction-1", reopened.snapshot.value.pendingContinueTransactionId)
+        assertTrue(reopened.continueAfterFailure("continue-transaction-1"))
+        assertEquals(4, reopened.snapshot.value.mistakesAllowed)
+        assertTrue(reopened.completeContinueTransaction("continue-transaction-1"))
+        assertNull(reopened.snapshot.value.pendingContinueTransactionId)
+
+        assertTrue(reopened.applyMove(Move.SetMark(Cell(3), Mark.CROSSED)))
+        assertTrue(reopened.snapshot.value.failed)
+        assertEquals(4, reopened.snapshot.value.mistakesMade)
+        assertTrue(reopened.continueAfterFailure("continue-transaction-2"))
+        assertEquals(5, reopened.snapshot.value.mistakesAllowed)
+        assertFalse(reopened.snapshot.value.failed)
+    }
+
+    @Test
+    fun disabledMistakeLimitDoesNotFailAndRestartClearsMistakesAndContinues() = runBlocking {
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(
+            gameModule = testModule,
+            level = fourCellTestLevel,
+            progressRepository = repository,
+            clock = FakeClock(10_000),
+        )
+        repeat(3) { index -> controller.applyMove(Move.SetMark(Cell(index), Mark.CROSSED)) }
+
+        assertFalse(controller.snapshot.value.failed)
+        assertEquals(3, controller.snapshot.value.mistakesMade)
+
+        val enabledController = PlayController.open(
+            gameModule = testModule,
+            level = fourCellTestLevel,
+            progressRepository = repository,
+            clock = FakeClock(20_000),
+            mistakeLimitEnabled = true,
+        )
+        assertTrue(enabledController.snapshot.value.failed)
+        assertTrue(enabledController.continueAfterFailure("continue-transaction-1"))
+        enabledController.restart()
+
+        assertEquals(0, enabledController.snapshot.value.mistakesMade)
+        assertEquals(3, enabledController.snapshot.value.mistakesAllowed)
+        assertFalse(enabledController.snapshot.value.failed)
+        assertEquals(0, repository.lastSaved().mistakesMade)
+        assertEquals(0, repository.lastSaved().extraMistakesGranted)
+        assertNull(repository.lastSaved().pendingContinueTransactionId)
+    }
+
+    @Test
+    fun restartingFailedAttemptRestartsTheTimerAfterResettingTheMistakeLimit() = runBlocking {
+        val clock = FakeClock(10_000)
+        val controller = PlayController.open(
+            gameModule = testModule,
+            level = fourCellTestLevel,
+            progressRepository = FakeProgressRepository(),
+            clock = clock,
+            mistakeLimitEnabled = true,
+        )
+        repeat(3) { index -> controller.applyMove(Move.SetMark(Cell(index), Mark.CROSSED)) }
+        clock.advance(1_000)
+        assertTrue(controller.snapshot.value.failed)
+
+        controller.restart()
+        clock.advance(150)
+        controller.refreshTimer()
+
+        assertFalse(controller.snapshot.value.failed)
+        assertEquals(0, controller.snapshot.value.mistakesMade)
+        assertEquals(150, controller.snapshot.value.elapsedTimeMillis)
+    }
+
+    @Test
     fun solvedBoardStopsTheTimer() = runBlocking {
         val clock = FakeClock(10_000)
         val controller = PlayController.open(testModule, testLevel, FakeProgressRepository(), clock)
@@ -548,6 +746,11 @@ class PlayControllerTest {
             ref = LevelRef(TestEngine.id, "test-easy-001", Pack.EASY),
             size = 2,
             puzzle = TestPuzzle(List(2) { Mark.FILLED }),
+        )
+        val fourCellTestLevel = GameLevel(
+            ref = LevelRef(TestEngine.id, "test-easy-004", Pack.EASY),
+            size = 4,
+            puzzle = TestPuzzle(List(4) { Mark.FILLED }),
         )
     }
 }
