@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 77 %** (49 of 64 task cards done; 3 ready; 1 active)
+**Overall: about 78 %** (50 of 64 task cards done; 4 ready; 0 active)
 
 ```
-[###############################---------]  77 %
+[###############################---------]  78 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -24,11 +24,11 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 0 — Setup | 5 | 4 | 1 | 0 | 0 | 0 | 80 % |
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
-| 3 - Retention | 6 | 3 | 0 | 1 | 0 | 0 | 50 % |
+| 3 - Retention | 6 | 4 | 1 | 0 | 0 | 0 | 67 % |
 | 4 — Monetisation and data | 8 | 3 | 0 | 0 | 0 | 0 | 38 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **49** | **3** | **1** | **0** | **0** | **77 %** |
+| **Total** | **64** | **50** | **4** | **0** | **0** | **0** | **78 %** |
 
 ## Done
 
@@ -83,19 +83,20 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | M1 | Plain Kotlin monetisation config and policy, atomic DataStore allowances/rewards/interstitial tracking, unchanged-hint deduplication, stable reward grant IDs, and eligible streak-repair checks. App tests and full `check` pass; GPT-6.1-Sol review found no blockers. |
 | M2 | Independent policy tests cover interstitial gates and boundaries, daily/shared/offline hints, checks, continues, Premium, repair eligibility, and persistent reward-grant idempotency. App tests and full `check` pass; GPT-6.1-Sol review found no blockers. |
 | M3 | UMP consent flow and privacy-options API, network-aware interstitial/rewarded preloads with one-hour expiry, testable fake, and Google public test IDs only. Full `check` passes; GPT-6.1-Sol review found no blockers. Device ad rendering is checked with M4 placements. |
+| R4 | Reminder settings persist disabled-by-default local hour/minute values. Inexact daily alarms and localized notifications recover after delivery, reboot, clock/time-zone change, and app update. API 33 permission gating and spring-forward scheduling are tested; full `check` passes and GPT-6.1-Sol review found no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## Next steps
 
-1. **Complete R4:** optional local reminder notifications.
+1. **Start R5:** settings screen, reminder permission prompt, privacy options, and app preferences.
 2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
 3. **Complete human setup:** H0.1 covers accounts, legal setup and the website. These details do not block app coding.
-4. **Continue the monetisation flow:** finish R5 after R4, then M4 wires ad placements and verifies a test ad on device.
+4. **Continue the monetisation flow:** after R5, M4 wires ad placements and verifies a test ad on device.
 
 ## In progress
 
-| R4 | Reminder notification | Codex |
+No build card is active. R5 is ready to start.
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 

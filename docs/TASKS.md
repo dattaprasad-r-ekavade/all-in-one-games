@@ -51,8 +51,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R1 | Daily, streak and freeze logic | M | Codex | Claude | A2 | done |
 | R2 | Daily UI and calendar screen | M | Claude | Codex | R1, A9 | done |
 | R3 | Statistics screen | L | Claude | Codex | A2, A9, R2 | done |
-| R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | active |
-| R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | todo |
+| R4 | Reminder notification | L | Codex | Claude | A3, R3, M3 | done |
+| R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | ready |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
@@ -344,14 +344,14 @@ Plan: 9 (Statistics).
 Tier L · Build Codex (`gpt-6-luna`) · Review Claude
 Plan: 5 (one optional reminder).
 **Owns:** `app/…/reminder/**`, `app/src/main/AndroidManifest.xml`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
-**Do:** Off by default. Player selects the time. Persist the enabled state and local reminder time through PlayerData. Ask notification permission (API 33+) only when the player turns it on.
+**Do:** Off by default. Persist the enabled state and local hour/minute through PlayerData. `ReminderController.enable` reports when API-33+ notification permission is required; R5 requests permission only from the player's explicit enable action and retries after a grant. The receiver schedules the next local occurrence after delivery and restores it after reboot, clock/time-zone change, and app update.
 **Done when:** `./gradlew check` passes.
 
 ### R5 — Settings screen
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Settings).
-**Owns:** `app/…/ui/screens/settings/**`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
-**Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences. Add a privacy-options entry that calls the consent options exposed by M3.
+**Owns:** `app/…/ui/screens/settings/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/StubScreens.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/layout/ScreenPreviews.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
+**Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences. Add a privacy-options entry that calls the consent options exposed by M3. Wire reminders through `ReminderController`; request API-33+ notification permission only from the explicit reminder-enable action and retry after a grant. Do not prompt at app startup.
 **Done when:** `./gradlew check` passes.
 
 ### R6 — Accessibility pass
