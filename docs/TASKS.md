@@ -73,7 +73,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | todo |
-| U9 | Endless level numbers and looping | H | Codex | Claude | U2 | active |
+| U9 | Endless level numbers and looping | H | Codex | Claude | U2 | done |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
@@ -537,6 +537,7 @@ Plan: 2 ("Level count"), 4 (principle 7), 7.5 ("Endless levels").
 **Do:** Give each non-daily attempt a player-facing level number N that only goes up for each game and pack. Level N plays bank puzzle `(N − 1) mod packSize`. "Next" after the last bank puzzle goes to level N + 1, which plays bank puzzle 0 again from an empty board; `nextResultLevel` never returns null for a non-daily level. Persist attempt identity separately from bank puzzle identity so a later loop never restores the earlier solved board. Keep best time per bank puzzle. Existing saves keep working (a player on bank puzzle k is on level k + 1). Home and Game view models and screens show the next level number for each game and pack, not completed/total counts, percentages or progress bars; U6 can then restyle those screens without changing the level model.
 **Done when:** `./gradlew check` passes. Unit tests cover the level-to-bank mapping, wrap from the last puzzle to the first, level numbers above the pack size, fresh state for repeated bank puzzles, and existing progress.
 **Lead scope clarification (17 Nov 2026):** Added the play controller, Home/Game composables and preview, and level strings because attempt identity and the replacement level labels cross those files. The Home/Game screens must show the next "Level N · Pack" and remove level totals; U6 can then restyle those screens on top of the new level model. A repeated bank puzzle must start as a new attempt while the best time remains keyed to the bank puzzle.
+**Lead completion note (17 Nov 2026):** Integrated locally as `450af76`. `check` passed, including 199 app unit tests, lint, and validation of 3,864 puzzles across 24 bank files. GPT-6.1-Sol reviewed the complete diff and approved with no blockers. The guided Easy intro stays unnumbered and outside regular bank progression; its Next action opens regular Level 1.
 
 ## Phase 5 — Closed test
 
