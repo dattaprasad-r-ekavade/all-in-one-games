@@ -67,7 +67,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U0 | Hotfix: invisible text in dark mode | M | Claude (lead) | — | — | done |
 | U1 | Visual design target and approval | H | Claude (lead) | Human | U0 | done |
 | U2 | App shell: top bar, back, splash, first-run welcome | H | Claude (lead) | Codex | U1 | done |
-| U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | active |
+| U3 | Shared components and tokens | H | Codex | Claude (lead screenshots) | U2 | done |
 | U4 | Play screen layout and board fit | H | Codex | Claude (lead screenshots) | U3 | todo |
 | U5 | Board looks for each game | M | Codex | Claude (lead screenshots) | U4 | todo |
 | U6 | Home and Game screens | M | Codex | Claude (lead screenshots) | U3, U9 | todo |
@@ -494,6 +494,7 @@ Plan: 4, 4.1. Design: `docs/design/`.
 - A `@Preview` for each component in light and dark.
 - No progress bar component (endless rule).
 **Done when:** `./gradlew check` passes. A preview screenshot sheet of all components in light and dark matches the mockup style.
+**Lead completion note (17 Nov 2026):** U3 merged locally as `ba5a159`. The full `check` gate passed from the lead PowerShell workspace, validating 3,864 puzzles in 24 bank files. Two palette unit tests, three emulator component tests, lint, and lead screenshot review passed at font scales 1.0, 1.3, and 2.0 in both themes.
 
 ### U4 — Play screen layout and board fit
 Tier H · Build Codex · Review Claude (lead screenshots)
@@ -532,9 +533,10 @@ Tier M · Build Codex · Review Claude (lead)
 ### U9 — Endless level numbers and looping
 Tier H · Build Codex · Review Claude
 Plan: 2 ("Level count"), 4 (principle 7), 7.5 ("Endless levels").
-**Owns:** `games/GameModule.kt` (`LevelRef`), `data/progress/**` (with a Room migration if the schema changes), `ui/screens/result/ResultNavigation.kt`, `ui/screens/home/HomeViewModel.kt`, `ui/screens/game/GameViewModel.kt`, and their tests.
-**Do:** Give each non-daily level a player-facing level number N that only goes up for each game and pack. Level N plays bank puzzle `(N − 1) mod packSize`. "Next" after the last bank puzzle goes to level N + 1, which plays bank puzzle 0 again from an empty board; `nextResultLevel` never returns null for a non-daily level. The Home and Game view models expose the next level number for each game and pack, not completed/total counts. Best time stays per bank puzzle. Existing saves keep working (a player on bank puzzle k is on level k + 1).
-**Done when:** `./gradlew check` passes. Unit tests cover the level-to-bank mapping, the wrap from the last puzzle to the first, level numbers above the pack size, and existing progress.
+**Owns:** `games/GameModule.kt` (`LevelRef`), `play/PlayController.kt`, `data/progress/**` (with a Room migration if the schema changes), `ui/screens/result/ResultNavigation.kt`, `ui/screens/home/HomeViewModel.kt`, `ui/screens/home/HomeScreen.kt`, `ui/screens/game/GameViewModel.kt`, `ui/screens/game/GameScreen.kt`, `ui/layout/ScreenPreviews.kt`, `res/values/strings.xml` (level labels only), and their tests.
+**Do:** Give each non-daily attempt a player-facing level number N that only goes up for each game and pack. Level N plays bank puzzle `(N − 1) mod packSize`. "Next" after the last bank puzzle goes to level N + 1, which plays bank puzzle 0 again from an empty board; `nextResultLevel` never returns null for a non-daily level. Persist attempt identity separately from bank puzzle identity so a later loop never restores the earlier solved board. Keep best time per bank puzzle. Existing saves keep working (a player on bank puzzle k is on level k + 1). Home and Game view models and screens show the next level number for each game and pack, not completed/total counts, percentages or progress bars; U6 can then restyle those screens without changing the level model.
+**Done when:** `./gradlew check` passes. Unit tests cover the level-to-bank mapping, wrap from the last puzzle to the first, level numbers above the pack size, fresh state for repeated bank puzzles, and existing progress.
+**Lead scope clarification (17 Nov 2026):** Added the play controller, Home/Game composables and preview, and level strings because attempt identity and the replacement level labels cross those files. The Home/Game screens must show the next "Level N · Pack" and remove level totals; U6 can then restyle those screens on top of the new level model. A repeated bank puzzle must start as a new attempt while the best time remains keyed to the bank puzzle.
 
 ## Phase 5 — Closed test
 
