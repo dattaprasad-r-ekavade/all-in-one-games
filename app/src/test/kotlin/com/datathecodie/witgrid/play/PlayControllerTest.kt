@@ -122,6 +122,21 @@ class PlayControllerTest {
     }
 
     @Test
+    fun applyingARevealedHintDoesNotChargeUsageTwice() = runBlocking {
+        val repository = FakeProgressRepository()
+        val controller = PlayController.open(testModule, testLevel, repository, FakeClock(50))
+        val hint = requireNotNull(controller.nextHint())
+        val boardKeyBeforeHint = controller.currentBoardFingerprint()
+
+        controller.recordHintUse("revealed-hint")
+        assertTrue(controller.applyRevealedHint(hint))
+
+        assertEquals(1, controller.snapshot.value.hintsUsed)
+        assertTrue(boardKeyBeforeHint != controller.currentBoardFingerprint())
+        assertTrue(controller.snapshot.value.canUndo)
+    }
+
+    @Test
     fun reopeningRestoresProgressButStartsWithEmptyUndoHistory() = runBlocking {
         val repository = FakeProgressRepository()
         val savedState = testModule.newState(testLevel)
@@ -318,7 +333,7 @@ class PlayControllerTest {
         val repository = FakeProgressRepository()
         val controller = PlayController.open(testModule, testLevel, repository, FakeClock(50))
 
-        controller.recordHintUse()
+        controller.recordHintUse("test-hint")
 
         assertEquals(1, controller.snapshot.value.hintsUsed)
         assertEquals(1, repository.lastSaved().hintsUsed)

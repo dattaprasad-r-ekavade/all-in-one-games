@@ -1,5 +1,8 @@
 package com.datathecodie.witgrid.nav
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.activity.BackEventCompat
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.foundation.layout.Box
@@ -31,6 +34,9 @@ import com.datathecodie.witgrid.data.settings.PlayerData
 import com.datathecodie.witgrid.domain.daily.DailyClock
 import com.datathecodie.witgrid.domain.daily.DailyProgressCoordinator
 import com.datathecodie.witgrid.domain.daily.DailyProgressSnapshot
+import com.datathecodie.witgrid.domain.config.DefaultConfig
+import com.datathecodie.witgrid.domain.monetisation.AllowanceLedger
+import com.datathecodie.witgrid.domain.monetisation.InterstitialTracker
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameRegistry
@@ -70,6 +76,10 @@ fun WitgridNavigation(navigator: AppNavigator) {
     }
     val playerDataRepository = remember(applicationContext) {
         DataStorePlayerDataRepository(applicationContext)
+    }
+    val config = remember { DefaultConfig }
+    val interstitialTracker = remember(playerDataRepository, config) {
+        InterstitialTracker(playerDataRepository, config, System::currentTimeMillis)
     }
     val playerData by playerDataRepository.playerData.collectAsState(initial = PlayerData())
     val dailyClock = remember { DailyClock { System.currentTimeMillis() } }
@@ -192,6 +202,21 @@ fun WitgridNavigation(navigator: AppNavigator) {
             is AppDestination.Play -> {
                 val levelRef = currentDestination.levelRef
                 val module = requireNotNull(GameRegistry.find(levelRef.gameId))
+                val allowance = remember(
+                    levelRef,
+                    playerDataRepository,
+                    dailyProgressCoordinator,
+                    config,
+                    applicationContext,
+                ) {
+                    AllowanceLedger(
+                        playerDataRepository = playerDataRepository,
+                        config = config,
+                        localEpochDay = { dailyProgressCoordinator.today().epochDay },
+                        isOnline = { hasValidatedInternet(applicationContext) },
+                        freeChecksInEasyPack = levelRef.pack == Pack.EASY,
+                    )
+                }
                 val matchingRestartRequest = restartRequest?.takeIf { it.levelRef == levelRef }
                 PlayScreenRoute(
                     levelRef = levelRef,
@@ -199,6 +224,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     bankSource = bankSource,
                     progressRepository = progressRepository,
                     persistence = persistence,
+                    allowance = allowance,
                     restartRequestId = matchingRestartRequest?.id,
                     onRestartRequestConsumed = { requestId ->
                         if (restartRequest?.id == requestId) restartRequest = null
@@ -211,14 +237,20 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                     gameId = solved.levelRef.gameId,
                                     levelId = solved.levelRef.levelId,
                                 )
+                                interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
                                 if (navigator.destination.value == currentDestination) {
                                     navigator.goBack()
                                     navigator.navigate(AppDestination.Result(solved.levelRef))
                                 }
                             }
-                        } else if (navigator.destination.value == currentDestination) {
-                            navigator.goBack()
-                            navigator.navigate(AppDestination.Result(solved.levelRef))
+                        } else {
+                            persistence.scope.launch {
+                                interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
+                                if (navigator.destination.value == currentDestination) {
+                                    navigator.goBack()
+                                    navigator.navigate(AppDestination.Result(solved.levelRef))
+                                }
+                            }
                         }
                     },
                     onBack = { navigator.goBack() },
@@ -279,6 +311,14 @@ fun WitgridNavigation(navigator: AppNavigator) {
 }
 
 private data class PlayRestartRequest(val levelRef: LevelRef, val id: Long)
+
+private fun hasValidatedInternet(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(ConnectivityManager::class.java) ?: return false
+    val network = connectivityManager.activeNetwork ?: return false
+    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+}
 
 private const val BACK_TRANSLATION_FRACTION = 0.08f
 private const val BACK_SCALE_FRACTION = 0.04f

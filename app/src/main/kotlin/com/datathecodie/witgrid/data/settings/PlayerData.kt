@@ -24,9 +24,45 @@ enum class RewardType(val storageKey: String) {
     STREAK_REPAIR("streak_repair"),
 }
 
+data class AllowanceUsage(
+    val localDateEpochDay: Long? = null,
+    val hintsUsedToday: Int = 0,
+    val offlineHintsUsedToday: Int = 0,
+    val chargedHintKeys: Set<String> = emptySet(),
+)
+
+data class MonetisationData(
+    val premiumEnabled: Boolean = false,
+    val rewardBalances: Map<RewardType, Int> = RewardType.entries.associateWith { 0 },
+    val allowanceUsage: AllowanceUsage = AllowanceUsage(),
+    val processedRewardGrantIds: Set<String> = emptySet(),
+    val levelsSinceLastInterstitial: Map<String, Int> = emptyMap(),
+    val lastInterstitialShownEpochMillis: Long? = null,
+    val hasStartedAppSession: Boolean = false,
+    val latestMissedEpochDay: Long? = null,
+    val latestMissedRepairDeadlineEpochMillis: Long? = null,
+)
+
 data class PlayerData(
     val settings: AppSettings = AppSettings(),
     val streak: StreakData = StreakData(),
     val premiumEnabled: Boolean = false,
     val rewardBalances: Map<RewardType, Int> = RewardType.entries.associateWith { 0 },
+    val allowanceUsage: AllowanceUsage = AllowanceUsage(),
+    val processedRewardGrantIds: Set<String> = emptySet(),
+    val levelsSinceLastInterstitial: Map<String, Int> = emptyMap(),
+    val lastInterstitialShownEpochMillis: Long? = null,
+    val hasStartedAppSession: Boolean = false,
+)
+
+fun PlayerData.toMonetisationData(): MonetisationData = MonetisationData(
+    premiumEnabled = premiumEnabled,
+    rewardBalances = rewardBalances,
+    allowanceUsage = allowanceUsage,
+    processedRewardGrantIds = processedRewardGrantIds,
+    levelsSinceLastInterstitial = levelsSinceLastInterstitial,
+    lastInterstitialShownEpochMillis = lastInterstitialShownEpochMillis,
+    hasStartedAppSession = hasStartedAppSession,
+    latestMissedEpochDay = streak.latestMissedEpochDay,
+    latestMissedRepairDeadlineEpochMillis = streak.latestMissedRepairDeadlineEpochMilli,
 )

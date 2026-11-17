@@ -48,7 +48,7 @@ import com.datathecodie.witgrid.games.GameModule
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
-import com.datathecodie.witgrid.play.AlwaysAllow
+import com.datathecodie.witgrid.play.Allowance
 import com.datathecodie.witgrid.play.CheckUi
 import com.datathecodie.witgrid.play.HintController
 import com.datathecodie.witgrid.play.HintRequest
@@ -73,6 +73,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     bankSource: BankSource,
     progressRepository: ProgressRepository,
     persistence: PlayPersistenceScope,
+    allowance: Allowance,
     restartRequestId: Long?,
     onRestartRequestConsumed: (Long) -> Unit,
     onSolved: (LevelSolvedEvent) -> Unit,
@@ -188,9 +189,10 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
             HintController(
                 currentMistakes = { controller.snapshot.value.mistakes },
                 nextStep = controller::nextHint,
-                applyStep = controller::applyHint,
-                recordMistakeHintUse = controller::recordHintUse,
-                allowance = AlwaysAllow,
+                applyStep = controller::applyRevealedHint,
+                recordHintUse = controller::recordHintUse,
+                allowance = allowance,
+                boardKey = controller::currentBoardFingerprint,
             )
         }
         var hintRequest by remember(controller) { mutableStateOf<HintRequest?>(null) }

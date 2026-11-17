@@ -50,6 +50,20 @@ class PlayerDataRepositoryTest {
             )
             writer.setPremiumEnabled(true)
             writer.setRewardBalance(RewardType.HINT, 3)
+            writer.updateMonetisationData { monetisation ->
+                monetisation.copy(
+                    allowanceUsage = AllowanceUsage(
+                        localDateEpochDay = 20_000,
+                        hintsUsedToday = 1,
+                        offlineHintsUsedToday = 2,
+                        chargedHintKeys = setOf("hint-key"),
+                    ),
+                    processedRewardGrantIds = setOf("reward-grant"),
+                    levelsSinceLastInterstitial = mapOf("crowns" to 2),
+                    lastInterstitialShownEpochMillis = 1_700_000_000_000,
+                    hasStartedAppSession = true,
+                )
+            }
 
             val expected = PlayerData(
                 settings = AppSettings(
@@ -74,6 +88,16 @@ class PlayerDataRepositoryTest {
                     RewardType.EXTRA_LIFE to 0,
                     RewardType.STREAK_REPAIR to 0,
                 ),
+                allowanceUsage = AllowanceUsage(
+                    localDateEpochDay = 20_000,
+                    hintsUsedToday = 1,
+                    offlineHintsUsedToday = 2,
+                    chargedHintKeys = setOf("hint-key"),
+                ),
+                processedRewardGrantIds = setOf("reward-grant"),
+                levelsSinceLastInterstitial = mapOf("crowns" to 2),
+                lastInterstitialShownEpochMillis = 1_700_000_000_000,
+                hasStartedAppSession = true,
             )
             val recreated = DataStorePlayerDataRepository(dataStore)
 
