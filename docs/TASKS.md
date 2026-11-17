@@ -537,9 +537,10 @@ Plan: 4.1, 9. Design: `docs/design/result-*.png`, `settings-*.png`.
 
 ### U8 — Screenshot matrix and visual QA gate
 Tier M · Build Codex · Review Claude (lead)
-**Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`.
+**Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayout.kt`.
 **Do:** Extend the screenshot script to capture every screen (Welcome, Home, Game, the four Play boards, Result, Level failed, Calendar, Statistics, Settings) in light and dark, at font scale 1.0, 1.3 and 2.0, on a small (360 dp) and a large emulator profile. Build one contact sheet for each profile. Update the Play Store capture set to the new UI.
 **Done when:** The lead runs the script and reviews the sheets. This review is required before every closed-test upload.
+**Lead scope extension (18 Nov 2026):** Added `PlayScreenLayout.kt` to repair game-toolbar labels splitting at 360dp and 480dp with system font scale 1.3 or 2.0, found in the screenshot matrix. Keep labels readable and touch targets accessible at every required profile.
 
 ### U9 — Endless level numbers and looping
 Tier H · Build Codex · Review Claude
@@ -562,7 +563,7 @@ Plan: 8.7, 13.
 
 ### S2 — Screenshot capture script
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
-**Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`.
+**Owns:** `scripts/screenshots/**`, `app/src/androidTest/**/screenshots/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayout.kt`.
 **Do:** A script that captures 8 screens (one board per game, dark mode, result, home, offline message) on an emulator at Play sizes.
 **Done when:** The lead runs it and gets the image files.
 **Lead completion note (17 Nov 2026):** The lead ran the script on the Pixel 6a Play emulator; all eight 1080×1920 captures were committed. GPT-6.1-Sol reviewed and approved the task.
