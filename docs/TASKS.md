@@ -454,6 +454,7 @@ Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 **Owns:** release parts of `app/build.gradle.kts`, `app/proguard-rules.pro`.
 **Do:** R8 on, rules for Room, Billing, Ads, Firebase. Version code scheme. Gradle may consume owner-provided `keystore.properties` if present; agents must never open, print or commit signing files or values. Debug and closed-test builds always use Google's test ad IDs; live IDs activate only for production builds from Gradle properties outside the repo.
 **Done when:** `./gradlew :app:bundleRelease` builds an unsigned bundle when no keystore is present.
+  **Lead status note (17 Nov 2026):** Done early for the first internal-testing upload: R8 and resource shrinking on, upload signing and `versionCode` from the owner's `~/.gradle/gradle.properties` (`witgridUpload*`, `witgridVersionCode`). Remaining: Firebase rules after M7, and live ad IDs for production builds.
 
 ### H5 — Art, keystore, closed test, production access (Human)
 Plan: 11 phase 5, 4 (art).

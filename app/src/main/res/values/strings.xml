@@ -164,7 +164,7 @@
     <string name="settings_privacy_policy">Privacy policy</string>
     <string name="settings_privacy_policy_pending">The privacy policy link will be added before release.</string>
     <string name="settings_policy_open_failed">No browser is available to open the privacy policy.</string>
-    <string name="settings_privacy_policy_url" translatable="false">CONFIGURE_PRIVACY_POLICY_URL</string>
+    <string name="settings_privacy_policy_url" translatable="false">https://dattaprasad-r-ekavade.github.io/all-in-one-games/privacy-policy.html</string>
     <string name="settings_privacy_options">Privacy choices</string>
     <string name="settings_open">Open</string>
     <string name="settings_licences">Open-source licences</string>

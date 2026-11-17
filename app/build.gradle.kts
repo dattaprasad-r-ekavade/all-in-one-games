@@ -8,6 +8,11 @@ kotlin {
     jvmToolchain(17)
 }
 
+// Release signing and the version code come from the owner's ~/.gradle/gradle.properties.
+// Nothing secret is stored in this repository. Without these properties the release bundle is unsigned.
+val uploadStoreFile: String? = providers.gradleProperty("witgridUploadStoreFile").orNull
+val releaseVersionCode: Int = providers.gradleProperty("witgridVersionCode").orNull?.toInt() ?: 1
+
 android {
     namespace = "com.datathecodie.witgrid"
     compileSdk {
@@ -18,14 +23,31 @@ android {
         applicationId = "com.datathecodie.witgrid"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
+        versionCode = releaseVersionCode
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (uploadStoreFile != null) {
+            create("upload") {
+                storeFile = file(uploadStoreFile)
+                storePassword = providers.gradleProperty("witgridUploadStorePassword").get()
+                keyAlias = providers.gradleProperty("witgridUploadKeyAlias").get()
+                keyPassword = providers.gradleProperty("witgridUploadKeyPassword").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            signingConfigs.findByName("upload")?.let { signingConfig = it }
         }
     }
 
