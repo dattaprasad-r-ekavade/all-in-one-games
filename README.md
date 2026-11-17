@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 84 %** (54 of 64 task cards done; 4 ready; 1 active)
+**Overall: about 84 %** (54 of 64 task cards done; 3 ready; 1 active; 1 blocked)
 
 ```
 [##################################------]  84 %
@@ -25,10 +25,10 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
 | 3 - Retention | 6 | 6 | 0 | 0 | 0 | 0 | 100 % |
-| 4 — Monetisation and data | 8 | 5 | 1 | 0 | 0 | 0 | 63 % |
-| 5 - Closed test | 4 | 0 | 2 | 0 | 0 | 0 | 0 % |
+| 4 — Monetisation and data | 8 | 5 | 0 | 0 | 0 | 1 | 63 % |
+| 5 - Closed test | 4 | 0 | 1 | 1 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **54** | **4** | **1** | **0** | **0** | **84 %** |
+| **Total** | **64** | **54** | **3** | **1** | **0** | **1** | **84 %** |
 
 ## Done
 
@@ -93,14 +93,18 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Finish M6:** implement the purchase and restore flow; live purchase verification needs H4's Play product and licence tester.
-2. **Complete human setup:** H0.1 supplies the verified accounts and policy destinations; H1 hand-tests puzzle fairness.
-3. **Prepare the closed test:** S1 and S2 are ready for store listing drafts and screenshot automation; S3 follows M6 and M7.
-4. **Set up Firebase and AdMob:** H4 follows H0.1; M7 then adds Analytics and Crashlytics with opt-in collection.
+1. **Complete H0.1 and H4:** configure verified accounts and policy destinations, then create the Play product and licence tester. Run M6's device purchase and restore check after H4.
+2. **Prepare the closed test:** S2 is in progress and S1 is ready; S3 follows M6 and M7.
+3. **Hand-test the bank:** H1 verifies puzzle fairness.
+4. **Continue monetisation setup:** M7 follows H4; Analytics and Crashlytics remain opt-in. H4 also configures Firebase and AdMob.
 
 ## In progress
 
-| M6 | Premium purchase and restore | Codex |
+| S2 | Screenshot capture script | Codex |
+
+## Blocked
+
+| M6 | Premium purchase and restore | Waiting for H4's Play product and licence tester; code and review are complete. |
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 

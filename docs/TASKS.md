@@ -60,12 +60,12 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | done |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | done |
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | done |
-| M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | active |
+| M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | blocked |
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | ready |
-| S2 | Screenshot capture script | M | Codex | Claude | A14 | ready |
+| S2 | Screenshot capture script | M | Codex | Claude | A14 | active |
 | S3 | Release build configuration | M | Codex | Claude | M3, M6, M7 | todo |
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
 | **Phase 6 — Launch** |||||||
@@ -410,6 +410,7 @@ Plan: 8.5.
 **Owns:** `app/…/billing/**`, `app/…/ads/flow/**`, `gradle/libs.versions.toml`, `app/build.gradle.kts`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/settings/SettingsScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/failed/LevelFailedScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/calendar/CalendarScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`.
 **Do:** `BillingService` interface, real and fake. Add Google Play Billing Library 9.1.0 as the only new library for this card. Implement one non-consumable product with ID `witgrid_premium_lifetime`; show its localized Play price. Acknowledge completed purchases. Keep the local flag working offline and re-check owned purchases when connected. Restore in Settings. Handle pending purchases without granting Premium early. Make the Premium offer actionable from Home, Settings, unavailable rewarded offers, failed-level Continue, and streak repair. H4 creates the Play product at the plan's $7.99 price and supplies the licence tester.
 **Done when:** `./gradlew check` passes. The lead buys and restores with a licence-test account.
+  **Lead status note (17 Nov 2026):** Code and review are complete. Waiting on H4's Play product and licence tester for the required device purchase and restore check.
 
 ### H4 — Firebase project, AdMob units, licence tester (Human)
 - [ ] Create the Firebase project. Put `google-services.json` in `app/` locally (it is git-ignored).
