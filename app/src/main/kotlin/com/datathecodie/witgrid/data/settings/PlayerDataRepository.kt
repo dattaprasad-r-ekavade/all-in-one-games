@@ -7,6 +7,10 @@ interface PlayerDataRepository {
 
     suspend fun updateSettings(settings: AppSettings)
 
+    suspend fun updateReminderSettings(settings: ReminderSettings) {
+        throw UnsupportedOperationException("Reminder settings are not implemented")
+    }
+
     suspend fun updateStreak(streak: StreakData)
 
     suspend fun setPremiumEnabled(enabled: Boolean)
