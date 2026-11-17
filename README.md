@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 84 %** (54 of 64 task cards done; 5 ready; 0 active)
+**Overall: about 84 %** (54 of 64 task cards done; 4 ready; 1 active)
 
 ```
 [##################################------]  84 %
@@ -28,7 +28,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 4 — Monetisation and data | 8 | 5 | 1 | 0 | 0 | 0 | 63 % |
 | 5 - Closed test | 4 | 0 | 2 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **54** | **5** | **0** | **0** | **0** | **84 %** |
+| **Total** | **64** | **54** | **4** | **1** | **0** | **0** | **84 %** |
 
 ## Done
 
@@ -93,14 +93,14 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Implement M6:** the purchase and restore flow is ready; use the human licence tester for Play Billing verification.
+1. **Finish M6:** implement the purchase and restore flow; live purchase verification needs H4's Play product and licence tester.
 2. **Complete human setup:** H0.1 supplies the verified accounts and policy destinations; H1 hand-tests puzzle fairness.
 3. **Prepare the closed test:** S1 and S2 are ready for store listing drafts and screenshot automation; S3 follows M6 and M7.
 4. **Set up Firebase and AdMob:** H4 follows H0.1; M7 then adds Analytics and Crashlytics with opt-in collection.
 
 ## In progress
 
-No implementation task is active. Ready work: M6, H0.1, H1, S1 and S2.
+| M6 | Premium purchase and restore | Codex |
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
