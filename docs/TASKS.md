@@ -55,9 +55,9 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R5 | Settings screen | L | Claude | Codex | A1, A3, R3, R4, M1, M3 | todo |
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
-| M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | active |
-| M2 | Policy tests from the spec | L | Claude | Codex | M1 | todo |
-| M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | todo |
+| M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
+| M2 | Policy tests from the spec | L | Claude | Codex | M1 | ready |
+| M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | ready |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | todo |
@@ -371,10 +371,10 @@ Plan: 8.1–8.6.
 **Owns:** `app/…/domain/monetisation/**`, `app/…/domain/config/**`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/PlayController.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/AndroidManifest.xml`.
 **Do:** Plain Kotlin, no SDK code.
 - `InterstitialPolicy.shouldShow(...)` with every condition in 8.1.
-- `AllowanceLedger`: shared free hints each local day, free checks in Easy, continues, streak repairs and offline extra hints; Premium removes allowance costs. Spend a hint when useful advice is revealed, but do not charge again for the same advice on an unchanged board; unavailable hints cost nothing. Persist allowance usage, reward balances and interstitial counters atomically before returning success. Wire the allowance into Play and provide its local-date and connectivity inputs without showing ads there.
-- Premium removes the ad or allowance cost for streak repair, but the same latest-uncovered-miss and 48-hour eligibility rules still apply.
+- `AllowanceLedger`: shared free hints each local day, free checks in Easy, continues, streak repairs and offline extra hints; Premium removes allowance costs. Spend a hint when useful advice is revealed, but do not charge again for the same advice on an unchanged board; unavailable hints cost nothing. Persist allowance usage, reward balances, processed reward grant IDs and interstitial counters atomically before returning success. Reward grant IDs make callback retries idempotent. Wire the allowance into Play and provide its local-date and connectivity inputs without showing ads there.
+- Premium removes the ad or allowance cost for streak repair, but the same latest-uncovered-miss and 48-hour eligibility rules still apply. Authorize only a fresh repairable-miss snapshot, rechecking its persisted miss and deadline atomically before spending a credit.
 - `ConfigKeys` with every key and default in 8.6, behind a `Config` interface.
-**Done when:** `./gradlew :app:testDebugUnitTest` passes.
+**Done when:** `./gradlew :app:testDebugUnitTest` passes. `./gradlew check` also passes as the project gate.
 
 ### M2 — Policy tests from the spec
 Tier L · Build Claude (`test-writer`) · Review Codex
@@ -386,7 +386,7 @@ Tier L · Build Claude (`test-writer`) · Review Codex
 Tier H · Build Claude (`builder`) · Review Codex
 Plan: 7.1, 8.3, 8.7, decision from T0.3.
 **Owns:** `app/…/ads/**`, `gradle/libs.versions.toml`, `app/build.gradle.kts`, `app/src/main/AndroidManifest.xml`.
-**Do:** `AdService` interface with a real implementation and a fake. UMP consent before the first ad request, with a privacy-options action exposed for Settings. Preload one interstitial and one rewarded ad when online; drop ads older than one hour. Google's public test app ID and test unit IDs only. Live IDs come later from Gradle properties outside the repo (S3).
+**Do:** `AdService` interface with a real implementation and a fake. UMP consent before the first ad request, with a privacy-options action exposed for Settings. Preload one interstitial and one rewarded ad when online; drop ads older than one hour. Reward completion returns a stable grant ID for `AllowanceLedger`, so callback retries cannot grant twice. Google's public test app ID and test unit IDs only. Live IDs come later from Gradle properties outside the repo (S3).
 **Done when:** `./gradlew check` passes. The lead sees test ads on a device.
 
 ### M4 — Ads in the player flows
