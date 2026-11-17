@@ -11,7 +11,7 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 73 %** (47 of 64 task cards done; 5 ready)
+**Overall: about 73 %** (47 of 64 task cards done; 4 ready; 1 active)
 
 ```
 [#############################-----------]  73 %
@@ -25,10 +25,10 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
 | 3 - Retention | 6 | 3 | 0 | 0 | 0 | 0 | 50 % |
-| 4 — Monetisation and data | 8 | 1 | 2 | 0 | 0 | 0 | 13 % |
+| 4 — Monetisation and data | 8 | 1 | 1 | 1 | 0 | 0 | 13 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **47** | **5** | **0** | **0** | **0** | **73 %** |
+| **Total** | **64** | **47** | **4** | **1** | **0** | **0** | **73 %** |
 
 ## Done
 
@@ -93,7 +93,7 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## In progress
 
-None. M2 and M3 are ready.
+| M2 | Policy tests from the spec | Codex |
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 
