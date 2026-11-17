@@ -64,7 +64,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
-| S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | active |
+| S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
 | S3 | Release build configuration | M | Codex | Claude | M3, M6, M7 | todo |
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
@@ -434,6 +434,7 @@ Plan: 8.7, 13.
 **Owns:** `docs/store/**`.
 **Do:** Title, short and full description, release notes, Data safety answers draft, content rating answers draft, ads declaration. Check the name rules.
 **Done when:** Character limits are met. The lead approves the text.
+**Lead completion note (17 Nov 2026):** Draft listing and policy forms are in `docs/store/`. The title (30), short description (75), full description (1,373), and release notes (134) are within current Play limits. GPT-6.1-Sol review approved after the Nonogram wording was aligned with the plan; `check` passes. Final Play Console declarations await H0.1, H4, M7, and release-bundle review.
 
 ### S2 — Screenshot capture script
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude

@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 86 %** (55 of 64 task cards done; 3 ready; 0 active; 1 blocked)
+**Overall: about 88 %** (56 of 64 task cards done; 2 ready; 0 active; 1 blocked)
 
 ```
-[##################################------]  86 %
+[###################################-----]  88 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -26,9 +26,9 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
 | 3 - Retention | 6 | 6 | 0 | 0 | 0 | 0 | 100 % |
 | 4 — Monetisation and data | 8 | 5 | 0 | 0 | 0 | 1 | 63 % |
-| 5 - Closed test | 4 | 1 | 1 | 0 | 0 | 0 | 25 % |
+| 5 - Closed test | 4 | 2 | 0 | 0 | 0 | 0 | 50 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **55** | **3** | **0** | **0** | **1** | **86 %** |
+| **Total** | **64** | **56** | **2** | **0** | **0** | **1** | **88 %** |
 
 ## Done
 
@@ -89,13 +89,14 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | R5 | Settings for theme, colourway, puzzle assists, mistake limit, haptics, sound, reminders, privacy choices and licences. Writes survive screen disposal; permission retry survives activity recreation. `check` passes and GPT-6.1-Sol review findings were fixed. H0.1 must supply the published policy URL before release. |
 | R6 | TalkBack cell actions, 200% text support, colour-blind region aids, and a persisted reduce-motion setting. Dense boards offer an optional pannable mode with cells at least 48 dp; Nonogram clues pan with the grid. Full `check` and GPT-6.1-Sol review pass. |
 | S2 | Emulator capture script produces eight 1080×1920 images: Home, dark mode, one complete board per game with game controls, Result, and the offline store message. The lead ran it and GPT-6.1-Sol review approved. |
+| S1 | English (US) listing and release-note drafts, plus ads, Data safety, and content-rating answers. Character limits pass; Data safety caveats reflect current ads/billing and pending M7. `check` and GPT-6.1-Sol review pass. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## Next steps
 
 1. **Complete H0.1 and H4:** configure verified accounts and policy destinations, then create the Play product and licence tester. Run M6's device purchase and restore check after H4.
-2. **Prepare the closed test:** S2's eight screenshots are committed and S1 is ready; S3 follows M6 and M7.
+2. **Prepare the closed test:** S1's listing and policy drafts are ready; S2's eight screenshots are committed. S3 follows M6 and M7.
 3. **Hand-test the bank:** H1 verifies puzzle fairness.
 4. **Continue monetisation setup:** M7 follows H4; Analytics and Crashlytics remain opt-in. H4 also configures Firebase and AdMob.
 
