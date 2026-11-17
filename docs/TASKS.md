@@ -350,7 +350,7 @@ Plan: 5 (one optional reminder).
 ### R5 — Settings screen
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 9 (Settings).
-**Owns:** `app/…/ui/screens/settings/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/StubScreens.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/layout/ScreenPreviews.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/MainActivity.kt`, `app/…/ui/screens/settings/**`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/StubScreens.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/layout/ScreenPreviews.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/res/values/strings.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`.
 **Do:** Theme, colourway, assists, mistake limit, haptics, sound, reminder, Premium row and restore placeholders, privacy link, licences. Add a privacy-options entry that calls the consent options exposed by M3. Wire reminders through `ReminderController`; request API-33+ notification permission only from the explicit reminder-enable action and retry after a grant. Do not prompt at app startup.
 **Done when:** `./gradlew check` passes.
 
