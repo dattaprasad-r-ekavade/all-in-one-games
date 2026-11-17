@@ -509,9 +509,10 @@ Plan: 4, 4.1, 9. Design: `docs/design/play-*.png`.
 ### U5 — Board looks for each game
 Tier M · Build Codex · Review Claude (lead screenshots)
 Plan: 4.1. Design: `docs/design/play-*.png`.
-**Owns:** `games/*/…Board.kt`, `games/*/…BoardOptions.kt`, the default of `AppSettings.crownsShowRegionAids` in `data/settings/PlayerData.kt`.
+**Owns:** `games/*/…Board.kt`, `games/*/…BoardOptions.kt`, the default of `AppSettings.crownsShowRegionAids` in `data/settings/PlayerData.kt` and `data/settings/DataStorePlayerDataRepository.kt`, and their tests.
 **Do:** Crowns: region aids off by default, thin lines inside a region, thick lines between regions, a drawn crown, a soft X. Binary: a filled accent dot and an orange ring (`#C2622F` light, `#E9A27A` dark), not letters; letters only in TalkBack labels. Nonogram: clue band sized from the longest clue, active row and column tint, finished clues fade, 5-cell guide lines. Mini Sudoku: given digits darker than player digits, selected row, column and box tint, notes in small digits.
 **Done when:** `./gradlew check` passes. Screenshots match the mockups in light and dark.
+**Lead scope extension (17 Nov 2026):** Added `DataStorePlayerDataRepository.kt` because its explicit preference fallback overrides `AppSettings` for fresh installs; it must use the same off-by-default value for the Crowns region aids.
 
 ### U6 — Home and Game screens
 Tier M · Build Codex · Review Claude (lead screenshots)
