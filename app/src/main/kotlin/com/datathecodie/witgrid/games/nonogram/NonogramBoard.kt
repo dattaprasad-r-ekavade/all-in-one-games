@@ -1,5 +1,6 @@
 package com.datathecodie.witgrid.games.nonogram
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -61,6 +62,7 @@ fun NonogramBoard(
     layout: (@Composable (board: @Composable () -> Unit, controls: @Composable () -> Unit) -> Unit)? = null,
 ) {
     var mode by remember(state.puzzle.id) { mutableStateOf(NonogramMarkMode.FILL) }
+    var activeCell by remember(state.puzzle.id) { mutableStateOf<Cell?>(null) }
     val puzzle = state.puzzle
     val colors = WitgridTheme.colors
     val filledValues = remember(state) {
@@ -136,7 +138,9 @@ fun NonogramBoard(
                             completedColumns = completedColumns,
                             margin = margin,
                             colors = colors.ink,
-                            completedColor = colors.accent,
+                            completedColor = colors.mutedInk.copy(alpha = 0.5f),
+                            activeIndex = activeCell?.index?.rem(puzzle.size),
+                            activeColor = colors.accentSoft,
                         )
                     }
                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -146,7 +150,9 @@ fun NonogramBoard(
                             clueBandWidth = clueBandWidth,
                             completedRows = completedRows,
                             colors = colors.ink,
-                            completedColor = colors.accent,
+                            completedColor = colors.mutedInk.copy(alpha = 0.5f),
+                            activeIndex = activeCell?.index?.div(puzzle.size),
+                            activeColor = colors.accentSoft,
                         )
                         BoardCanvas(
                             gridSize = puzzle.size,
@@ -157,9 +163,18 @@ fun NonogramBoard(
                             hapticsEnabled = options.hapticsEnabled,
                             panningEnabled = canPan,
                             drawCell = { cell, bounds ->
-                                drawMark(state.marks[cell.index], bounds, colors.accent, colors.ink)
+                                drawRect(colors.card, bounds.topLeft, bounds.size)
+                                val active = activeCell
+                                if (active != null && (cell.index / puzzle.size == active.index / puzzle.size ||
+                                        cell.index % puzzle.size == active.index % puzzle.size)
+                                ) {
+                                    drawRect(colors.accentSoft, bounds.topLeft, bounds.size)
+                                }
+                                drawMark(state.marks[cell.index], bounds, colors.ink, colors.mutedInk)
+                                drawGuideLines(cell, puzzle.size, bounds, colors.ink)
                             },
                             onCellTap = { cell ->
+                                activeCell = cell
                                 NonogramBoardInput.markMoves(
                                     state,
                                     listOf(cell),
@@ -168,6 +183,7 @@ fun NonogramBoard(
                                 ).takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
                             },
                             onDragPaint = { path ->
+                                activeCell = path.lastOrNull()
                                 NonogramBoardInput.markMoves(
                                     state,
                                     path,
@@ -176,6 +192,7 @@ fun NonogramBoard(
                                 ).takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
                             },
                             onLongPress = { cell ->
+                                activeCell = cell
                                 NonogramBoardInput.clearMoves(state, cell)
                                     .takeIf { moves -> moves.isNotEmpty() }?.let(onMoves)
                             },
@@ -218,6 +235,8 @@ private fun ColumnClues(
     margin: Dp,
     colors: Color,
     completedColor: Color,
+    activeIndex: Int?,
+    activeColor: Color,
 ) {
     val clueHeight = cellSize * maxClueCount
     Row(
@@ -233,6 +252,7 @@ private fun ColumnClues(
                 modifier = Modifier
                     .width(cellSize)
                     .height(clueHeight)
+                    .background(if (activeIndex == index) activeColor else Color.Transparent)
                     .semantics(mergeDescendants = true) { contentDescription = clueDescription },
                 verticalArrangement = Arrangement.Bottom,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -259,6 +279,8 @@ private fun RowClues(
     completedRows: List<Boolean>,
     colors: Color,
     completedColor: Color,
+    activeIndex: Int?,
+    activeColor: Color,
 ) {
     Column(modifier = Modifier.width(clueBandWidth).height(cellSize * puzzle.size)) {
         puzzle.rowClues.forEachIndexed { index, clues ->
@@ -271,6 +293,7 @@ private fun RowClues(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(cellSize)
+                    .background(if (activeIndex == index) activeColor else Color.Transparent)
                     .semantics(mergeDescendants = true) { contentDescription = clueDescription },
                 horizontalArrangement = Arrangement.End,
             ) {
@@ -378,3 +401,13 @@ private const val CLUE_LINE_HEIGHT_FRACTION = 1.1f
 private const val CROSS_RADIUS_FRACTION = 0.24f
 private const val CROSS_STROKE_FRACTION = 0.075f
 private const val MIN_CLUE_COUNT = 1
+
+private fun DrawScope.drawGuideLines(cell: Cell, gridSize: Int, bounds: Rect, color: Color) {
+    val row = cell.index / gridSize
+    val column = cell.index % gridSize
+    val width = 2.dp.toPx()
+    if (column % 5 == 0) drawLine(color, bounds.topLeft, bounds.bottomLeft, width)
+    if (row % 5 == 0) drawLine(color, bounds.topLeft, bounds.topRight, width)
+    if (column == gridSize - 1) drawLine(color, bounds.topRight, bounds.bottomRight, width)
+    if (row == gridSize - 1) drawLine(color, bounds.bottomLeft, bounds.bottomRight, width)
+}

@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Move
@@ -65,7 +66,7 @@ fun MiniSudokuBoard(
     val textMeasurer = rememberTextMeasurer()
     val digitStyle = NumberStyles.cell.copy(color = colors.accent)
     val givenStyle = NumberStyles.cell.copy(color = colors.ink)
-    val noteStyle = NumberStyles.clue.copy(color = colors.ink)
+    val noteStyle = NumberStyles.clue.copy(color = colors.mutedInk, fontSize = 11.sp)
 
     val boardContent: @Composable () -> Unit = {
         BoardCanvas(
@@ -79,7 +80,20 @@ fun MiniSudokuBoard(
             dragPaintEnabled = false,
             drawCell = { cell, bounds ->
                 val isGiven = puzzle.givens[cell.index] != null
-                if (isGiven) drawRect(colors.ink.copy(alpha = GIVEN_CELL_ALPHA), bounds.topLeft, bounds.size)
+                drawRect(colors.card, bounds.topLeft, bounds.size)
+                val selected = selectedCellIndex
+                if (selected != null) {
+                    val row = cell.index / MINI_SUDOKU_SIZE
+                    val column = cell.index % MINI_SUDOKU_SIZE
+                    val selectedRow = selected / MINI_SUDOKU_SIZE
+                    val selectedColumn = selected % MINI_SUDOKU_SIZE
+                    if (row == selectedRow || column == selectedColumn ||
+                        (row / BOX_HEIGHT == selectedRow / BOX_HEIGHT &&
+                            column / BOX_WIDTH == selectedColumn / BOX_WIDTH)
+                    ) {
+                        drawRect(colors.accentSoft, bounds.topLeft, bounds.size)
+                    }
+                }
                 if (selectedCellIndex == cell.index) {
                     drawRect(colors.accent.copy(alpha = SELECTION_FILL_ALPHA), bounds.topLeft, bounds.size)
                 }
@@ -308,7 +322,6 @@ private const val BOX_WIDTH = 3
 private const val NOTES_COLUMNS = 3
 private const val NOTES_ROWS = 2
 private const val BOX_BORDER_WIDTH_DP = 3f
-private const val GIVEN_CELL_ALPHA = 0.06f
 private const val SELECTION_FILL_ALPHA = 0.12f
 private const val SELECTION_BORDER_WIDTH_DP = 2f
 private const val LABEL_SIZE_FRACTION = 0.78f

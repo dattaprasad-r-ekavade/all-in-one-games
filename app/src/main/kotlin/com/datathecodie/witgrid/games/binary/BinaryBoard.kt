@@ -2,12 +2,9 @@ package com.datathecodie.witgrid.games.binary
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.rememberTextMeasurer
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.engine.binary.BinaryRules
 import com.datathecodie.witgrid.engine.binary.BinaryState
@@ -15,7 +12,6 @@ import com.datathecodie.witgrid.engine.binary.BinarySymbol
 import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.ui.board.BoardCanvas
-import com.datathecodie.witgrid.ui.theme.NumberStyles
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 
 @Composable
@@ -28,9 +24,7 @@ fun BinaryBoard(
 ) {
     val puzzle = state.puzzle
     val colors = WitgridTheme.colors
-    val textMeasurer = rememberTextMeasurer()
-    val symbolA = stringResource(R.string.binary_symbol_a)
-    val symbolB = stringResource(R.string.binary_symbol_b)
+    val ringColor = if (colors.isDark) Color(0xFFE9A27A) else Color(0xFFC2622F)
 
     BoardCanvas(
         gridSize = puzzle.size,
@@ -41,6 +35,7 @@ fun BinaryBoard(
         hapticsEnabled = options.hapticsEnabled,
         dragPaintEnabled = false,
         drawCell = { cell, bounds ->
+            drawRect(colors.card, topLeft = bounds.topLeft, size = bounds.size)
             val isGiven = puzzle.givens[cell.index] != null
             if (isGiven) {
                 drawRect(
@@ -50,31 +45,16 @@ fun BinaryBoard(
                 )
             }
 
-            val label = when (state.symbols[cell.index]) {
-                BinarySymbol.EMPTY -> null
-                BinarySymbol.A -> symbolA
-                BinarySymbol.B -> symbolB
-            }
-            if (label != null) {
-                val text = textMeasurer.measure(
-                    AnnotatedString(label),
-                    style = NumberStyles.cell.copy(color = if (isGiven) colors.ink else colors.accent),
+            val radius = minOf(bounds.width, bounds.height) * SYMBOL_RADIUS_FRACTION
+            when (state.symbols[cell.index]) {
+                BinarySymbol.EMPTY -> Unit
+                BinarySymbol.A -> drawCircle(colors.accent, radius, bounds.center)
+                BinarySymbol.B -> drawCircle(
+                    ringColor,
+                    radius - radius * RING_STROKE_FRACTION / 2f,
+                    bounds.center,
+                    style = Stroke(width = radius * RING_STROKE_FRACTION),
                 )
-                // Dense boards must keep symbols inside their cells at larger font scales.
-                val symbolScale = minOf(
-                    1f,
-                    bounds.width * SYMBOL_SIZE_FRACTION / text.size.width.coerceAtLeast(1),
-                    bounds.height * SYMBOL_SIZE_FRACTION / text.size.height.coerceAtLeast(1),
-                )
-                scale(symbolScale, pivot = bounds.center) {
-                    drawText(
-                        text,
-                        topLeft = Offset(
-                            x = bounds.center.x - text.size.width / 2f,
-                            y = bounds.center.y - text.size.height / 2f,
-                        ),
-                    )
-                }
             }
         },
         onCellTap = { cell ->
@@ -114,4 +94,5 @@ private fun describeBinaryCell(state: BinaryState, cell: Cell): String {
 }
 
 private const val GIVEN_CELL_ALPHA = 0.06f
-private const val SYMBOL_SIZE_FRACTION = 0.75f
+private const val SYMBOL_RADIUS_FRACTION = 0.26f
+private const val RING_STROKE_FRACTION = 0.40f

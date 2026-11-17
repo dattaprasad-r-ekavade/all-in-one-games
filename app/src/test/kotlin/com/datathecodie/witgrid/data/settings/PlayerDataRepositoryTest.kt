@@ -28,6 +28,26 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class PlayerDataRepositoryTest {
     @Test
+    fun regionAidsStartOffAndPersistAnExplicitOptIn() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-region-aids")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+        try {
+            val repository = DataStorePlayerDataRepository(dataStore)
+            val freshSettings = withTimeout(2_000) { repository.playerData.first() }.settings
+            assertFalse(freshSettings.crownsShowRegionAids)
+            repository.updateSettings(freshSettings.copy(crownsShowRegionAids = true))
+            val reopened = DataStorePlayerDataRepository(dataStore)
+            assertTrue(withTimeout(2_000) { reopened.playerData.first() }.settings.crownsShowRegionAids)
+        } finally {
+            scope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
     fun cancelledDataStoreUpdateDoesNotStopSettingsWriter() = runBlocking {
         val directory = Files.createTempDirectory("witgrid-cancelled-store-update")
         val file = directory.resolve("witgrid_settings.preferences_pb").toFile()

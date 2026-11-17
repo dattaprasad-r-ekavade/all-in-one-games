@@ -6,7 +6,7 @@ data class AppSettings(
     val mistakeLimitEnabled: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val colourwayId: String = "indigo",
-    val crownsShowRegionAids: Boolean = true,
+    val crownsShowRegionAids: Boolean = false,
     val crownsAutoXEnabled: Boolean = false,
     val nonogramAutoCrossEnabled: Boolean = false,
     val reduceMotion: Boolean = false,

@@ -88,19 +88,25 @@ fun CrownsBoard(
 
             when (state.marks[cell.index]) {
                 Mark.EMPTY -> Unit
-                Mark.CROSSED -> drawCross(bounds, colors.ink)
-                Mark.FILLED -> drawCrown(bounds, colors.ink)
+                Mark.CROSSED -> drawCross(bounds, colors.ink.copy(alpha = 0.45f))
+                Mark.FILLED -> drawCrown(bounds.deflate(bounds.width * 0.25f), colors.ink)
             }
 
             // Larger boards reuse region hues, so borders must identify regions without colour aids.
             val borderWidth = REGION_BORDER_WIDTH_DP.dp.toPx()
             val row = cell.index / puzzle.size
             val column = cell.index % puzzle.size
-            if (column > 0 && puzzle.regions[cell.index - 1] != regionId) {
+            if (column == 0 || puzzle.regions[cell.index - 1] != regionId) {
                 drawLine(colors.ink, bounds.topLeft, bounds.bottomLeft, borderWidth)
             }
-            if (row > 0 && puzzle.regions[cell.index - puzzle.size] != regionId) {
+            if (row == 0 || puzzle.regions[cell.index - puzzle.size] != regionId) {
                 drawLine(colors.ink, bounds.topLeft, bounds.topRight, borderWidth)
+            }
+            if (column == puzzle.size - 1) {
+                drawLine(colors.ink, bounds.topRight, bounds.bottomRight, borderWidth)
+            }
+            if (row == puzzle.size - 1) {
+                drawLine(colors.ink, bounds.bottomLeft, bounds.bottomRight, borderWidth)
             }
         },
         onCellTap = { cell ->
@@ -280,6 +286,6 @@ private const val HATCH_ALPHA = 0.20f
 private const val HATCH_SPACING_FRACTION = 0.34f
 private const val HATCH_STROKE_FRACTION = 0.035f
 private const val HATCH_DOT_RADIUS_FRACTION = 0.025f
-private const val MARK_RADIUS_FRACTION = 0.24f
-private const val MARK_STROKE_FRACTION = 0.075f
+private const val MARK_RADIUS_FRACTION = 0.065f
+private const val MARK_STROKE_FRACTION = 0.03f
 private const val CROWN_BASE_STROKE_FRACTION = 0.08f
