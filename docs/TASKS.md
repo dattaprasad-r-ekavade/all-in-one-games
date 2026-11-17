@@ -499,9 +499,11 @@ Plan: 4, 4.1. Design: `docs/design/`.
 ### U4 — Play screen layout and board fit
 Tier H · Build Codex · Review Claude (lead screenshots)
 Plan: 4, 4.1, 9. Design: `docs/design/play-*.png`.
-**Owns:** `ui/screens/play/**`, `ui/board/**`, `res/values/strings.xml` (play strings only).
+**Owns:** `ui/screens/play/**`, `ui/board/**`, `games/minisudoku/MiniSudokuBoard.kt`, `games/nonogram/NonogramBoard.kt`, `nav/WitgridNavigation.kt`, `res/values/strings.xml` (play strings only), and their tests.
 **Do:** Top bar: back, game name with "Pack · Level N" below, timer chip (tap to hide), info icon that opens the rules in a bottom sheet. The board is the largest square that fits the free width and height with 16 dp margins, so it never clips (today Mini Sudoku and Binary clip at font scale 1.3, and Nonogram runs off the right edge). Bottom tool bar of `ToolBarItem`s: Undo, Redo, Restart or the game's mode tools, Hint with a credit badge, Check. "Larger cells" becomes a zoom icon in the top bar. The Mini Sudoku digit pad (with a "left" count for each digit) and the Nonogram clues always stay visible. A status line under the board for in-puzzle counts (for example "2 of 7 crowns placed", mistakes).
 **Done when:** `./gradlew check` passes. Screenshots of all four games on a 360 dp and a large phone, light and dark, font 1.0 and 1.3, show no clipping.
+
+**Lead scope extension (17 Nov 2026):** Added the Mini Sudoku and Nonogram board implementations so U4 can expose their in-play controls while keeping the digit pad and clues visible, and `WitgridNavigation.kt` so the play route can receive the saved hint-credit balance for its badge. Board visual restyling remains with U5.
 
 ### U5 — Board looks for each game
 Tier M · Build Codex · Review Claude (lead screenshots)
