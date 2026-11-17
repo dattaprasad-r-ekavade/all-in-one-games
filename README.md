@@ -86,7 +86,7 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | M4 | Result-only interstitials, rewarded hint/check credits, Continue and streak-repair ad flows, and atomic repair-credit persistence. Full `check` passes; online/offline test-ad paths were exercised on emulator; GPT-6.1-Sol review found no remaining blockers. |
 | M5 | Three-mistake failure when enabled, persisted mistake and Continue state, saved-credit retry without double debit, same-board Continue, and free Restart. Room migration and unit tests pass; full `check` passes; GPT-6.1-Sol review approved with no blockers. |
 | R4 | Reminder settings persist disabled-by-default local hour/minute values. Inexact daily alarms and localized notifications recover after delivery, reboot, clock/time-zone change, and app update. API 33 permission gating and spring-forward scheduling are tested; full `check` passes and GPT-6.1-Sol review found no blockers. |
-| R5 | Settings for theme, colourway, puzzle assists, mistake limit, haptics, sound, reminders, privacy choices and licences. Writes survive screen disposal; permission retry survives activity recreation. `check` passes and GPT-6.1-Sol review findings were fixed. H0.1 must supply the published policy URL before release. |
+| R5 | Settings for theme, colourway, puzzle assists, mistake limit, haptics, sound, reminders, privacy choices and licences. Writes survive screen disposal; permission retry survives activity recreation. `check` passes and GPT-6.1-Sol review findings were fixed. The live policy URL is wired; H0.1 still needs trademark searches, Play Console/AdMob verification, and the GDD section 7 export. |
 | R6 | TalkBack cell actions, 200% text support, colour-blind region aids, and a persisted reduce-motion setting. Dense boards offer an optional pannable mode with cells at least 48 dp; Nonogram clues pan with the grid. Full `check` and GPT-6.1-Sol review pass. |
 | S2 | Emulator capture script produces eight 1080×1920 images: Home, dark mode, one complete board per game with game controls, Result, and the offline store message. The lead ran it and GPT-6.1-Sol review approved. |
 | S1 | English (US) listing and release-note drafts, plus ads, Data safety, and content-rating answers. Character limits pass; Data safety caveats reflect current ads/billing and pending M7. `check` and GPT-6.1-Sol review pass. |
@@ -95,8 +95,8 @@ Also done: the development plan, agent rules, task backlog, Claude subagents (`b
 
 ## Next steps
 
-1. **Complete H0.1, then H4:** finish the verified accounts, public policy URLs, Firebase/AdMob setup, UMP messages, Play product, and licence tester listed in `docs/TASKS.md`. Then run M6's device purchase and restore check.
-2. **Prepare the closed test:** S1's listing and policy drafts are ready; S2's eight screenshots are committed. S3 follows M6 and M7.
+1. **Complete H0.1, then H4:** the policy page and `app-ads.txt` are live. Finish the dated trademark searches, Play Console/AdMob verification, and GDD section 7 export; then set up Firebase/AdMob/UMP and the Play product/licence tester. Run M6's device purchase and restore check afterward.
+2. **Prepare the closed test:** S1's listing and policy drafts are ready; S2's eight screenshots are committed; an app-icon draft is committed for approval. S3 follows M6 and M7; H5 still needs the feature graphic, final artwork approval, keystore and closed-test rollout.
 3. **Hand-test the bank:** the [H1 test log](docs/reports/bank-hand-test.md) is prefilled with the first 20 regular bank IDs per game/pack; record all 320 solve times, guess use, and any issues. The lead creates bug cards for issues.
 4. **Continue monetisation setup:** M7 follows H4; Analytics and Crashlytics remain opt-in. H4 also configures Firebase and AdMob.
 

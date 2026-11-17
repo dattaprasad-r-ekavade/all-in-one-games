@@ -9,8 +9,11 @@ kotlin {
 }
 
 // Release signing and the version code come from the owner's ~/.gradle/gradle.properties.
-// Nothing secret is stored in this repository. Without these properties the release bundle is unsigned.
-val uploadStoreFile: String? = providers.gradleProperty("witgridUploadStoreFile").orNull
+// Nothing secret is stored in this repository. Without all four signing properties, the release bundle is unsigned.
+val uploadStoreFile = providers.gradleProperty("witgridUploadStoreFile").orNull?.takeIf(String::isNotBlank)
+val uploadStorePassword = providers.gradleProperty("witgridUploadStorePassword").orNull?.takeIf(String::isNotBlank)
+val uploadKeyAlias = providers.gradleProperty("witgridUploadKeyAlias").orNull?.takeIf(String::isNotBlank)
+val uploadKeyPassword = providers.gradleProperty("witgridUploadKeyPassword").orNull?.takeIf(String::isNotBlank)
 val releaseVersionCode: Int = providers.gradleProperty("witgridVersionCode").orNull?.toInt() ?: 1
 
 android {
@@ -29,12 +32,16 @@ android {
     }
 
     signingConfigs {
-        if (uploadStoreFile != null) {
+        if (uploadStoreFile != null &&
+            uploadStorePassword != null &&
+            uploadKeyAlias != null &&
+            uploadKeyPassword != null
+        ) {
             create("upload") {
                 storeFile = file(uploadStoreFile)
-                storePassword = providers.gradleProperty("witgridUploadStorePassword").get()
-                keyAlias = providers.gradleProperty("witgridUploadKeyAlias").get()
-                keyPassword = providers.gradleProperty("witgridUploadKeyPassword").get()
+                storePassword = uploadStorePassword
+                keyAlias = uploadKeyAlias
+                keyPassword = uploadKeyPassword
             }
         }
     }

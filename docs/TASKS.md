@@ -80,9 +80,10 @@ Plan: 11 (phase 0), 8.7, 15.
 - [ ] Check "Witgrid" in USPTO, EUIPO and UKIPO.
 - [ ] Open the Play Console account. Complete developer verification. Check which personal details Play shows.
 - [ ] Open the AdMob account. Do **not** create live ad units in code yet.
-- [ ] Make the developer website: privacy policy page and `app-ads.txt`.
+- [x] Make the developer website: privacy policy page and `app-ads.txt`.
 - [ ] Export GDD section 7 (ASO, launch, closed test) again. The PDF in the repo stops after section 6; save the new export as `docs/reports/GDD-section-7.pdf`.
 **Done when:** Trademark searches are dated and recorded; Play Console and AdMob accounts are verified; the public HTTPS privacy policy and `app-ads.txt` URLs are live; and `docs/reports/GDD-section-7.pdf` is available. Send the public privacy-policy URL and support email to the lead so the app setting and store drafts can be finalized. Record public URLs and account status, never credentials.
+**Lead progress note (17 Nov 2026):** The privacy policy at `https://datathecodie.com/witgrid/privacy-policy.html` and `https://datathecodie.com/app-ads.txt` are live and were verified on 17 Nov; the policy matches the committed page and the Settings URL. Trademark searches, Play Console/AdMob verification, and the GDD section 7 export remain.
 
 ### H0.2 — Developer machine and repo setup (Human)
 Do the steps in `docs/AGENT_WORKFLOW.md` section 3.
@@ -451,13 +452,15 @@ Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
 
 ### S3 — Release build configuration
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
-**Owns:** release parts of `app/build.gradle.kts`, `app/proguard-rules.pro`.
+**Owns:** release parts of `app/build.gradle.kts`, `app/proguard-rules.pro`, `app/src/main/AndroidManifest.xml`, `app/src/main/kotlin/com/datathecodie/witgrid/ads/GoogleAdService.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ads/TestAdIds.kt`.
 **Do:** R8 on, rules for Room, Billing, Ads, Firebase. Version code scheme. Gradle may consume owner-provided `keystore.properties` if present; agents must never open, print or commit signing files or values. Debug and closed-test builds always use Google's test ad IDs; live IDs activate only for production builds from Gradle properties outside the repo.
 **Done when:** `./gradlew :app:bundleRelease` builds an unsigned bundle when no keystore is present.
-  **Lead status note (17 Nov 2026):** Done early for the first internal-testing upload: R8 and resource shrinking on, upload signing and `versionCode` from the owner's `~/.gradle/gradle.properties` (`witgridUpload*`, `witgridVersionCode`). Remaining: Firebase rules after M7, and live ad IDs for production builds.
+  **Lead scope clarification (17 Nov 2026):** Manifest and ad-service files are included so S3 can implement the required test-versus-production ID selection within its Owns boundary.
+  **Lead status note (17 Nov 2026):** Release signing activates only when all four owner signing properties are nonblank; R8 and resource shrinking are enabled. `:app:bundleRelease` succeeds unsigned with blank signing overrides, `jarsigner -verify` confirms it is unsigned, and `check` passes. GPT-6.1-Sol review found no remaining signing-config blocker. S3 remains open: production-only ad IDs, M7 Firebase rules, H4 consent verification, and M6/M7 dependencies remain.
 
 ### H5 — Art, keystore, closed test, production access (Human)
 Plan: 11 phase 5, 4 (art).
+**Lead progress note (17 Nov 2026):** A launcher and Play icon draft with preview is committed. Human approval, feature graphic, final screenshot approval, keystore, closed-test upload, and production-access steps remain.
 - [ ] App icon, feature graphic, final screenshots (agents may draft; you approve).
 - [ ] Create the upload keystore. Back it up outside the PC.
 - [ ] Upload to the closed test track. 12+ testers for 14 days.
