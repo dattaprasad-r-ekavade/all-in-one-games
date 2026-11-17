@@ -49,7 +49,7 @@ private fun SampleHomeScreen() {
     HomeScreen(
         state = HomeUiState(
             games = listOf("crowns", "binary", "nonogram", "minisudoku").map {
-                HomeGameProgress(it, completedLevels = 12, totalLevels = 601)
+                HomeGameProgress(it, LevelRef(it, "$it-preview", Pack.EASY, levelNumber = 613))
             },
             isLoading = false,
         ),
@@ -137,9 +137,7 @@ private fun SampleGameScreen() {
             packs = Pack.entries.map { pack ->
                 PackProgress(
                     pack,
-                    completedLevels = 12,
-                    totalLevels = if (pack == Pack.EASY) 151 else 150,
-                    nextLevelRef = LevelRef(easyLevel.gameId, "CR-$pack-001", pack),
+                    nextLevelRef = LevelRef(easyLevel.gameId, "CR-$pack-001", pack, levelNumber = 163),
                 )
             },
             continueLevelRef = easyLevel,
@@ -208,6 +206,7 @@ private fun sampleLevel() = LevelRef(
     levelId = "CR-INTRO-01",
     pack = Pack.EASY,
     introCoachLineResourceId = R.string.intro_coach_crowns,
+    levelNumber = 163,
 )
 
 private fun sampleMiniSudokuPuzzle(): MiniSudokuPuzzle {

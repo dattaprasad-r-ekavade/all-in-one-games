@@ -14,15 +14,23 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import java.io.InputStream
 
-/** Identifies one level. Daily levels come from the daily bank file, not from a pack. */
+/**
+ * [levelId] identifies the bank puzzle; [levelNumber] identifies a regular attempt.
+ * Null numbers support daily puzzles and legacy references resolved through the bank catalog.
+ */
 data class LevelRef(
     val gameId: String,
     val levelId: String,
     val pack: Pack,
     val daily: Boolean = false,
     @StringRes val introCoachLineResourceId: Int? = null,
+    val levelNumber: Long? = null,
+    val bankIndex: Int? = null,
 ) {
     init {
+        require(levelNumber == null || levelNumber > 0) { "Level number must be positive" }
+        require(bankIndex == null || bankIndex >= 0) { "Bank index must not be negative" }
+        require(!daily || (levelNumber == null && bankIndex == null)) { "Daily levels have no level number" }
         require(gameId.isNotBlank()) { "Game ID must not be blank" }
         require(levelId.isNotBlank()) { "Level ID must not be blank" }
         require(!daily || introCoachLineResourceId == null) {
@@ -34,6 +42,22 @@ data class LevelRef(
     }
 
     val isIntro: Boolean get() = introCoachLineResourceId != null
+
+    companion object {
+        /** Selects a bank puzzle while keeping the player's increasing attempt number. */
+        fun forLevel(number: Long, packLevels: List<LevelRef>): LevelRef {
+            require(number > 0) { "Level number must be positive" }
+            require(packLevels.isNotEmpty()) { "Puzzle bank must not be empty" }
+            val first = packLevels.first()
+            require(packLevels.all { !it.daily && it.gameId == first.gameId && it.pack == first.pack }) {
+                "Levels must belong to one game and pack"
+            }
+            val bankLevels = packLevels.filterNot { it.isIntro }
+            require(bankLevels.isNotEmpty()) { "Puzzle bank must not be empty" }
+            val index = ((number - 1) % bankLevels.size).toInt()
+            return bankLevels[index].copy(levelNumber = number, bankIndex = index)
+        }
+    }
 }
 
 data class GameIntro(
@@ -74,7 +98,7 @@ interface GameModule<P : Any, S : Any> {
 
     fun firstLevelRef(pack: Pack, bank: BankSource): LevelRef
 
-    /** The level after [current] in its pack, or null after the last level. */
+    /** The next numbered attempt in the pack; daily levels have no next level. */
     fun nextLevelRef(current: LevelRef, bank: BankSource): LevelRef?
 
     /** The daily level for [dayIndex], from 0 to 364. */
@@ -136,7 +160,7 @@ class EngineGameModule<P : Any, S : Any>(
         val packRefs = bankEntries(bankAssetPath(pack), bank).map { entry ->
             LevelRef(id, entry.bankLine.id, pack)
         }
-        if (pack != Pack.EASY || intro == null) return packRefs
+        if (pack != Pack.EASY || intro == null) return numberLevels(packRefs)
 
         val introEntry = introBankEntry(bank)
         require(packRefs.none { it.levelId == introEntry.bankLine.id }) {
@@ -148,7 +172,7 @@ class EngineGameModule<P : Any, S : Any>(
             pack = Pack.EASY,
             introCoachLineResourceId = intro.coachLineResourceId,
         )
-        return listOf(introRef) + packRefs
+        return listOf(introRef) + numberLevels(packRefs)
     }
 
     override fun firstLevelRef(pack: Pack, bank: BankSource): LevelRef =
@@ -160,9 +184,11 @@ class EngineGameModule<P : Any, S : Any>(
         // Daily levels have no order inside a pack, so they have no next level.
         if (current.daily) return null
         val refs = levelRefs(current.pack, bank)
-        val index = refs.indexOfFirst { ref -> ref.levelId == current.levelId }
+        val bankRefs = refs.filterNot { it.isIntro }
+        if (current.isIntro) return LevelRef.forLevel(1L, bankRefs)
+        val index = bankRefs.indexOfFirst { ref -> ref.levelId == current.levelId }
         require(index >= 0) { "Level ${current.levelId} is not in the ${current.pack} pack" }
-        return refs.getOrNull(index + 1)
+        return LevelRef.forLevel(Math.addExact(current.levelNumber ?: (index + 1L), 1L), bankRefs)
     }
 
     override fun dailyRef(dayIndex: Int, bank: BankSource): LevelRef {
@@ -195,7 +221,20 @@ class EngineGameModule<P : Any, S : Any>(
         } else if (!ref.daily) {
             require(entry.bankLine.pack == ref.pack) { "Level ${ref.levelId} does not use the ${ref.pack} pack" }
         }
-        return GameLevel(ref, entry.bankLine.size, engine.decodePuzzle(entry.raw))
+        val numberedRef = if (ref.daily) {
+            ref
+        } else if (ref.isIntro) {
+            ref.copy(levelNumber = null, bankIndex = null)
+        } else {
+            val refs = levelRefs(ref.pack, bank)
+            val bankRefs = refs.filterNot { it.isIntro }
+            val index = bankRefs.indexOfFirst { it.levelId == ref.levelId }
+            require(index >= 0) { "Level is not in the pack" }
+            val numbered = LevelRef.forLevel(ref.levelNumber ?: (index + 1L), bankRefs)
+            require(numbered.levelId == ref.levelId) { "Level number does not match bank puzzle" }
+            numbered
+        }
+        return GameLevel(numberedRef, entry.bankLine.size, engine.decodePuzzle(entry.raw))
     }
 
     @Composable
@@ -203,6 +242,9 @@ class EngineGameModule<P : Any, S : Any>(
     override fun Board(state: S, onMoves: (List<Move>) -> Unit, onUndo: () -> Unit) {
         Text(stringResource(R.string.board_coming_soon))
     }
+
+    private fun numberLevels(refs: List<LevelRef>): List<LevelRef> =
+        refs.mapIndexed { index, ref -> ref.copy(levelNumber = index + 1L, bankIndex = index) }
 
     private fun bankEntries(path: String, bank: BankSource): List<BankEntry> =
         synchronized(parsedBankFiles) {

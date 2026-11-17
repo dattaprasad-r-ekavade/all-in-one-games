@@ -28,6 +28,7 @@ import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
 import com.datathecodie.witgrid.billing.BillingUiState
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.data.settings.StreakData
+import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
@@ -112,14 +113,23 @@ fun HomeScreen(
                                 text = stringResource(gameNameResource(game.gameId)),
                                 style = MaterialTheme.typography.titleLarge,
                             )
-                            Text(
-                                text = stringResource(
-                                    R.string.home_progress,
-                                    game.completedLevels,
-                                    game.totalLevels,
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
+                            game.nextLevelRef?.let { level ->
+                                Text(
+                                    text = if (level.isIntro) {
+                                        stringResource(
+                                            R.string.home_guided_intro,
+                                            stringResource(packNameResource(level.pack)),
+                                        )
+                                    } else {
+                                        stringResource(
+                                            R.string.home_next_level,
+                                            requireNotNull(level.levelNumber),
+                                            stringResource(packNameResource(level.pack)),
+                                        )
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                         }
                     }
                 }
@@ -176,3 +186,10 @@ private fun gameNameResource(gameId: String): Int = when (gameId) {
 }
 
 private const val DAILY_GAME_COUNT = 4
+
+private fun packNameResource(pack: Pack): Int = when (pack) {
+    Pack.EASY -> R.string.pack_easy
+    Pack.MEDIUM -> R.string.pack_medium
+    Pack.HARD -> R.string.pack_hard
+    Pack.EXPERT -> R.string.pack_expert
+}

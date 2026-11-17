@@ -135,6 +135,23 @@ fun GameScreen(
             ) {
                 Text(stringResource(R.string.button_continue))
             }
+            continueLevelRef?.let { level ->
+                Text(
+                    if (level.isIntro) {
+                        stringResource(
+                            R.string.home_guided_intro,
+                            stringResource(packNameResource(level.pack)),
+                        )
+                    } else {
+                        stringResource(
+                            R.string.home_next_level,
+                            requireNotNull(level.levelNumber),
+                            stringResource(packNameResource(level.pack)),
+                        )
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
 
             if (state.isLoading) {
                 CircularProgressIndicator()
@@ -154,14 +171,19 @@ fun GameScreen(
                                 text = stringResource(packNameResource(packProgress.pack)),
                                 style = MaterialTheme.typography.titleLarge,
                             )
-                            Text(
-                                text = stringResource(
-                                    R.string.game_pack_progress,
-                                    packProgress.completedLevels,
-                                    packProgress.totalLevels,
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
+                            nextLevelRef?.let { level ->
+                                Text(
+                                    text = if (level.isIntro) {
+                                        stringResource(R.string.game_guided_intro)
+                                    } else {
+                                        stringResource(
+                                            R.string.game_next_level,
+                                            requireNotNull(level.levelNumber),
+                                        )
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                         }
                     }
                 }

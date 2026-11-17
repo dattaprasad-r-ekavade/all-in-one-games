@@ -65,6 +65,7 @@ class PlayController<P : Any, S : Any> private constructor(
     private val mistakeLimitEnabled: Boolean,
     initialState: S,
     restoredProgress: LevelProgress?,
+    bankBestTimeMillis: Long?,
 ) {
     private data class TimerState(
         val elapsedMillis: Long,
@@ -80,7 +81,7 @@ class PlayController<P : Any, S : Any> private constructor(
     private var extraMistakesGranted = restoredProgress?.extraMistakesGranted ?: 0
     private var pendingContinueTransactionId = restoredProgress?.pendingContinueTransactionId
     private var completed = restoredProgress?.completed ?: false
-    private var bestTimeMillis = restoredProgress?.bestTimeMillis
+    private var bestTimeMillis = bankBestTimeMillis
     private var solvedEventSent = completed
     @Volatile
     private var timerState = TimerState(
@@ -111,7 +112,7 @@ class PlayController<P : Any, S : Any> private constructor(
         val digest = MessageDigest.getInstance("SHA-256").digest(encodedState).joinToString("") { byte ->
             (byte.toInt() and 0xff).toString(16).padStart(2, '0')
         }
-        return "${level.ref.gameId}:${level.ref.levelId}:$digest"
+        return "${level.ref.gameId}:${level.ref.levelId}:${level.ref.levelNumber ?: 0}:$digest"
     }
 
     suspend fun applyMove(move: Move): Boolean = applyGesture(listOf(move))
@@ -287,6 +288,7 @@ class PlayController<P : Any, S : Any> private constructor(
             mistakesMade = nextMistakesMade,
             extraMistakesGranted = extraMistakesGranted,
             pendingContinueTransactionId = pendingContinueTransactionId,
+            attemptNumber = level.ref.levelNumber ?: 0,
         )
 
         progressRepository.saveLevelProgress(save)
@@ -327,6 +329,7 @@ class PlayController<P : Any, S : Any> private constructor(
                 mistakesMade = mistakesMade,
                 extraMistakesGranted = extraMistakesGranted,
                 pendingContinueTransactionId = pendingContinueTransactionId,
+                attemptNumber = level.ref.levelNumber ?: 0,
             ),
         )
     }
@@ -390,7 +393,16 @@ class PlayController<P : Any, S : Any> private constructor(
             mistakeLimitEnabled: Boolean = false,
         ): PlayController<P, S> {
             require(level.ref.gameId == gameModule.id) { "Level belongs to another game" }
-            val savedProgress = progressRepository.getLevelProgress(gameModule.id, level.ref.levelId)
+            val attemptNumber = level.ref.levelNumber ?: 0L
+            val savedAttempt = progressRepository.getAttemptProgress(gameModule.id, level.ref.levelId, attemptNumber)
+            val canRestoreLegacy = attemptNumber == 0L ||
+                attemptNumber == level.ref.bankIndex?.plus(1L)
+            val savedProgress = savedAttempt ?: if (canRestoreLegacy) {
+                progressRepository.getAttemptProgress(gameModule.id, level.ref.levelId, 0L)
+            } else {
+                null
+            }
+            val bankBestTimeMillis = progressRepository.getBestTimeMillis(gameModule.id, level.ref.levelId)
             val restoredState = savedProgress?.let { restoreStateOrNull(gameModule, level, it.stateBytes) }
             // A save that cannot be used starts a fresh attempt. Completion and best time are kept.
             val restoredProgress = when {
@@ -411,6 +423,7 @@ class PlayController<P : Any, S : Any> private constructor(
                 mistakeLimitEnabled = mistakeLimitEnabled,
                 initialState = restoredState ?: gameModule.newState(level),
                 restoredProgress = restoredProgress,
+                bankBestTimeMillis = bankBestTimeMillis,
             )
         }
 

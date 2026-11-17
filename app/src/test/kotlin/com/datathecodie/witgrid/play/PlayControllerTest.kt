@@ -584,6 +584,64 @@ class PlayControllerTest {
         assertFalse(controller.snapshot.value.completed)
     }
 
+    @Test
+    fun repeatedBankPuzzleStartsFreshKeepsBestAndResumesOnlyItsOwnAttempt() = runBlocking {
+        val repository = FakeProgressRepository()
+        val firstLevel = testLevel.copy(ref = testLevel.ref.copy(levelNumber = 1, bankIndex = 0))
+        val clock = FakeClock(10_000)
+        val first = PlayController.open(testModule, firstLevel, repository, clock)
+        val firstEmptyFingerprint = first.currentBoardFingerprint()
+        clock.advance(300)
+        first.applyHint(requireNotNull(first.nextHint()))
+        first.applyHint(requireNotNull(first.nextHint()))
+        assertTrue(first.snapshot.value.completed)
+
+        val loopLevel = firstLevel.copy(ref = firstLevel.ref.copy(levelNumber = 3))
+        val repeated = PlayController.open(testModule, loopLevel, repository, clock)
+        assertEquals(List(2) { Mark.EMPTY }, repeated.snapshot.value.state.marks)
+        assertEquals(0L, repeated.snapshot.value.elapsedTimeMillis)
+        assertEquals(0, repeated.snapshot.value.hintsUsed)
+        assertEquals(0, repeated.snapshot.value.mistakesMade)
+        assertEquals(null, repeated.snapshot.value.pendingContinueTransactionId)
+        assertEquals(300L, repeated.snapshot.value.bestTimeMillis)
+        assertFalse(repeated.snapshot.value.completed)
+        assertFalse(repeated.snapshot.value.solved)
+        assertFalse(repeated.snapshot.value.canUndo)
+        assertTrue(firstEmptyFingerprint != repeated.currentBoardFingerprint())
+        repeated.applyMove(solvingMoves().first())
+        clock.advance(500)
+        repeated.pauseForBackground()
+
+        val resumed = PlayController.open(testModule, loopLevel, repository, clock)
+        assertEquals(listOf(Mark.FILLED, Mark.EMPTY), resumed.snapshot.value.state.marks)
+        assertEquals(500L, resumed.snapshot.value.elapsedTimeMillis)
+        resumed.applyMove(solvingMoves().last())
+        assertEquals(300L, resumed.solvedEvents.first().bestTimeMillis)
+        assertEquals(3L, repository.lastSaved().attemptNumber)
+        assertTrue(TestEngine.isSolved(firstLevel.puzzle, TestEngine.decodeState(
+            requireNotNull(repository.getAttemptProgress(testModule.id, firstLevel.ref.levelId, 1)).stateBytes,
+        )))
+    }
+
+    @Test
+    fun legacyBankSaveResumesAtItsOneBasedIndexButCannotLeakIntoLaterLoop() = runBlocking {
+        val repository = FakeProgressRepository()
+        val legacyState = TestEngine.initialState(testLevel.puzzle).copy(marks = listOf(Mark.FILLED, Mark.EMPTY))
+        repository.saveLevelProgress(savedProgress(TestEngine.encodeState(legacyState)))
+        val numbered = testLevel.copy(ref = testLevel.ref.copy(levelNumber = 2, bankIndex = 1))
+        val controller = PlayController.open(testModule, numbered, repository, FakeClock(10_000))
+        assertEquals(legacyState.marks, controller.snapshot.value.state.marks)
+        assertEquals(4_500L, controller.snapshot.value.elapsedTimeMillis)
+        assertEquals(2, controller.snapshot.value.hintsUsed)
+        controller.pauseForBackground()
+        assertEquals(2L, repository.lastSaved().attemptNumber)
+
+        val later = numbered.copy(ref = numbered.ref.copy(levelNumber = 5))
+        val loop = PlayController.open(testModule, later, repository, FakeClock(20_000))
+        assertEquals(List(2) { Mark.EMPTY }, loop.snapshot.value.state.marks)
+        assertEquals(0, loop.snapshot.value.hintsUsed)
+    }
+
     private fun solvingMoves() = listOf(
         Move.SetMark(Cell(0), Mark.FILLED),
         Move.SetMark(Cell(1), Mark.FILLED),
@@ -682,23 +740,32 @@ class PlayControllerTest {
     }
 
     private class FakeProgressRepository : ProgressRepository {
-        private val saved = mutableMapOf<Pair<String, String>, LevelProgress>()
+        private val saved = mutableMapOf<Triple<String, String, Long>, LevelProgress>()
         val writes = mutableListOf<LevelProgress>()
 
         override fun observeLevelProgress(gameId: String, levelId: String): Flow<LevelProgress?> =
-            flowOf(saved[gameId to levelId])
+            flowOf(latest(gameId, levelId))
+
+        private fun latest(gameId: String, levelId: String): LevelProgress? =
+            saved.values.filter { it.gameId == gameId && it.levelId == levelId }.maxByOrNull { it.attemptNumber }
 
         override suspend fun getLevelProgress(gameId: String, levelId: String): LevelProgress? =
-            saved[gameId to levelId]
+            latest(gameId, levelId)
+
+        override suspend fun getAttemptProgress(gameId: String, levelId: String, attemptNumber: Long): LevelProgress? =
+            saved[Triple(gameId, levelId, attemptNumber)]
+
+        override suspend fun getBestTimeMillis(gameId: String, levelId: String): Long? =
+            saved.values.filter { it.gameId == gameId && it.levelId == levelId }.mapNotNull { it.bestTimeMillis }.minOrNull()
 
         override suspend fun saveLevelProgress(progress: LevelProgress) {
             val copy = progress.copy(stateBytes = progress.stateBytes.copyOf())
-            saved[progress.gameId to progress.levelId] = copy
+            saved[Triple(progress.gameId, progress.levelId, progress.attemptNumber)] = copy
             writes += copy
         }
 
         override suspend fun deleteLevelProgress(gameId: String, levelId: String) {
-            saved.remove(gameId to levelId)
+            saved.keys.removeAll { it.first == gameId && it.second == levelId }
         }
     }
 

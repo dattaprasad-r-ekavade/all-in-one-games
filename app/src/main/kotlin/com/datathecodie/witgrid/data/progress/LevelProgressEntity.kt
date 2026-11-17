@@ -5,7 +5,7 @@ import androidx.room.Entity
 
 @Entity(
     tableName = "level_progress",
-    primaryKeys = ["gameId", "levelId"],
+    primaryKeys = ["gameId", "levelId", "attemptNumber"],
 )
 data class LevelProgressEntity(
     val gameId: String,
@@ -21,6 +21,8 @@ data class LevelProgressEntity(
     val extraMistakesGranted: Int = 0,
     @ColumnInfo(defaultValue = "NULL")
     val pendingContinueTransactionId: String? = null,
+    @ColumnInfo(defaultValue = "0")
+    val attemptNumber: Long = 0,
 )
 
 internal fun LevelProgressEntity.toModel(): LevelProgress = LevelProgress(
@@ -34,6 +36,7 @@ internal fun LevelProgressEntity.toModel(): LevelProgress = LevelProgress(
     mistakesMade = mistakesMade,
     extraMistakesGranted = extraMistakesGranted,
     pendingContinueTransactionId = pendingContinueTransactionId,
+    attemptNumber = attemptNumber,
 )
 
 internal fun LevelProgress.toEntity(): LevelProgressEntity = LevelProgressEntity(
@@ -47,4 +50,5 @@ internal fun LevelProgress.toEntity(): LevelProgressEntity = LevelProgressEntity
     mistakesMade = mistakesMade,
     extraMistakesGranted = extraMistakesGranted,
     pendingContinueTransactionId = pendingContinueTransactionId,
+    attemptNumber = attemptNumber,
 )

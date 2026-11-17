@@ -58,8 +58,10 @@
     <string name="home_daily_status">%1$d of 4 daily puzzles completed today</string>
     <string name="home_streak_status">%1$d-day streak · %2$d weekly freeze available</string>
     <string name="home_premium_row">Premium</string>
-    <string name="home_progress">%1$d of %2$d levels completed</string>
-    <string name="game_pack_progress">%1$d of %2$d completed</string>
+    <string name="home_next_level">Level %1$d · %2$s</string>
+    <string name="home_guided_intro">%1$s guided intro</string>
+    <string name="game_next_level">Next: level %1$d</string>
+    <string name="game_guided_intro">Guided intro</string>
     <string name="game_daily_entry">Play daily puzzle</string>
     <string name="game_daily_entry_completed">Daily puzzle complete · play again</string>
     <string name="calendar_streak_status">%1$d-day streak · %2$d weekly freeze available</string>

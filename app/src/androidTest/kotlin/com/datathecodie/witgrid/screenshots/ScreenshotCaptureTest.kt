@@ -90,10 +90,10 @@ class ScreenshotCaptureTest {
             HomeScreen(
                 state = HomeUiState(
                     games = listOf(
-                        HomeGameProgress("crowns", completedLevels = 6, totalLevels = 64),
-                        HomeGameProgress("binary", completedLevels = 12, totalLevels = 72),
-                        HomeGameProgress("nonogram", completedLevels = 4, totalLevels = 80),
-                        HomeGameProgress("minisudoku", completedLevels = 9, totalLevels = 60),
+                        HomeGameProgress("crowns", LevelRef("crowns", "preview", Pack.EASY, levelNumber = 7)),
+                        HomeGameProgress("binary", LevelRef("binary", "preview", Pack.EASY, levelNumber = 13)),
+                        HomeGameProgress("nonogram", LevelRef("nonogram", "preview", Pack.EASY, levelNumber = 5)),
+                        HomeGameProgress("minisudoku", LevelRef("minisudoku", "preview", Pack.EASY, levelNumber = 10)),
                     ),
                     isLoading = false,
                 ),
@@ -160,8 +160,6 @@ class ScreenshotCaptureTest {
                         packs = Pack.entries.map { pack ->
                             PackProgress(
                                 pack = pack,
-                                completedLevels = 0,
-                                totalLevels = 16,
                                 nextLevelRef = levelRef.copy(pack = pack),
                             )
                         },

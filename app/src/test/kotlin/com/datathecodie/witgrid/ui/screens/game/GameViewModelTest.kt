@@ -9,139 +9,66 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class GameViewModelTest {
+    private val intro = LevelRef("binary", "intro", Pack.EASY, introCoachLineResourceId = 1)
+    private val easy = LevelRef("binary", "easy", Pack.EASY)
+    private val easyTwo = LevelRef("binary", "easy-two", Pack.EASY)
+    private val easyThree = LevelRef("binary", "easy-three", Pack.EASY)
+    private val medium = LevelRef("binary", "medium", Pack.MEDIUM)
+    private val catalog = mapOf(
+        Pack.EASY to listOf(intro, easy, easyTwo, easyThree),
+        Pack.MEDIUM to listOf(medium),
+    )
+
     @Test
-    fun aNewGameContinuesToItsIntroAndThenTheFirstUnfinishedLevel() = runBlocking {
-        val intro = LevelRef("binary", "BI-INTRO-01", Pack.EASY, introCoachLineResourceId = 1)
-        val easy = LevelRef("binary", "easy-001", Pack.EASY)
-        val viewModel = GameViewModel(
-            gameId = "binary",
-            levelRefsByPack = mapOf(Pack.EASY to listOf(intro, easy)),
-            progressRepository = FakeProgressSummaryRepository(emptyList()),
-        )
-
-        viewModel.refresh()
-
-        assertEquals(intro, viewModel.state.value.continueLevelRef)
-        assertEquals(intro, viewModel.state.value.packs.first().nextLevelRef)
-
-        val completedIntroViewModel = GameViewModel(
-            gameId = "binary",
-            levelRefsByPack = mapOf(Pack.EASY to listOf(intro, easy)),
-            progressRepository = FakeProgressSummaryRepository(listOf(progress(intro.levelId, completed = true))),
-        )
-
-        completedIntroViewModel.refresh()
-
-        assertEquals(easy, completedIntroViewModel.state.value.continueLevelRef)
+    fun newGameStartsWithUnnumberedIntroOutsideBankProgression() = runBlocking {
+        val state = refresh(emptyList())
+        assertEquals(intro, state.continueLevelRef)
+        assertEquals(listOf(null, 1L, null, null), state.packs.map { it.nextLevelRef?.levelNumber })
+        assertEquals(false, state.isLoading)
     }
 
     @Test
-    fun refreshCountsByPackAndChoosesFirstUnfinishedLevel() = runBlocking {
-        val easyFirst = LevelRef("binary", "easy-001", Pack.EASY)
-        val easySecond = LevelRef("binary", "easy-002", Pack.EASY)
-        val mediumFirst = LevelRef("binary", "medium-001", Pack.MEDIUM)
-        val expertFirst = LevelRef("binary", "expert-001", Pack.EXPERT)
-        val repository = FakeProgressSummaryRepository(
-            listOf(
-                progress("easy-001", completed = true),
-                progress("medium-001", completed = false),
-                progress("expert-001", completed = true),
-            ),
-        )
-        val viewModel = GameViewModel(
-            gameId = "binary",
-            levelRefsByPack = mapOf(
-                Pack.EASY to listOf(easyFirst, easySecond),
-                Pack.MEDIUM to listOf(mediumFirst),
-                Pack.HARD to emptyList(),
-                Pack.EXPERT to listOf(expertFirst),
-            ),
-            progressRepository = repository,
-        )
-
-        viewModel.refresh()
-
-        assertEquals(
-            listOf(
-                PackProgress(Pack.EASY, completedLevels = 1, totalLevels = 2, nextLevelRef = easySecond),
-                PackProgress(Pack.MEDIUM, completedLevels = 0, totalLevels = 1, nextLevelRef = mediumFirst),
-                PackProgress(Pack.HARD, completedLevels = 0, totalLevels = 0, nextLevelRef = null),
-                PackProgress(Pack.EXPERT, completedLevels = 1, totalLevels = 1, nextLevelRef = expertFirst),
-            ),
-            viewModel.state.value.packs,
-        )
-        assertEquals(mediumFirst, viewModel.state.value.continueLevelRef)
-        assertEquals(false, viewModel.state.value.isLoading)
+    fun legacySaveAtBankIndexOneResumesLevelTwo() = runBlocking {
+        val state = refresh(listOf(progress(easyTwo, false)))
+        assertEquals(LevelRef.forLevel(2, catalog.getValue(Pack.EASY)), state.continueLevelRef)
     }
 
     @Test
-    fun continueSkipsFinishedPacksAndResumesSavedLevelBeforeUnplayedLevels() = runBlocking {
-        val easy = LevelRef("binary", "easy-001", Pack.EASY)
-        val mediumFirst = LevelRef("binary", "medium-001", Pack.MEDIUM)
-        val mediumSecond = LevelRef("binary", "medium-002", Pack.MEDIUM)
-        val viewModel = GameViewModel(
-            gameId = "binary",
-            levelRefsByPack = mapOf(
-                Pack.EASY to listOf(easy),
-                Pack.MEDIUM to listOf(mediumFirst, mediumSecond),
-            ),
-            progressRepository = FakeProgressSummaryRepository(
-                listOf(progress("easy-001", true), progress("medium-002", false)),
-            ),
-        )
-
-        viewModel.refresh()
-
-        assertEquals(mediumSecond, viewModel.state.value.continueLevelRef)
-        assertEquals(mediumSecond, viewModel.state.value.packs[1].nextLevelRef)
+    fun completingLastLegacyPuzzleLoopsWithoutResettingLevelNumber() = runBlocking {
+        val state = refresh(listOf(progress(intro, true), progress(easyThree, true)))
+        assertEquals(LevelRef.forLevel(4, catalog.getValue(Pack.EASY)), state.continueLevelRef)
+        assertEquals(state.continueLevelRef, state.packs.first().nextLevelRef)
     }
 
     @Test
-    fun continueChoosesNextUnplayedPackWhenEarlierPackIsComplete() = runBlocking {
-        val easy = LevelRef("binary", "easy-001", Pack.EASY)
-        val medium = LevelRef("binary", "medium-001", Pack.MEDIUM)
-        val viewModel = GameViewModel(
-            "binary",
-            mapOf(Pack.EASY to listOf(easy), Pack.MEDIUM to listOf(medium)),
-            FakeProgressSummaryRepository(listOf(progress("easy-001", true))),
-        )
-
-        viewModel.refresh()
-
-        assertEquals(medium, viewModel.state.value.continueLevelRef)
+    fun numberedProgressKeepsAdvancingAcrossLoopsAndIgnoresOldUnfinishedAttempts() = runBlocking {
+        val state = refresh(listOf(progress(intro, true), progress(easyTwo, true, 8)))
+        assertEquals(LevelRef.forLevel(9, catalog.getValue(Pack.EASY)), state.continueLevelRef)
     }
 
     @Test
-    fun allCompletedLevelsRemainAvailableForReplay() = runBlocking {
-        val easy = LevelRef("binary", "easy-001", Pack.EASY)
-        val viewModel = GameViewModel(
-            "binary",
-            mapOf(Pack.EASY to listOf(easy)),
-            FakeProgressSummaryRepository(listOf(progress("easy-001", true))),
-        )
+    fun activeAttemptInAnotherPackTakesContinuePriorityAndPacksAdvanceIndependently() = runBlocking {
+        val state = refresh(listOf(progress(easyThree, true, 6), progress(medium, false, 12)))
+        assertEquals(LevelRef.forLevel(12, catalog.getValue(Pack.MEDIUM)), state.continueLevelRef)
+        assertEquals(listOf(7L, 12L, null, null), state.packs.map { it.nextLevelRef?.levelNumber })
+    }
 
+    private suspend fun refresh(progress: List<LevelProgress>): GameUiState {
+        val viewModel = GameViewModel("binary", catalog, object : GameProgressSummaryRepository {
+            override suspend fun getProgressForGame(gameId: String) = progress
+        })
         viewModel.refresh()
-
-        assertEquals(easy, viewModel.state.value.continueLevelRef)
-        assertEquals(easy, viewModel.state.value.packs.first().nextLevelRef)
+        return viewModel.state.value
     }
 
-    private class FakeProgressSummaryRepository(
-        private val progress: List<LevelProgress>,
-    ) : GameProgressSummaryRepository {
-        override suspend fun getProgressForGame(gameId: String): List<LevelProgress> =
-            progress.filter { it.gameId == gameId }
-    }
-
-    private companion object {
-        fun progress(levelId: String, completed: Boolean) = LevelProgress(
-            gameId = "binary",
-            levelId = levelId,
-            stateBytes = byteArrayOf(),
-            elapsedTimeMillis = 0,
-            hintsUsed = 0,
-            completed = completed,
-            bestTimeMillis = null,
-        )
-    }
+    private fun progress(ref: LevelRef, completed: Boolean, number: Long = 0) = LevelProgress(
+        gameId = ref.gameId,
+        levelId = ref.levelId,
+        stateBytes = byteArrayOf(),
+        elapsedTimeMillis = 0,
+        hintsUsed = 0,
+        completed = completed,
+        bestTimeMillis = null,
+        attemptNumber = number,
+    )
 }

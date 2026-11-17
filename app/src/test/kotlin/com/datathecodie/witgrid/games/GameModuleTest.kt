@@ -8,7 +8,6 @@ import com.datathecodie.witgrid.engine.crowns.CrownsCodec
 import com.datathecodie.witgrid.engine.crowns.CrownsEngine
 import com.datathecodie.witgrid.engine.crowns.CrownsState
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -36,12 +35,33 @@ class GameModuleTest {
         val level = module.loadLevel(introRef, bank)
 
         assertTrue(introRef.isIntro)
+        assertEquals(null, introRef.levelNumber)
         assertEquals("CR-INTRO-TEST", introRef.levelId)
         assertEquals(R.string.intro_coach_crowns, introRef.introCoachLineResourceId)
         assertEquals(6, level.size)
         assertEquals(listOf("bank/crowns-intro.txt"), bank.openedPaths.filter { it.endsWith("-intro.txt") })
-        assertEquals(refs[1], module.nextLevelRef(introRef, bank))
+        assertEquals(LevelRef.forLevel(1, refs), module.nextLevelRef(introRef, bank))
         assertEquals(easyIds, refs.drop(1).map { it.levelId })
+    }
+
+    @Test
+    fun introDoesNotConsumeNumberedBankSlotsOrRepeatInTheEasyLoop() {
+        val bank = FakeBankSource()
+        val module = crownsIntroModule()
+        val refs = module.levelRefs(Pack.EASY, bank)
+        val bankSize = easyIds.size
+
+        assertTrue(refs.first().isIntro)
+        for (number in 1L..(bankSize * 2L + 1L)) {
+            val ref = LevelRef.forLevel(number, refs)
+            val expectedIndex = ((number - 1) % bankSize).toInt()
+            assertEquals(easyIds[expectedIndex], ref.levelId)
+            assertEquals(expectedIndex, ref.bankIndex)
+            assertEquals(number, ref.levelNumber)
+            assertEquals(number + 1, module.nextLevelRef(ref, bank)?.levelNumber)
+            assertEquals(ref, module.loadLevel(ref, bank).ref)
+        }
+        assertEquals(LevelRef.forLevel(1, refs), module.nextLevelRef(refs.first(), bank))
     }
 
     @Test
@@ -54,11 +74,37 @@ class GameModuleTest {
     }
 
     @Test
-    fun nextLevelRefIsNullAfterTheLastLevel() {
+    fun nextLevelRefLoopsAfterTheLastLevel() {
         val bank = FakeBankSource()
         val refs = crownsModule.levelRefs(Pack.EASY, bank)
 
-        assertNull(crownsModule.nextLevelRef(refs.last(), bank))
+        assertEquals(refs.first().copy(levelNumber = 4), crownsModule.nextLevelRef(refs.last(), bank))
+    }
+
+    @Test
+    fun levelNumbersMapAcrossManyLoopsAndLoadTheSameBankPuzzle() {
+        val bank = FakeBankSource()
+        val refs = crownsModule.levelRefs(Pack.EASY, bank)
+        for (number in listOf(1L, 2L, 3L, 4L, 7L, 1_000_000_001L)) {
+            val ref = LevelRef.forLevel(number, refs)
+            val index = ((number - 1) % refs.size).toInt()
+            assertEquals(easyIds[index], ref.levelId)
+            assertEquals(number, ref.levelNumber)
+            assertEquals(index, ref.bankIndex)
+            val loaded = crownsModule.loadLevel(ref, bank)
+            assertEquals(ref, loaded.ref)
+            assertEquals(ref.levelId, loaded.puzzle.id)
+            assertEquals(number + 1, crownsModule.nextLevelRef(ref, bank)?.levelNumber)
+        }
+        assertThrows(IllegalArgumentException::class.java) { LevelRef.forLevel(0, refs) }
+        assertThrows(IllegalArgumentException::class.java) { LevelRef.forLevel(1, emptyList()) }
+    }
+
+    @Test
+    fun legacyReferenceGetsItsNumberFromBankOrder() {
+        val bank = FakeBankSource()
+        val legacy = LevelRef("crowns", easyIds[2], Pack.EASY)
+        assertEquals(3L, crownsIntroModule().loadLevel(legacy, bank).ref.levelNumber)
     }
 
     @Test

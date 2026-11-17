@@ -10,7 +10,23 @@ import org.junit.jupiter.api.Test
 
 class HomeViewModelTest {
     @Test
-    fun refreshCountsCompletedLevelsForEachGame() = runBlocking {
+    fun repeatedPuzzleShowsItsAttemptNumberAndPackOnHome() = runBlocking {
+        val easy = LevelRef("crowns", "easy-001", Pack.EASY)
+        val hard = LevelRef("crowns", "hard-001", Pack.HARD)
+        val viewModel = HomeViewModel(
+            gameIds = listOf("crowns"),
+            levelRefsByGame = mapOf("crowns" to listOf(easy, hard)),
+            progressRepository = FakeProgressSummaryRepository(mapOf("crowns" to listOf(
+                progress("crowns", easy.levelId, true).copy(attemptNumber = 8),
+                progress("crowns", hard.levelId, false).copy(attemptNumber = 12),
+            ))),
+        )
+        viewModel.refresh()
+        assertEquals(hard.copy(levelNumber = 12, bankIndex = 0), viewModel.state.value.games.single().nextLevelRef)
+    }
+
+    @Test
+    fun refreshShowsNextNumberAndPackForEachGame() = runBlocking {
         val repository = FakeProgressSummaryRepository(
             mapOf(
                 "crowns" to listOf(
@@ -35,8 +51,8 @@ class HomeViewModelTest {
 
         assertEquals(
             listOf(
-                HomeGameProgress("crowns", completedLevels = 2, totalLevels = 3),
-                HomeGameProgress("binary", completedLevels = 0, totalLevels = 1),
+                HomeGameProgress("crowns", LevelRef("crowns", "easy-001", Pack.EASY, levelNumber = 4, bankIndex = 0)),
+                HomeGameProgress("binary", LevelRef("binary", "easy-001", Pack.EASY, levelNumber = 1, bankIndex = 0)),
             ),
             viewModel.state.value.games,
         )

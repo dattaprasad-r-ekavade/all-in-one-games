@@ -12,11 +12,17 @@ class RoomProgressRepository(
     override suspend fun getLevelProgress(gameId: String, levelId: String): LevelProgress? =
         levelProgressDao.get(gameId, levelId)?.toModel()
 
+    override suspend fun getAttemptProgress(gameId: String, levelId: String, attemptNumber: Long): LevelProgress? =
+        levelProgressDao.getAttempt(gameId, levelId, attemptNumber)?.toModel()
+
+    override suspend fun getBestTimeMillis(gameId: String, levelId: String): Long? =
+        levelProgressDao.getBestTime(gameId, levelId)
+
     override suspend fun getProgressForGame(gameId: String): List<LevelProgress> =
         levelProgressDao.getForGame(gameId).map { it.toModel() }
 
     override suspend fun saveLevelProgress(progress: LevelProgress) {
-        levelProgressDao.upsert(progress.toEntity())
+        levelProgressDao.save(progress.toEntity())
     }
 
     override suspend fun deleteLevelProgress(gameId: String, levelId: String) {
