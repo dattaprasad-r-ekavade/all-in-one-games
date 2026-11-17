@@ -11,10 +11,10 @@ Launch games: **Crowns**, **Binary**, **Nonogram** and **Mini Sudoku 6x6**.
 
 _Last update: 17 Nov 2026_
 
-**Overall: about 73 %** (47 of 64 task cards done; 4 ready; 1 active)
+**Overall: about 75 %** (48 of 64 task cards done; 4 ready)
 
 ```
-[#############################-----------]  73 %
+[##############################----------]  75 %
 ```
 
 The percentage is the share of task cards with status `done` in `docs/TASKS.md`. Each game stream counts as 4 cards. Cards are not equal in size, so treat the value as a rough guide.
@@ -25,10 +25,10 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | 1 — Engine and puzzle bank | 26 | 25 | 1 | 0 | 0 | 0 | 96 % |
 | 2 - Core app | 14 | 14 | 0 | 0 | 0 | 0 | 100 % |
 | 3 - Retention | 6 | 3 | 0 | 0 | 0 | 0 | 50 % |
-| 4 — Monetisation and data | 8 | 1 | 1 | 1 | 0 | 0 | 13 % |
+| 4 — Monetisation and data | 8 | 2 | 1 | 0 | 0 | 0 | 25 % |
 | 5 - Closed test | 4 | 0 | 1 | 0 | 0 | 0 | 0 % |
 | 6 — Launch | 1 | 0 | 0 | 0 | 0 | 0 | 0 % |
-| **Total** | **64** | **47** | **4** | **1** | **0** | **0** | **73 %** |
+| **Total** | **64** | **48** | **4** | **0** | **0** | **0** | **75 %** |
 
 ## Done
 
@@ -81,19 +81,19 @@ The percentage is the share of task cards with status `done` in `docs/TASKS.md`.
 | R2 | Home/Game daily status, local-date calendar, date-specific completion history and serialized streak reconciliation. Historical completions recover across offline days; full `check` validates all 3,864 bank puzzles; GPT-6.1-Sol review found no remaining blockers. |
 | R3 | Statistics screen with distinct regular-level solves, date-specific daily completion counts, best time and average best time. Calculation tests and full `check` pass; GPT-6.1-Sol review found no blockers. |
 | M1 | Plain Kotlin monetisation config and policy, atomic DataStore allowances/rewards/interstitial tracking, unchanged-hint deduplication, stable reward grant IDs, and eligible streak-repair checks. App tests and full `check` pass; GPT-6.1-Sol review found no blockers. |
+| M2 | Independent policy tests cover interstitial gates and boundaries, daily/shared/offline hints, checks, continues, Premium, repair eligibility, and persistent reward-grant idempotency. App tests and full `check` pass; GPT-6.1-Sol review found no blockers. |
 
 Also done: the development plan, agent rules, task backlog, Claude subagents (`builder`, `test-writer`, `chore`, `reviewer`) and the helper scripts in `scripts/`.
 
 ## Next steps
 
-1. **Build M2:** independent policy tests for every rule and prohibited interstitial case.
-2. **Build M3:** consent handling and ad service using Google's public test IDs.
-3. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
-4. **Complete human setup:** H0.1 covers accounts, legal setup and the website. These details do not block app coding.
+1. **Build M3:** consent handling and ad service using Google's public test IDs.
+2. **Hand-test the bank:** H1 is ready; solve 20 puzzles of each game and pack and note any guesses or grading issues.
+3. **Complete human setup:** H0.1 covers accounts, legal setup and the website. These details do not block app coding.
 
 ## In progress
 
-| M2 | Policy tests from the spec | Codex |
+None. M3 is ready.
 
 **Phase 0 exit:** the empty app runs on a phone and CI is green. Check the first CI run on GitHub after the push. H0.1 (accounts) is the last open Phase 0 card.
 

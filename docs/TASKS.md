@@ -56,7 +56,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | R6 | Accessibility pass | M | Claude | Codex | A5–A8, R5 | todo |
 | **Phase 4 — Monetisation and data** |||||||
 | M1 | Monetisation policy logic | H | Codex | Claude | A2, R1, R2, A11 | done |
-| M2 | Policy tests from the spec | L | Claude | Codex | M1 | active |
+| M2 | Policy tests from the spec | L | Claude | Codex | M1 | done |
 | M3 | Consent and ad service (test units) | H | Claude | Codex | M1 | ready |
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | todo |
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | todo |
@@ -379,7 +379,8 @@ Plan: 8.1–8.6.
 ### M2 — Policy tests from the spec
 Tier L · Build Claude (`test-writer`) · Review Codex
 **Owns:** `app/src/test/**/monetisation/spec/**`.
-**Do:** One test for each rule and each "Never" line in 8.1–8.5. Read only the plan and M1's public signatures.
+**Do:** Add independent tests for each rule and "Never" line exposed by M1's public policy and allowance APIs. Read only the plan and M1's public signatures.
+**Coverage boundary:** SDK and flow behavior is verified by its owner card: M3 covers consent, preload/expiry and SDK reward callbacks; M4 covers rewarded choices/labels, placements, no ads on an active board and offline fallback; M5 covers mistake-limit, continue and restart behavior. R1/R2 already cover freeze reconciliation and streak-repair application. R5/M6 cover Premium offer, restore and online revalidation; M7 covers offline-session analytics.
 **Done when:** Tests run. The handoff lists any failures as bugs.
 
 ### M3 — Consent and ad service (test units)
