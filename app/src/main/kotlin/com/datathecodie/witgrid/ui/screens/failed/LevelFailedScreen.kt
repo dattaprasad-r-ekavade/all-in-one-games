@@ -4,16 +4,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.ads.AdShowResult
+import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
+import com.datathecodie.witgrid.ads.flow.RewardedActionButton
 import com.datathecodie.witgrid.ui.layout.AdaptiveScreen
 
 @Composable
@@ -21,7 +27,12 @@ fun LevelFailedScreen(
     onContinue: () -> Unit,
     onRestart: () -> Unit,
     onHome: () -> Unit,
+    premiumEnabled: Boolean = false,
+    onRewardedContinue: suspend () -> AdShowResult = { AdShowResult.Unavailable },
 ) {
+    var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
+    if (showPremiumOffer) PremiumOfferDialog(onDismiss = { showPremiumOffer = false })
+
     AdaptiveScreen {
         Column(
             modifier = Modifier
@@ -31,10 +42,25 @@ fun LevelFailedScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(stringResource(R.string.screen_level_failed), style = MaterialTheme.typography.headlineMedium)
-            Text(stringResource(R.string.failed_continue_placeholder), style = MaterialTheme.typography.bodyMedium)
-            Button(onClick = onContinue, enabled = false) {
-                Text(stringResource(R.string.button_continue))
-            }
+            RewardedActionButton(
+                titleResource = if (premiumEnabled) {
+                    R.string.failed_continue_premium
+                } else {
+                    R.string.ads_continue_rewarded
+                },
+                successResource = R.string.ads_continue_granted,
+                onReward = {
+                    if (premiumEnabled) {
+                        onContinue()
+                        AdShowResult.RewardGranted
+                    } else {
+                        val result = onRewardedContinue()
+                        if (result == AdShowResult.RewardGranted) onContinue()
+                        result
+                    }
+                },
+                onOpenPremiumOffer = { showPremiumOffer = true },
+            )
             OutlinedButton(onClick = onRestart) {
                 Text(stringResource(R.string.button_restart))
             }

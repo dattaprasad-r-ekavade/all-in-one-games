@@ -2,6 +2,7 @@ package com.datathecodie.witgrid.data.settings
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -80,16 +81,7 @@ class DataStorePlayerDataRepository(
                 hourOfDay = (preferences[REMINDER_HOUR_OF_DAY] ?: 9).coerceIn(0, 23),
                 minute = (preferences[REMINDER_MINUTE] ?: 0).coerceIn(0, 59),
             ),
-            streak = StreakData(
-                currentDays = preferences[STREAK_DAYS] ?: 0,
-                lastActivityEpochDay = preferences[LAST_ACTIVITY_EPOCH_DAY],
-                freezesAvailable = preferences[FREEZES_AVAILABLE] ?: 0,
-                lastFreezeRefillEpochDay = preferences[LAST_FREEZE_REFILL_EPOCH_DAY],
-                latestMissedEpochDay = preferences[LATEST_MISSED_EPOCH_DAY],
-                latestMissedPreviousStreakDays = preferences[LATEST_MISSED_PREVIOUS_STREAK_DAYS] ?: 0,
-                latestMissedPreviousActivityEpochDay = preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY],
-                latestMissedRepairDeadlineEpochMilli = preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI],
-            ),
+            streak = readStreak(preferences),
             premiumEnabled = monetisation.premiumEnabled,
             rewardBalances = monetisation.rewardBalances,
             allowanceUsage = monetisation.allowanceUsage,
@@ -124,31 +116,53 @@ class DataStorePlayerDataRepository(
     }
 
     override suspend fun updateStreak(streak: StreakData) {
+        dataStore.edit { preferences -> writeStreak(preferences, streak) }
+    }
+
+    override suspend fun commitStreakRepair(
+        expectedStreak: StreakData,
+        repairedStreak: StreakData,
+        expectedMissedEpochDay: Long,
+        expectedRepairDeadlineEpochMillis: Long,
+        expectedLocalEpochDay: Long,
+        expectedTimeZoneId: String,
+        currentLocalEpochDay: () -> Long,
+        currentTimeZoneId: () -> String,
+        nowEpochMillis: () -> Long,
+    ): Boolean {
+        var committed = false
         dataStore.edit { preferences ->
-            preferences[STREAK_DAYS] = streak.currentDays
-            preferences[FREEZES_AVAILABLE] = streak.freezesAvailable
-            streak.lastActivityEpochDay?.let { day ->
-                preferences[LAST_ACTIVITY_EPOCH_DAY] = day
-            } ?: preferences.remove(LAST_ACTIVITY_EPOCH_DAY)
-            streak.lastFreezeRefillEpochDay?.let { day ->
-                preferences[LAST_FREEZE_REFILL_EPOCH_DAY] = day
-            } ?: preferences.remove(LAST_FREEZE_REFILL_EPOCH_DAY)
-            streak.latestMissedEpochDay?.let { day ->
-                preferences[LATEST_MISSED_EPOCH_DAY] = day
-                preferences[LATEST_MISSED_PREVIOUS_STREAK_DAYS] = streak.latestMissedPreviousStreakDays
-                streak.latestMissedPreviousActivityEpochDay?.let { previousDay ->
-                    preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY] = previousDay
-                } ?: preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
-                streak.latestMissedRepairDeadlineEpochMilli?.let { deadline ->
-                    preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI] = deadline
-                } ?: preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
-            } ?: run {
-                preferences.remove(LATEST_MISSED_EPOCH_DAY)
-                preferences.remove(LATEST_MISSED_PREVIOUS_STREAK_DAYS)
-                preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
-                preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
+            val currentStreak = readStreak(preferences)
+            val currentMonetisation = readMonetisationData(preferences)
+            val balance = currentMonetisation.rewardBalances[RewardType.STREAK_REPAIR] ?: 0
+            val repairIsStillCurrent = currentStreak == expectedStreak &&
+                currentStreak.latestMissedEpochDay == expectedMissedEpochDay &&
+                currentStreak.latestMissedRepairDeadlineEpochMilli == expectedRepairDeadlineEpochMillis &&
+                currentLocalEpochDay() == expectedLocalEpochDay &&
+                currentTimeZoneId() == expectedTimeZoneId &&
+                nowEpochMillis() < expectedRepairDeadlineEpochMillis
+            val canPay = currentMonetisation.premiumEnabled || balance > 0
+
+            if (repairIsStillCurrent && canPay) {
+                val updatedMonetisation = if (currentMonetisation.premiumEnabled) {
+                    currentMonetisation
+                } else {
+                    currentMonetisation.copy(
+                        rewardBalances = currentMonetisation.rewardBalances +
+                            (RewardType.STREAK_REPAIR to balance - 1),
+                    )
+                }
+                validate(updatedMonetisation)
+                writeStreak(preferences, repairedStreak)
+                writeMonetisationData(
+                    preferences,
+                    updatedMonetisation,
+                    currentMonetisation.levelsSinceLastInterstitial.keys,
+                )
+                committed = true
             }
         }
+        return committed
     }
 
     override suspend fun setPremiumEnabled(enabled: Boolean) {
@@ -175,6 +189,43 @@ class DataStorePlayerDataRepository(
     }
 
     private fun rewardBalanceKey(type: RewardType) = intPreferencesKey("reward_${type.storageKey}")
+
+    private fun readStreak(preferences: Preferences): StreakData = StreakData(
+        currentDays = preferences[STREAK_DAYS] ?: 0,
+        lastActivityEpochDay = preferences[LAST_ACTIVITY_EPOCH_DAY],
+        freezesAvailable = preferences[FREEZES_AVAILABLE] ?: 0,
+        lastFreezeRefillEpochDay = preferences[LAST_FREEZE_REFILL_EPOCH_DAY],
+        latestMissedEpochDay = preferences[LATEST_MISSED_EPOCH_DAY],
+        latestMissedPreviousStreakDays = preferences[LATEST_MISSED_PREVIOUS_STREAK_DAYS] ?: 0,
+        latestMissedPreviousActivityEpochDay = preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY],
+        latestMissedRepairDeadlineEpochMilli = preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI],
+    )
+
+    private fun writeStreak(preferences: MutablePreferences, streak: StreakData) {
+        preferences[STREAK_DAYS] = streak.currentDays
+        preferences[FREEZES_AVAILABLE] = streak.freezesAvailable
+        streak.lastActivityEpochDay?.let { day ->
+            preferences[LAST_ACTIVITY_EPOCH_DAY] = day
+        } ?: preferences.remove(LAST_ACTIVITY_EPOCH_DAY)
+        streak.lastFreezeRefillEpochDay?.let { day ->
+            preferences[LAST_FREEZE_REFILL_EPOCH_DAY] = day
+        } ?: preferences.remove(LAST_FREEZE_REFILL_EPOCH_DAY)
+        streak.latestMissedEpochDay?.let { day ->
+            preferences[LATEST_MISSED_EPOCH_DAY] = day
+            preferences[LATEST_MISSED_PREVIOUS_STREAK_DAYS] = streak.latestMissedPreviousStreakDays
+            streak.latestMissedPreviousActivityEpochDay?.let { previousDay ->
+                preferences[LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY] = previousDay
+            } ?: preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
+            streak.latestMissedRepairDeadlineEpochMilli?.let { deadline ->
+                preferences[LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI] = deadline
+            } ?: preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
+        } ?: run {
+            preferences.remove(LATEST_MISSED_EPOCH_DAY)
+            preferences.remove(LATEST_MISSED_PREVIOUS_STREAK_DAYS)
+            preferences.remove(LATEST_MISSED_PREVIOUS_ACTIVITY_EPOCH_DAY)
+            preferences.remove(LATEST_MISSED_REPAIR_DEADLINE_EPOCH_MILLI)
+        }
+    }
 
     private fun readMonetisationData(preferences: Preferences): MonetisationData = MonetisationData(
         premiumEnabled = preferences[PREMIUM_ENABLED] ?: false,

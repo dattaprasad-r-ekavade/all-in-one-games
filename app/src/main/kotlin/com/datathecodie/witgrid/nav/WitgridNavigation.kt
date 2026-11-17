@@ -36,13 +36,18 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.datathecodie.witgrid.data.progress.RoomDailyPuzzleCompletionRepository
 import com.datathecodie.witgrid.data.progress.RoomProgressRepository
 import com.datathecodie.witgrid.data.progress.WitgridDatabase
+import com.datathecodie.witgrid.ads.AdShowResult
 import com.datathecodie.witgrid.ads.GoogleAdService
+import com.datathecodie.witgrid.ads.flow.InterstitialAdFlow
+import com.datathecodie.witgrid.ads.flow.RewardedAdFlow
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.settings.DataStorePlayerDataRepository
 import com.datathecodie.witgrid.data.settings.PlayerData
+import com.datathecodie.witgrid.data.settings.RewardType
 import com.datathecodie.witgrid.domain.daily.DailyClock
 import com.datathecodie.witgrid.domain.daily.DailyProgressCoordinator
 import com.datathecodie.witgrid.domain.daily.DailyProgressSnapshot
+import com.datathecodie.witgrid.domain.daily.DailyStreakPolicy
 import com.datathecodie.witgrid.domain.config.DefaultConfig
 import com.datathecodie.witgrid.domain.monetisation.AllowanceLedger
 import com.datathecodie.witgrid.domain.monetisation.InterstitialTracker
@@ -137,6 +142,34 @@ fun WitgridNavigation(navigator: AppNavigator) {
             timeZoneProvider = { TimeZone.getDefault() },
         )
     }
+    val rewardLedger = remember(playerDataRepository, config, applicationContext, dailyProgressCoordinator) {
+        AllowanceLedger(
+            playerDataRepository = playerDataRepository,
+            config = config,
+            localEpochDay = { dailyProgressCoordinator.today().epochDay },
+            isOnline = { hasValidatedInternet(applicationContext) },
+            freeChecksInEasyPack = false,
+        )
+    }
+    val interstitialAdFlow = remember(adService, interstitialTracker) {
+        InterstitialAdFlow(adService, interstitialTracker)
+    }
+    val rewardedAdFlow = remember(adService, rewardLedger) {
+        RewardedAdFlow(adService, rewardLedger)
+    }
+    var firstSessionAfterInstall by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(interstitialTracker) {
+        if (firstSessionAfterInstall == null) {
+            try {
+                firstSessionAfterInstall = interstitialTracker.beginSession()
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                // Skip interstitials when session history could not be read safely.
+                firstSessionAfterInstall = null
+            }
+        }
+    }
     var dailyProgress by remember { mutableStateOf<DailyProgressSnapshot?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
@@ -187,6 +220,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
     var activeBackAction by remember(destination) {
         mutableStateOf<suspend () -> Unit>({ navigator.goBack() })
     }
+    var resultNextInProgress by remember { mutableStateOf(false) }
     val catalog by produceState<Map<String, List<LevelRef>>?>(null, bankSource) {
         value = withContext(Dispatchers.IO) {
             GameRegistry.games.associate { module ->
@@ -204,7 +238,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 backGestureFromLeft = event.swipeEdge == BackEventCompat.EDGE_LEFT
             }
             backProgress = 1f
-            activeBackAction()
+            if (!resultNextInProgress) activeBackAction()
         } catch (exception: CancellationException) {
             backProgress = 0f
             throw exception
@@ -258,6 +292,15 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     levelRefsByPack = levelRefsByPack,
                     progressRepository = progressRepository,
                     dailyCompletedToday = todayCompletions.any { it.gameId == currentDestination.gameId },
+                    premiumEnabled = playerData.premiumEnabled,
+                    onEarnHintCredit = {
+                        activity?.let { rewardedAdFlow.grantReward(it, RewardType.HINT) }
+                            ?: AdShowResult.Unavailable
+                    },
+                    onEarnCheckCredit = {
+                        activity?.let { rewardedAdFlow.grantReward(it, RewardType.CHECK) }
+                            ?: AdShowResult.Unavailable
+                    },
                     onContinue = { navigator.navigate(AppDestination.Play(it)) },
                     onSelectPack = { navigator.navigate(AppDestination.Play(it)) },
                     onOpenDaily = {
@@ -354,12 +397,44 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 levelRef = currentDestination.levelRef,
                 progressRepository = progressRepository,
                 onNext = {
-                    val next = nextResultLevel(
-                        currentDestination.levelRef,
-                        levelRefsByGame[currentDestination.levelRef.gameId].orEmpty(),
-                    )
-                    navigator.goBack()
-                    if (next != null) navigator.navigate(AppDestination.Play(next))
+                    if (!resultNextInProgress) {
+                        resultNextInProgress = true
+                        scope.launch {
+                            try {
+                                val levelRef = currentDestination.levelRef
+                                val next = nextResultLevel(
+                                    levelRef,
+                                    levelRefsByGame[levelRef.gameId].orEmpty(),
+                                )
+                                val currentActivity = activity
+                                val firstSession = firstSessionAfterInstall
+                                try {
+                                    if (currentActivity != null && firstSession != null) {
+                                        val module = requireNotNull(GameRegistry.find(levelRef.gameId))
+                                        val boardSize = withContext(Dispatchers.IO) {
+                                            module.loadLevel(levelRef, bankSource).size
+                                        }
+                                        interstitialAdFlow.afterResultNext(
+                                            activity = currentActivity,
+                                            gameId = levelRef.gameId,
+                                            boardSize = boardSize,
+                                            firstSessionAfterInstall = firstSession,
+                                        )
+                                    }
+                                } catch (exception: CancellationException) {
+                                    throw exception
+                                } catch (_: Exception) {
+                                    // Ad or tracking failures must never prevent the player from continuing.
+                                }
+                                if (navigator.destination.value == currentDestination) {
+                                    navigator.goBack()
+                                    if (next != null) navigator.navigate(AppDestination.Play(next))
+                                }
+                            } finally {
+                                resultNextInProgress = false
+                            }
+                        }
+                    }
                 },
                 onHome = navigator::returnHome,
             )
@@ -372,12 +447,75 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     navigator.navigate(AppDestination.Play(currentDestination.levelRef))
                 },
                 onHome = navigator::returnHome,
+                premiumEnabled = playerData.premiumEnabled,
+                onRewardedContinue = {
+                    activity?.let { rewardedAdFlow.grantReward(it, RewardType.EXTRA_LIFE) }
+                        ?: AdShowResult.Unavailable
+                },
             )
 
             AppDestination.Calendar -> CalendarScreenRoute(
                 dailyProgress = dailyProgress,
                 completionRepository = dailyCompletionRepository,
                 gameIds = GameRegistry.games.map { it.id },
+                premiumEnabled = playerData.premiumEnabled,
+                streakRepairCreditAvailable =
+                    (playerData.rewardBalances[RewardType.STREAK_REPAIR] ?: 0) > 0,
+                onRepairStreak = {
+                    var freshProgress = dailyProgressCoordinator.reconcile()
+                    dailyProgress = freshProgress
+                    if (freshProgress.repairableMiss == null) {
+                        AdShowResult.Unavailable
+                    } else {
+                        val freshPlayerData = playerDataRepository.playerData.first()
+                        val hasRepairCredit =
+                            (freshPlayerData.rewardBalances[RewardType.STREAK_REPAIR] ?: 0) > 0
+                        val rewardResult = if (freshPlayerData.premiumEnabled || hasRepairCredit) {
+                            AdShowResult.RewardGranted
+                        } else {
+                            activity?.let {
+                                rewardedAdFlow.grantReward(it, RewardType.STREAK_REPAIR)
+                            } ?: AdShowResult.Unavailable
+                        }
+                        if (rewardResult != AdShowResult.RewardGranted) {
+                            rewardResult
+                        } else {
+                            freshProgress = dailyProgressCoordinator.reconcile()
+                            dailyProgress = freshProgress
+                            val repairableMiss = freshProgress.repairableMiss
+                            if (repairableMiss == null) {
+                                AdShowResult.Unavailable
+                            } else {
+                                val repairTime = System.currentTimeMillis()
+                                val repairedStreak = DailyStreakPolicy(
+                                    clock = DailyClock { repairTime },
+                                    timeZone = TimeZone.getTimeZone(freshProgress.today.timeZoneId),
+                                ).repairLatestMiss(freshProgress.streak)?.streak
+                                if (repairedStreak == null) {
+                                    AdShowResult.Unavailable
+                                } else {
+                                    val committed = playerDataRepository.commitStreakRepair(
+                                        expectedStreak = freshProgress.streak,
+                                        repairedStreak = repairedStreak,
+                                        expectedMissedEpochDay = repairableMiss.dateEpochDay,
+                                        expectedRepairDeadlineEpochMillis = repairableMiss.deadlineEpochMillis,
+                                        expectedLocalEpochDay = freshProgress.today.epochDay,
+                                        expectedTimeZoneId = freshProgress.today.timeZoneId,
+                                        currentLocalEpochDay = { dailyProgressCoordinator.today().epochDay },
+                                        currentTimeZoneId = { dailyProgressCoordinator.today().timeZoneId },
+                                        nowEpochMillis = System::currentTimeMillis,
+                                    )
+                                    dailyProgress = dailyProgressCoordinator.reconcile()
+                                    if (committed) {
+                                        AdShowResult.RewardGranted
+                                    } else {
+                                        AdShowResult.Unavailable
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 onOpenDailyPuzzle = { gameId ->
                     val module = requireNotNull(GameRegistry.find(gameId))
                     scope.launch {

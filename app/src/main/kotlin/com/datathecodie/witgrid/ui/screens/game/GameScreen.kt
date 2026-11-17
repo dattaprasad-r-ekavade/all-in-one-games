@@ -17,11 +17,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.ads.AdShowResult
+import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
+import com.datathecodie.witgrid.ads.flow.RewardedActionButton
 import com.datathecodie.witgrid.data.progress.GameProgressSummaryRepository
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.LevelRef
@@ -36,6 +42,9 @@ fun GameScreenRoute(
     onSelectPack: (LevelRef) -> Unit,
     onOpenDaily: () -> Unit,
     dailyCompletedToday: Boolean = false,
+    premiumEnabled: Boolean = false,
+    onEarnHintCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
+    onEarnCheckCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
     onHome: () -> Unit,
 ) {
     val viewModel = remember(gameId, levelRefsByPack, progressRepository) {
@@ -50,6 +59,9 @@ fun GameScreenRoute(
         onSelectPack = onSelectPack,
         onOpenDaily = onOpenDaily,
         dailyCompletedToday = dailyCompletedToday,
+        premiumEnabled = premiumEnabled,
+        onEarnHintCredit = onEarnHintCredit,
+        onEarnCheckCredit = onEarnCheckCredit,
         onHome = onHome,
     )
 }
@@ -61,8 +73,14 @@ fun GameScreen(
     onSelectPack: (LevelRef) -> Unit,
     onOpenDaily: () -> Unit,
     dailyCompletedToday: Boolean = false,
+    premiumEnabled: Boolean = false,
+    onEarnHintCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
+    onEarnCheckCredit: suspend () -> AdShowResult = { AdShowResult.Unavailable },
     onHome: () -> Unit,
 ) {
+    var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
+    if (showPremiumOffer) PremiumOfferDialog(onDismiss = { showPremiumOffer = false })
+
     AdaptiveScreen {
         Column(
             modifier = Modifier
@@ -81,6 +99,22 @@ fun GameScreen(
                     stringResource(
                         if (dailyCompletedToday) R.string.game_daily_entry_completed else R.string.game_daily_entry,
                     ),
+                )
+            }
+
+            if (!premiumEnabled) {
+                Text(stringResource(R.string.ads_earn_credits_header), style = MaterialTheme.typography.titleMedium)
+                RewardedActionButton(
+                    titleResource = R.string.ads_earn_hint_credit,
+                    successResource = R.string.ads_hint_credit_added,
+                    onReward = onEarnHintCredit,
+                    onOpenPremiumOffer = { showPremiumOffer = true },
+                )
+                RewardedActionButton(
+                    titleResource = R.string.ads_earn_check_credit,
+                    successResource = R.string.ads_check_credit_added,
+                    onReward = onEarnCheckCredit,
+                    onOpenPremiumOffer = { showPremiumOffer = true },
                 )
             }
 

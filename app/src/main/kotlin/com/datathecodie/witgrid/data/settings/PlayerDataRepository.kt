@@ -14,6 +14,19 @@ interface PlayerDataRepository {
 
     suspend fun updateStreak(streak: StreakData)
 
+    /** Commits the streak repair and any required credit debit as one persistent transaction. */
+    suspend fun commitStreakRepair(
+        expectedStreak: StreakData,
+        repairedStreak: StreakData,
+        expectedMissedEpochDay: Long,
+        expectedRepairDeadlineEpochMillis: Long,
+        expectedLocalEpochDay: Long,
+        expectedTimeZoneId: String,
+        currentLocalEpochDay: () -> Long,
+        currentTimeZoneId: () -> String,
+        nowEpochMillis: () -> Long = System::currentTimeMillis,
+    ): Boolean = throw UnsupportedOperationException("Atomic streak repair is not implemented")
+
     suspend fun setPremiumEnabled(enabled: Boolean)
 
     suspend fun setRewardBalance(type: RewardType, balance: Int)

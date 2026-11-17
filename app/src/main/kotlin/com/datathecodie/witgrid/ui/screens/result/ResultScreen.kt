@@ -55,6 +55,8 @@ fun ResultScreen(
     onNext: () -> Unit,
     onHome: () -> Unit,
 ) {
+    var advancing by remember { mutableStateOf(false) }
+
     AdaptiveScreen {
         Column(
             modifier = Modifier
@@ -77,10 +79,22 @@ fun ResultScreen(
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-            Button(onClick = onNext, enabled = elapsedTimeMillis != null) {
-                Text(stringResource(R.string.button_next))
+            Button(
+                onClick = {
+                    if (!advancing) {
+                        advancing = true
+                        onNext()
+                    }
+                },
+                enabled = elapsedTimeMillis != null && !advancing,
+            ) {
+                if (advancing) {
+                    CircularProgressIndicator()
+                } else {
+                    Text(stringResource(R.string.button_next))
+                }
             }
-            OutlinedButton(onClick = onHome) {
+            OutlinedButton(onClick = onHome, enabled = !advancing) {
                 Text(stringResource(R.string.button_home))
             }
         }

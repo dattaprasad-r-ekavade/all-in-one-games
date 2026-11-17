@@ -167,4 +167,21 @@
     <string name="settings_licences">Open-source licences</string>
     <string name="settings_licence_loading">Loading licence...</string>
     <string name="settings_licence_unavailable">The included font licence could not be loaded.</string>
+    <string name="ads_earn_credits_header">Earn puzzle credits</string>
+    <string name="ads_earn_hint_credit">Watch an ad to earn one hint credit</string>
+    <string name="ads_hint_credit_added">One hint credit was added for a future puzzle.</string>
+    <string name="ads_earn_check_credit">Watch an ad to earn one check credit</string>
+    <string name="ads_check_credit_added">One check credit was added for a future puzzle.</string>
+    <string name="ads_reward_not_completed">The reward was not granted.</string>
+    <string name="ads_reward_unavailable">No rewarded ad is available right now. You can try again later.</string>
+    <string name="ads_view_premium_offer">See Premium options</string>
+    <string name="premium_offer_title">Witgrid Premium</string>
+    <string name="premium_offer_body">Premium removes interstitial ads and gives unlimited hints, checks, continues, and eligible streak repairs. Purchases will be available in a future update.</string>
+    <string name="ads_continue_rewarded">Watch an ad to continue with one extra mistake</string>
+    <string name="ads_continue_granted">Continue is ready.</string>
+    <string name="failed_continue_premium">Continue with Premium and one extra mistake</string>
+    <string name="calendar_repair_streak_watch_ad">Watch an ad to repair your streak</string>
+    <string name="calendar_repair_streak_credit">Repair your streak with a saved credit</string>
+    <string name="calendar_repair_streak_premium">Repair your streak with Premium</string>
+    <string name="calendar_repair_streak_done">Your streak was repaired.</string>
 </resources>

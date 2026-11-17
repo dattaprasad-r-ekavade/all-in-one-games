@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -195,7 +196,159 @@ class PlayerDataRepositoryTest {
             Files.deleteIfExists(directory)
         }
     }
+
+    @Test
+    fun streakRepairAndCreditDebitCommitAtomically() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-streak-repair")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+        val repository = DataStorePlayerDataRepository(dataStore)
+        val expectedStreak = repairableStreak(deadlineEpochMillis = 10_000)
+        val repairedStreak = repairedStreak()
+
+        try {
+            repository.updateStreak(expectedStreak)
+            repository.setRewardBalance(RewardType.STREAK_REPAIR, 1)
+
+            val committed = repository.commitStreakRepair(
+                expectedStreak = expectedStreak,
+                repairedStreak = repairedStreak,
+                expectedMissedEpochDay = 20_000,
+                expectedRepairDeadlineEpochMillis = 10_000,
+                expectedLocalEpochDay = 20_001,
+                expectedTimeZoneId = "UTC",
+                currentLocalEpochDay = { 20_001 },
+                currentTimeZoneId = { "UTC" },
+                nowEpochMillis = { 9_999 },
+            )
+
+            assertTrue(committed)
+            val persisted = DataStorePlayerDataRepository(dataStore).playerData.first()
+            assertEquals(repairedStreak, persisted.streak)
+            assertEquals(0, persisted.rewardBalances[RewardType.STREAK_REPAIR])
+
+            assertFalse(
+                repository.commitStreakRepair(
+                    expectedStreak = expectedStreak,
+                    repairedStreak = repairedStreak,
+                    expectedMissedEpochDay = 20_000,
+                    expectedRepairDeadlineEpochMillis = 10_000,
+                    expectedLocalEpochDay = 20_001,
+                    expectedTimeZoneId = "UTC",
+                    currentLocalEpochDay = { 20_001 },
+                    currentTimeZoneId = { "UTC" },
+                    nowEpochMillis = { 9_999 },
+                ),
+            )
+            assertEquals(0, repository.playerData.first().rewardBalances[RewardType.STREAK_REPAIR])
+        } finally {
+            scope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
+    fun expiredRepairKeepsTheCreditAndStreakUnchanged() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-expired-streak-repair")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+        val repository = DataStorePlayerDataRepository(dataStore)
+        val expectedStreak = repairableStreak(deadlineEpochMillis = 10_000)
+
+        try {
+            repository.updateStreak(expectedStreak)
+            repository.setRewardBalance(RewardType.STREAK_REPAIR, 1)
+
+            val committed = repository.commitStreakRepair(
+                expectedStreak = expectedStreak,
+                repairedStreak = repairedStreak(),
+                expectedMissedEpochDay = 20_000,
+                expectedRepairDeadlineEpochMillis = 10_000,
+                expectedLocalEpochDay = 20_001,
+                expectedTimeZoneId = "UTC",
+                currentLocalEpochDay = { 20_001 },
+                currentTimeZoneId = { "UTC" },
+                nowEpochMillis = { 10_000 },
+            )
+
+            assertFalse(committed)
+            val persisted = repository.playerData.first()
+            assertEquals(expectedStreak, persisted.streak)
+            assertEquals(1, persisted.rewardBalances[RewardType.STREAK_REPAIR])
+        } finally {
+            scope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
+    fun localDateOrTimeZoneChangeRejectsAStaleRepairWithoutSpendingCredit() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-stale-streak-repair")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+        val repository = DataStorePlayerDataRepository(dataStore)
+        val expectedStreak = repairableStreak(deadlineEpochMillis = 10_000)
+
+        try {
+            repository.updateStreak(expectedStreak)
+            repository.setRewardBalance(RewardType.STREAK_REPAIR, 1)
+
+            assertFalse(
+                repository.commitStreakRepair(
+                    expectedStreak = expectedStreak,
+                    repairedStreak = repairedStreak(),
+                    expectedMissedEpochDay = 20_000,
+                    expectedRepairDeadlineEpochMillis = 10_000,
+                    expectedLocalEpochDay = 20_001,
+                    expectedTimeZoneId = "UTC",
+                    currentLocalEpochDay = { 20_002 },
+                    currentTimeZoneId = { "UTC" },
+                    nowEpochMillis = { 9_999 },
+                ),
+            )
+            assertFalse(
+                repository.commitStreakRepair(
+                    expectedStreak = expectedStreak,
+                    repairedStreak = repairedStreak(),
+                    expectedMissedEpochDay = 20_000,
+                    expectedRepairDeadlineEpochMillis = 10_000,
+                    expectedLocalEpochDay = 20_001,
+                    expectedTimeZoneId = "UTC",
+                    currentLocalEpochDay = { 20_001 },
+                    currentTimeZoneId = { "Asia/Kolkata" },
+                    nowEpochMillis = { 9_999 },
+                ),
+            )
+
+            val persisted = repository.playerData.first()
+            assertEquals(expectedStreak, persisted.streak)
+            assertEquals(1, persisted.rewardBalances[RewardType.STREAK_REPAIR])
+        } finally {
+            scope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
 }
+
+private fun repairableStreak(deadlineEpochMillis: Long) = StreakData(
+    currentDays = 4,
+    lastActivityEpochDay = 19_999,
+    latestMissedEpochDay = 20_000,
+    latestMissedPreviousStreakDays = 4,
+    latestMissedPreviousActivityEpochDay = 19_999,
+    latestMissedRepairDeadlineEpochMilli = deadlineEpochMillis,
+)
+
+private fun repairedStreak() = StreakData(
+    currentDays = 5,
+    lastActivityEpochDay = 20_000,
+)
 
 private class CancelFirstUpdateDataStore(
     private val delegate: DataStore<Preferences>,

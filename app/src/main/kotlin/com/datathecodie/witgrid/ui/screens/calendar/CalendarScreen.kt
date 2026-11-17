@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -33,6 +34,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
+import com.datathecodie.witgrid.ads.AdShowResult
+import com.datathecodie.witgrid.ads.flow.PremiumOfferDialog
+import com.datathecodie.witgrid.ads.flow.RewardedActionButton
 import com.datathecodie.witgrid.data.progress.DailyPuzzleCompletion
 import com.datathecodie.witgrid.data.progress.DailyPuzzleCompletionRepository
 import com.datathecodie.witgrid.data.settings.StreakData
@@ -53,6 +57,9 @@ fun CalendarScreenRoute(
     gameIds: List<String>,
     onOpenDailyPuzzle: (String) -> Unit,
     onHome: () -> Unit,
+    premiumEnabled: Boolean = false,
+    streakRepairCreditAvailable: Boolean = false,
+    onRepairStreak: suspend () -> AdShowResult = { AdShowResult.Unavailable },
 ) {
     if (dailyProgress == null) {
         AdaptiveScreen {
@@ -111,6 +118,9 @@ fun CalendarScreenRoute(
         selectedEpochDay = selectedEpochDay,
         streak = dailyProgress.streak,
         repairAvailable = dailyProgress.repairableMiss != null,
+        premiumEnabled = premiumEnabled,
+        streakRepairCreditAvailable = streakRepairCreditAvailable,
+        onRepairStreak = onRepairStreak,
         completions = completions,
         gameIds = gameIds,
         canAdvanceMonth = visibleMonthStart < currentMonthStart,
@@ -143,6 +153,8 @@ private fun CalendarScreen(
     selectedEpochDay: Long,
     streak: StreakData,
     repairAvailable: Boolean,
+    premiumEnabled: Boolean,
+    streakRepairCreditAvailable: Boolean,
     completions: List<DailyPuzzleCompletion>,
     gameIds: List<String>,
     canAdvanceMonth: Boolean,
@@ -150,8 +162,12 @@ private fun CalendarScreen(
     onNextMonth: () -> Unit,
     onSelectDay: (Long) -> Unit,
     onOpenDailyPuzzle: (String) -> Unit,
+    onRepairStreak: suspend () -> AdShowResult,
     onHome: () -> Unit,
 ) {
+    var showPremiumOffer by rememberSaveable { mutableStateOf(false) }
+    if (showPremiumOffer) PremiumOfferDialog(onDismiss = { showPremiumOffer = false })
+
     val completedByDay = completions.groupBy { it.dateEpochDay }
         .mapValues { (_, rows) -> rows.map { it.gameId }.toSet() }
     val visibleMonth = calendarForEpochDay(visibleMonthStartEpochDay, timeZone, locale)
@@ -178,6 +194,18 @@ private fun CalendarScreen(
                 ),
                 style = MaterialTheme.typography.bodyMedium,
             )
+            if (repairAvailable) {
+                RewardedActionButton(
+                    titleResource = when {
+                        premiumEnabled -> R.string.calendar_repair_streak_premium
+                        streakRepairCreditAvailable -> R.string.calendar_repair_streak_credit
+                        else -> R.string.calendar_repair_streak_watch_ad
+                    },
+                    successResource = R.string.calendar_repair_streak_done,
+                    onReward = onRepairStreak,
+                    onOpenPremiumOffer = { showPremiumOffer = true },
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
