@@ -64,7 +64,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **Phase 5 — Closed test** |||||||
-| S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | ready |
+| S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | active |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
 | S3 | Release build configuration | M | Codex | Claude | M3, M6, M7 | todo |
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
