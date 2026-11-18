@@ -400,7 +400,7 @@ Measures to watch: day-1, day-7 and day-30 retention, levels for each session, i
 Durations are **[Estimate]** values for one developer who directs AI coding agents. Each phase lists its task cards from `docs/TASKS.md`. The cards hold the detail; this section holds the sequence and the exit test.
 
 ### Phase 0 — Setup (week 1)
-- H0.1 (you): trademark check, Play Console, AdMob account, developer website with privacy policy and `app-ads.txt`, export GDD section 7 again.
+- H0.1 (you): Google and Play Store name search, Play Console, AdMob account, developer website with privacy policy and `app-ads.txt`.
 - H0.2 (you): `ANDROID_HOME`, `gh auth login`, first commit, Codex folder trust.
 - T0.1: Gradle project with `engine`, `bankgen`, `app`. Application id `com.datathecodie.witgrid`.
 - T0.2: GitHub Actions CI.
@@ -501,10 +501,10 @@ Release about one game each 2 to 3 weeks. Each new game is a store update and a 
 
 ## 15. Open items
 
-1. Official trademark check of "Witgrid".
+1. ~~Official trademark check of "Witgrid"~~ — owner decision 18 Nov 2026: not required. A Google and Play Store name search is enough (H0.1).
 2. ~~Ads SDK choice~~ — decided 16 Nov 2026: Next-Gen (`docs/decisions/ads-sdk.md`).
 3. Public developer details on Play for an account that earns money.
-4. GDD section 7 is missing from the PDF.
+4. ~~GDD section 7 is missing from the PDF~~ — dropped 18 Nov 2026. No source exists; this plan covers ASO, launch and the closed test.
 5. ~~Nonogram pictures at launch?~~ - abstract patterns are the launch scope; see section 6.3.
 6. ~~Minimum Android version?~~ - minSdk 24 is set in T0.1.
 7. ~~JDK version~~ — settled in T0.1: AGP 9.5.1 works with JDK 17. Versions: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk 37, targetSdk 36, minSdk 24, JUnit 6.1.3.

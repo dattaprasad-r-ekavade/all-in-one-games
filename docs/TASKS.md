@@ -61,7 +61,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | M4 | Ads in the player flows | M | Claude | Codex | M3, M1, A10, A11, R2, R4, R5 | done |
 | M5 | Mistake limit and continue flow | M | Codex | Claude | M1, M4, A10 | done |
 | M6 | Premium purchase and restore | H | Claude | Codex | M1, M3, R5 | blocked |
-| H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 | todo |
+| H4 | Firebase project, AdMob units, licence tester | Human | — | — | H0.1 Play Console and AdMob accounts only | ready |
 | M7 | Analytics, Crashlytics, Remote Config | M | Codex | Claude | M1, M4–M6, H4 | todo |
 | **UI cleanup (before the closed test)** |||||||
 | U0 | Hotfix: invisible text in dark mode | M | Claude (lead) | — | — | done |
@@ -88,18 +88,16 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 
 ### H0.1 — Accounts, legal, website (Human)
 Plan: 11 (phase 0), 8.7, 15.
-- [ ] Check "Witgrid" in USPTO, EUIPO and UKIPO.
+- [ ] Search Google and the Play Store for "Witgrid". Record the date and any game or app with the same or a very similar name.
 - [ ] Open the Play Console account. Complete developer verification. Check which personal details Play shows.
 - [ ] Open the AdMob account. Do **not** create live ad units in code yet.
 - [x] Make the developer website: privacy policy page and `app-ads.txt`.
-- [ ] Export GDD section 7 (ASO, launch, closed test) again. The PDF in the repo stops after section 6; save the new export as `docs/reports/GDD-section-7.pdf`.
-**Done when:** Trademark searches are dated and recorded; Play Console and AdMob accounts are verified; the public HTTPS privacy policy and `app-ads.txt` URLs are live; and `docs/reports/GDD-section-7.pdf` is available. Send the public privacy-policy URL and support email to the lead so the app setting and store drafts can be finalized. Record public URLs and account status, never credentials.
-**Lead progress note (17 Nov 2026):** The privacy policy at `https://datathecodie.com/witgrid/privacy-policy.html` and `https://datathecodie.com/app-ads.txt` are live and were verified on 17 Nov; the policy matches the committed page and the Settings URL. Trademark searches, Play Console/AdMob verification, and the GDD section 7 export remain.
-**Lead source check (17 Nov 2026):** Searched Drive for Witgrid, the GDD title, and DataTheCodie Studios. No matching GDD source was found; a broader ASO search returned only an unrelated LLM Clicker GDD. The repository copy still ends at section 6, so the correct section 7 source/export remains outstanding.
+**Done when:** The Google and Play Store name search is dated and recorded; Play Console and AdMob accounts are verified; the public HTTPS privacy policy and `app-ads.txt` URLs are live. Send the public privacy-policy URL and support email to the lead so the app setting and store drafts can be finalized. Record public URLs and account status, never credentials.
+**Lead progress note (17 Nov 2026):** The privacy policy at `https://datathecodie.com/witgrid/privacy-policy.html` and `https://datathecodie.com/app-ads.txt` are live and were verified on 17 Nov; the policy matches the committed page and the Settings URL.
 
-**Lead progress note (18 Nov 2026):** An initial USPTO Wordmark query for “Witgrid” returned 0 records on the [official Trademark Search](https://tmsearch.uspto.gov/search/) with all statuses included. This is a preliminary name lookup, not a clearance search. EUIPO/TMview and UKIPO checks and remaining H0.1 items are still open.
+**Lead progress note (18 Nov 2026):** An initial USPTO Wordmark query for "Witgrid" returned 0 records on the [official Trademark Search](https://tmsearch.uspto.gov/search/) with all statuses included.
 
-**Lead source check (18 Nov 2026):** Repeated Drive searches for “Witgrid GDD”, “Witgrid game design document”, and “GDD” found no Witgrid source; the only GDD result was `LLM_Clicker_GDD_v1.docx`, which is unrelated. The correct section 7 source/export remains outstanding.
+**Owner decision (18 Nov 2026):** No formal trademark check (USPTO, EUIPO, UKIPO) is required. A Google and Play Store search for the name is enough. The GDD section 7 export is dropped: no Witgrid source exists, and `DEVELOPMENT_PLAN.md` is the source of truth. Still open: the name search, Play Console verification and AdMob account.
 
 ### H0.2 — Developer machine and repo setup (Human)
 Do the steps in `docs/AGENT_WORKFLOW.md` section 3.
@@ -434,6 +432,7 @@ Plan: 8.5.
   **Lead status note (17 Nov 2026):** Code and review are complete. Waiting on H4's Play product and licence tester for the required device purchase and restore check.
 
 ### H4 — Firebase project, AdMob units, licence tester (Human)
+Needs only the verified Play Console and AdMob accounts from H0.1. The name search does not block H4 (owner decision, 18 Nov 2026). Do the licence tester and Premium product first: they unblock M6.
 - [ ] Create the Firebase project, register this Android app, and enable Analytics, Crashlytics, and Remote Config. Put `google-services.json` in `app/` locally (it is git-ignored).
 - [ ] Create the AdMob app and ad units. Store the IDs in `~/.gradle/gradle.properties`, not in the repo.
 - [ ] Configure and publish the required UMP consent message(s) in AdMob. S3 verifies the in-app flow after wiring the owner app ID; keep Google test app and ad unit IDs in test builds.
