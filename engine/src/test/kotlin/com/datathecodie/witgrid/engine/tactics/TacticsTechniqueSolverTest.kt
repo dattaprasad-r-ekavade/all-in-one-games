@@ -1,13 +1,10 @@
 package com.datathecodie.witgrid.engine.tactics
 
-import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
-import com.datathecodie.witgrid.engine.core.Technique
 import com.datathecodie.witgrid.engine.testkit.assertTechniqueSolves
-import com.datathecodie.witgrid.engine.testkit.assertUnique
 import com.datathecodie.witgrid.engine.testkit.solveWithHints
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -20,45 +17,126 @@ import org.junit.jupiter.api.Test
 class TacticsTechniqueSolverTest {
 
     @Test
-    fun solvesEasyMateInOneHandFixtures() {
-        val directMate = easyDirectMateFixture()
-        assertUnique(TacticsEngine, directMate)
-        assertTechniqueSolves(TacticsEngine, directMate)
+    fun solvesEasyDirectMateWithHints() {
+        val puzzle = easyDirectMateFixture()
+        val solvedState = solveWithHints(TacticsEngine, puzzle)
+        assertTrue(TacticsEngine.isSolved(puzzle, solvedState))
 
-        val smotheredMate = easySmotheredMateFixture()
-        assertUnique(TacticsEngine, smotheredMate)
-        assertTechniqueSolves(TacticsEngine, smotheredMate)
-
-        val backRankMate = easyBackRankMateFixture()
-        assertUnique(TacticsEngine, backRankMate)
-        assertTechniqueSolves(TacticsEngine, backRankMate)
+        val grade = TacticsEngine.grade(puzzle)
+        assertEquals(Pack.EASY, grade.pack)
+        assertEquals(1, grade.stepCount)
+        assertEquals(TacticsTechniques.CHECKMATE, grade.hardestTechnique)
     }
 
     @Test
-    fun solvesMediumMateInTwoHandFixture() {
+    fun solvesEasySmotheredMateWithHints() {
+        val puzzle = easySmotheredMateFixture()
+        val solvedState = solveWithHints(TacticsEngine, puzzle)
+        assertTrue(TacticsEngine.isSolved(puzzle, solvedState))
+
+        val grade = TacticsEngine.grade(puzzle)
+        assertEquals(Pack.EASY, grade.pack)
+        assertEquals(1, grade.stepCount)
+        assertEquals(TacticsTechniques.SMOTHERED_MATE, grade.hardestTechnique)
+    }
+
+    @Test
+    fun solvesEasyBackRankMateWithHints() {
+        val puzzle = easyBackRankMateFixture()
+        val solvedState = solveWithHints(TacticsEngine, puzzle)
+        assertTrue(TacticsEngine.isSolved(puzzle, solvedState))
+
+        val grade = TacticsEngine.grade(puzzle)
+        assertEquals(Pack.EASY, grade.pack)
+        assertEquals(1, grade.stepCount)
+        assertEquals(TacticsTechniques.BACK_RANK_MATE, grade.hardestTechnique)
+    }
+
+    @Test
+    fun namesArabianAndAnastasiaMates() {
+        val examples = listOf(
+            Triple("7k/R7/5N2/8/8/8/8/K7", "a7h7", TacticsTechniques.ARABIAN_MATE),
+            Triple("8/4N1pk/8/8/8/8/5K2/R7", "a1h1", TacticsTechniques.ANASTASIA_MATE),
+        )
+        for ((fen, uci, technique) in examples) {
+            val puzzle = TacticsPuzzle(
+                technique.id, TacticsBoard.fromFen("$fen w - -"), PieceColor.WHITE, 1,
+                listOf(ChessMove.fromUci(uci)), Pack.EASY, "${technique.id}:1",
+            )
+            val step = requireNotNull(TacticsEngine.nextStep(puzzle, TacticsEngine.initialState(puzzle)))
+            assertEquals(technique, step.technique)
+            assertTrue(step.explanation.contains(technique.displayName))
+            assertTechniqueSolves(TacticsEngine, puzzle)
+        }
+    }
+
+    @Test
+    fun solvesMediumMateInTwoWithHints() {
         val puzzle = mediumMateInTwoFixture()
-        assertUnique(TacticsEngine, puzzle)
         assertTechniqueSolves(TacticsEngine, puzzle)
+
+        val grade = TacticsEngine.grade(puzzle)
+        assertEquals(Pack.MEDIUM, grade.pack)
+        assertEquals(2, grade.stepCount)
+        assertEquals(TacticsTechniques.BACK_RANK_MATE, grade.hardestTechnique)
     }
 
     @Test
-    fun solvesHardMateInTwoHandFixtureWithMorePieces() {
+    fun solvesHardMateInTwoWithHints() {
         val puzzle = hardMateInTwoFixture()
-        assertTrue(puzzle.initialBoard.pieces.count { it != null } > TacticsPackBands.MAX_MEDIUM_PIECES)
-        assertUnique(TacticsEngine, puzzle)
         assertTechniqueSolves(TacticsEngine, puzzle)
+
+        val grade = TacticsEngine.grade(puzzle)
+        assertEquals(Pack.HARD, grade.pack)
+        assertEquals(2, grade.stepCount)
     }
 
     @Test
-    fun solvesExpertMateInThreeHandFixture() {
+    fun solvesExpertMateInThreeWithHints() {
         val puzzle = expertMateInThreeFixture()
-        assertEquals(3, puzzle.mateIn)
-        assertUnique(TacticsEngine, puzzle)
         assertTechniqueSolves(TacticsEngine, puzzle)
+
+        val grade = TacticsEngine.grade(puzzle)
+        assertEquals(Pack.EXPERT, grade.pack)
+        assertEquals(3, grade.stepCount)
     }
 
     @Test
-    fun everyHintStepHasNonEmptyOneSentenceExplanationNamingIdea() {
+    fun nextStepDerivesMoveDirectlyFromPosition() {
+        val start = mediumMateInTwoFixture().initialBoard
+        val puzzle = TacticsPuzzle(
+            "wrong-stored-line", start, PieceColor.WHITE, 2,
+            listOf("g5h4", "f8e8", "a3f8").map(ChessMove.Companion::fromUci),
+            Pack.MEDIUM, "checkmate:2",
+        )
+        val hint = requireNotNull(TacticsEngine.nextStep(puzzle, TacticsEngine.initialState(puzzle)))
+        assertEquals(listOf(squareToCell("a3"), squareToCell("f8")), hint.cells)
+        assertTrue(hint.explanation.contains("g8 to f8"))
+        assertTrue(hint.explanation.contains("back-rank mate on d8"))
+    }
+
+    @Test
+    fun nextStepHandlesPendingFromStateTransitions() {
+        val puzzle = mediumMateInTwoFixture()
+        val state = TacticsEngine.initialState(puzzle)
+        val from = squareToCell("a3")
+        val to = squareToCell("f8")
+        val other = squareToCell("g5")
+
+        fun hintCells(state: TacticsState) =
+            requireNotNull(TacticsEngine.nextStep(puzzle, state)).moves.map { it.cell }
+
+        assertEquals(listOf(from, to), hintCells(state))
+        assertEquals(listOf(to), hintCells(state.withMove(Move.SetMark(from, Mark.FILLED))))
+        assertEquals(listOf(other, from, to), hintCells(state.withMove(Move.SetMark(other, Mark.FILLED))))
+        assertNull(TacticsEngine.nextStep(puzzle, solveWithHints(TacticsEngine, puzzle)))
+        val mistake = state.withMove(Move.SetMark(other, Mark.FILLED))
+            .withMove(Move.SetMark(squareToCell("h4"), Mark.FILLED))
+        assertNull(TacticsEngine.nextStep(puzzle, mistake))
+    }
+
+    @Test
+    fun hintExplanationsAreNonEmptySingleSentences() {
         val fixtures = listOf(
             easyDirectMateFixture(),
             easySmotheredMateFixture(),
@@ -71,104 +149,46 @@ class TacticsTechniqueSolverTest {
         for (puzzle in fixtures) {
             var state = TacticsEngine.initialState(puzzle)
             while (!TacticsEngine.isSolved(puzzle, state)) {
-                val step = requireNotNull(TacticsEngine.nextStep(puzzle, state))
-                val explanation = step.explanation
-
+                val step = TacticsEngine.nextStep(puzzle, state)
+                assertNotNull(step, "Step should not be null for solvable puzzle ${puzzle.id}")
+                val explanation = step!!.explanation
                 assertTrue(explanation.isNotBlank(), "Explanation must not be blank")
                 assertTrue(explanation.endsWith("."), "Explanation must end with a period: $explanation")
-                assertEquals(1, explanation.count { it == '.' }, "Explanation must be exactly one sentence: $explanation")
+                assertEquals(1, explanation.count { it == '.' }, "Explanation must be one sentence")
                 assertFalse(explanation.contains("\n") || explanation.contains("\r"), "Explanation must be single-line")
+                assertFalse(explanation.contains("forces mate in"), "Explanation must provide tactical reasons, not generic fallback")
 
-                val matchesKnownIdea = explanation.contains("check", ignoreCase = true) ||
-                    explanation.contains("capture", ignoreCase = true) ||
-                    explanation.contains("back-rank mate", ignoreCase = true) ||
-                    explanation.contains("smothered mate", ignoreCase = true) ||
-                    explanation.contains("forces mate in", ignoreCase = true)
-
-                assertTrue(matchesKnownIdea, "Explanation must name the idea: $explanation")
-                state = step.moves.fold(state, TacticsEngine::applyMove)
+                val nextState = step.moves.fold(state) { acc, m -> acc.withMove(m) }
+                state = nextState
             }
         }
     }
 
     @Test
-    fun nextStepHandlesPendingFromStateTransitions() {
-        val puzzle = mediumMateInTwoFixture()
-        val s0 = TacticsEngine.initialState(puzzle)
-
-        // Clean initial state produces both from and to picks
-        val hint0 = requireNotNull(TacticsEngine.nextStep(puzzle, s0))
-        assertEquals(2, hint0.moves.size)
-        assertEquals(squareToCell("d3"), hint0.moves[0].cell)
-        assertEquals(squareToCell("d8"), hint0.moves[1].cell)
-
-        // When correct from-square is already selected, hint produces only the destination pick
-        val s1 = TacticsEngine.applyMove(s0, Move.SetMark(squareToCell("d3"), Mark.FILLED))
-        val hint1 = requireNotNull(TacticsEngine.nextStep(puzzle, s1))
-        assertEquals(1, hint1.moves.size)
-        assertEquals(squareToCell("d8"), hint1.moves[0].cell)
-
-        // When wrong friendly from-square is selected, hint deselects and plays correct move
-        val sWrong = TacticsEngine.applyMove(s0, Move.SetMark(squareToCell("c5"), Mark.FILLED))
-        val hintWrong = requireNotNull(TacticsEngine.nextStep(puzzle, sWrong))
-        assertEquals(3, hintWrong.moves.size)
-        assertEquals(squareToCell("c5"), hintWrong.moves[0].cell)
-        assertEquals(squareToCell("d3"), hintWrong.moves[1].cell)
-        assertEquals(squareToCell("d8"), hintWrong.moves[2].cell)
-
-        // Hint returns null for solved or mistaken board
-        val solvedState = solveWithHints(TacticsEngine, puzzle)
-        assertNull(TacticsEngine.nextStep(puzzle, solvedState))
-
-        val mistakeState = s0
-            .withMove(Move.SetMark(squareToCell("d3"), Mark.FILLED))
-            .withMove(Move.SetMark(squareToCell("d7"), Mark.FILLED))
-        assertNull(TacticsEngine.nextStep(puzzle, mistakeState))
-    }
-
-    @Test
-    fun gradeAssignsCorrectPackBandAndTechniques() {
-        val easy = easyDirectMateFixture()
-        val easyGrade = TacticsEngine.grade(easy)
-        assertEquals(Pack.EASY, easyGrade.pack)
-        assertEquals(1, easyGrade.stepCount)
-        assertEquals(TacticsTechniques.CHECKMATE, easyGrade.hardestTechnique)
-
-        val smothered = easySmotheredMateFixture()
-        val smotheredGrade = TacticsEngine.grade(smothered)
-        assertEquals(Pack.EASY, smotheredGrade.pack)
-        assertEquals(1, smotheredGrade.stepCount)
-        assertEquals(TacticsTechniques.SMOTHERED_MATE, smotheredGrade.hardestTechnique)
-
-        val medium = mediumMateInTwoFixture()
-        val mediumGrade = TacticsEngine.grade(medium)
-        assertEquals(Pack.MEDIUM, mediumGrade.pack)
-        assertEquals(2, mediumGrade.stepCount)
-        assertEquals(TacticsTechniques.BACK_RANK_MATE, mediumGrade.hardestTechnique)
-
-        val hard = hardMateInTwoFixture()
-        val hardGrade = TacticsEngine.grade(hard)
-        assertEquals(Pack.HARD, hardGrade.pack)
-        assertEquals(2, hardGrade.stepCount)
-        assertEquals(TacticsTechniques.BACK_RANK_MATE, hardGrade.hardestTechnique)
-
-        val expert = expertMateInThreeFixture()
-        val expertGrade = TacticsEngine.grade(expert)
-        assertEquals(Pack.EXPERT, expertGrade.pack)
-        assertEquals(3, expertGrade.stepCount)
-    }
-
-    @Test
-    fun gradeRejectsPuzzlesFailingUniquenessPackOrSolvability() {
+    fun gradeRejectsInvalidOrStuckPuzzles() {
+        // Double solution rejected
         val doubleSolutionPuzzle = TacticsRulesTest.mate1DoublePuzzle()
-        val doubleError = assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(IllegalArgumentException::class.java) {
             TacticsEngine.grade(doubleSolutionPuzzle)
         }
-        assertTrue(doubleError.message!!.contains("unique") || doubleError.message!!.contains("exactly one"))
 
+        // Zero solution rejected
         val zeroMatePuzzle = TacticsRulesTest.zeroMatePuzzle()
         assertThrows(IllegalArgumentException::class.java) {
             TacticsEngine.grade(zeroMatePuzzle)
+        }
+
+        // Blocker 3: Declared horizon disagrees with solution line length
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsPuzzle(
+                id = "declared-horizon-mismatch",
+                initialBoard = easyBackRankMateFixture().initialBoard,
+                sideToMove = PieceColor.WHITE,
+                mateIn = 3,
+                solutionLine = listOf(ChessMove(squareToCell("a1"), squareToCell("a8"))),
+                pack = Pack.EXPERT,
+                storedGrade = "back-rank-mate:1",
+            )
         }
 
         // Pack mismatch: Easy puzzle labeled MEDIUM
@@ -186,19 +206,30 @@ class TacticsTechniqueSolverTest {
         }
         assertTrue(packError.message!!.contains("does not match expected pack"))
 
-        // Stuck puzzle: stored solution does not force checkmate
-        val stuckPuzzle = TacticsPuzzle(
-            id = "stuck-puzzle",
-            initialBoard = TacticsBoard.fromFen("7k/3Q4/5K2/8/8/8/8/8 w - - 0 1"),
+        // Blocker 4: Valid unique mate-in-2 puzzle whose winning first move is a quiet move (Kf6)
+        // rather than a check, capture, or recognized mating pattern -> must be rejected as stuck
+        val quietMoveStuckPuzzle = TacticsPuzzle(
+            id = "quiet-stuck-puzzle",
+            initialBoard = TacticsBoard.fromFen("7k/8/p5Q1/4K3/8/8/8/8 w - - 0 1"),
             sideToMove = PieceColor.WHITE,
-            mateIn = 1,
-            solutionLine = listOf(ChessMove(squareToCell("d7"), squareToCell("d8"))),
-            pack = Pack.EASY,
-            storedGrade = "none:1",
+            mateIn = 2,
+            solutionLine = listOf(
+                ChessMove(squareToCell("e5"), squareToCell("f6")),
+                ChessMove(squareToCell("a6"), squareToCell("a5")),
+                ChessMove(squareToCell("g6"), squareToCell("g7")),
+            ),
+            pack = Pack.MEDIUM,
+            storedGrade = "checkmate:2",
         )
-        assertThrows(IllegalArgumentException::class.java) {
-            TacticsEngine.grade(stuckPuzzle)
+        // The exact mate is unique, but there is no supported technique for the quiet king move.
+        assertEquals(1, TacticsRules.countSolutions(quietMoveStuckPuzzle))
+        assertTrue(TacticsRules.isValidSolution(quietMoveStuckPuzzle))
+        assertNull(TacticsTechniqueSolver.nextStep(quietMoveStuckPuzzle, TacticsState.initial(quietMoveStuckPuzzle)))
+
+        val stuckError = assertThrows(IllegalArgumentException::class.java) {
+            TacticsEngine.grade(quietMoveStuckPuzzle)
         }
+        assertTrue(stuckError.message!!.contains("stuck with the supported techniques"))
     }
 
     @Test
@@ -258,12 +289,12 @@ class TacticsTechniqueSolverTest {
 
         fun mediumMateInTwoFixture(): TacticsPuzzle = TacticsPuzzle(
             id = "medium-mate-in-two",
-            initialBoard = TacticsBoard.fromFen("3r2k1/4bppp/8/2B5/8/3Q4/8/3R2K1 w - - 0 1"),
+            initialBoard = TacticsBoard.fromFen("5rk1/p4ppp/8/6B1/8/Q7/8/3R2K1 w - - 0 1"),
             sideToMove = PieceColor.WHITE,
             mateIn = 2,
             solutionLine = listOf(
-                ChessMove(squareToCell("d3"), squareToCell("d8")),
-                ChessMove(squareToCell("e7"), squareToCell("d8")),
+                ChessMove(squareToCell("a3"), squareToCell("f8")),
+                ChessMove(squareToCell("g8"), squareToCell("f8")),
                 ChessMove(squareToCell("d1"), squareToCell("d8")),
             ),
             pack = Pack.MEDIUM,
@@ -272,16 +303,12 @@ class TacticsTechniqueSolverTest {
 
         fun hardMateInTwoFixture(): TacticsPuzzle = TacticsPuzzle(
             id = "hard-mate-in-two",
-            initialBoard = TacticsBoard.fromFen("3r2k1/pp2bppp/8/2B5/8/3Q4/PP6/3R2K1 w - - 0 1"),
+            initialBoard = TacticsBoard.fromFen("5r1k/6pp/3N4/3Q1b2/8/1B6/PP5R/K7 w - -"),
             sideToMove = PieceColor.WHITE,
             mateIn = 2,
-            solutionLine = listOf(
-                ChessMove(squareToCell("d3"), squareToCell("d8")),
-                ChessMove(squareToCell("e7"), squareToCell("d8")),
-                ChessMove(squareToCell("d1"), squareToCell("d8")),
-            ),
+            solutionLine = listOf("d5g8", "f8g8", "d6f7").map(ChessMove.Companion::fromUci),
             pack = Pack.HARD,
-            storedGrade = "back-rank-mate:2",
+            storedGrade = "smothered-mate:2",
         )
 
         fun expertMateInThreeFixture(): TacticsPuzzle = TacticsPuzzle(
@@ -297,7 +324,7 @@ class TacticsTechniqueSolverTest {
                 ChessMove(squareToCell("h1"), squareToCell("h8")),
             ),
             pack = Pack.EXPERT,
-            storedGrade = "forces-mate:3",
+            storedGrade = "checkmate:3",
         )
     }
 }

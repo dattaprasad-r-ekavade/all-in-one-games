@@ -4,205 +4,174 @@ import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.core.Move
+import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.Technique
+import kotlin.math.abs
 
-/**
- * Deterministic technique deduction, hint generation, and grading for Chess Tactics.
- */
+/** Finds forcing checks and captures and explains the resulting mating patterns. */
 object TacticsTechniqueSolver {
 
-    /**
-     * Returns the next deduction from [puzzle]'s stored solution line as a [HintStep].
-     *
-     * Returns null if the board is already solved, contains mistakes, or if no legal
-     * solution move remains.
-     */
+    /** Deduces a hint from the current position, or returns null if the techniques get stuck. */
     fun nextStep(puzzle: TacticsPuzzle, state: TacticsState): HintStep? {
         require(state.puzzle == puzzle) { "Tactics state belongs to a different puzzle" }
         if (TacticsRules.mistakes(puzzle, state).isNotEmpty()) return null
-        if (TacticsRules.isSolved(puzzle, state)) return null
-
-        val turnIndex = state.completedPlayerMoves.size
-        val stepIndex = turnIndex * 2
-        if (stepIndex >= puzzle.solutionLine.size) return null
-
-        val nextMove = puzzle.solutionLine[stepIndex]
-        val currentBoard = state.currentBoard
-        if (!currentBoard.legalMoves().contains(nextMove)) return null
-
-        val movingPiece = currentBoard.pieceAt(nextMove.from) ?: return null
-        val targetPiece = currentBoard.pieceAt(nextMove.to)
-        val afterMove = currentBoard.applyMoveInternal(nextMove)
-        val isCheckmate = afterMove.isCheckmate()
-        val isCheck = afterMove.isCheck(afterMove.sideToMove)
-        val isCapture = targetPiece != null || (nextMove.to == currentBoard.enPassant && movingPiece.type == PieceType.PAWN)
-        val remainingMateIn = puzzle.mateIn - turnIndex
-
-        val (technique, explanation) = classifyMove(
-            afterMove = afterMove,
-            move = nextMove,
-            movingPiece = movingPiece,
-            isCheckmate = isCheckmate,
-            isCheck = isCheck,
-            isCapture = isCapture,
-            remainingMateIn = remainingMateIn,
-        )
-
-        val moves = when {
-            state.pendingFrom == null -> listOf(
-                Move.SetMark(nextMove.from, Mark.FILLED),
-                Move.SetMark(nextMove.to, Mark.FILLED),
-            )
-            state.pendingFrom == nextMove.from -> listOf(
-                Move.SetMark(nextMove.to, Mark.FILLED),
-            )
-            else -> listOf(
-                Move.SetMark(state.pendingFrom!!, Mark.FILLED),
-                Move.SetMark(nextMove.from, Mark.FILLED),
-                Move.SetMark(nextMove.to, Mark.FILLED),
-            )
-        }
-
+        val remaining = puzzle.mateIn - state.completedPlayerMoves.size
+        if (remaining <= 0 || state.currentBoard.sideToMove != puzzle.sideToMove) return null
+        val deduction = deduce(state.currentBoard, remaining, requireUnique = true) ?: return null
+        val move = deduction.move
+        val from = Move.SetMark(move.from, Mark.FILLED)
+        val to = Move.SetMark(move.to, Mark.FILLED)
+        val pending = state.pendingFrom
         return HintStep(
-            technique = technique,
-            cells = listOf(nextMove.from, nextMove.to),
-            explanation = explanation,
-            moves = moves,
+            technique = deduction.technique,
+            cells = listOf(move.from, move.to),
+            explanation = deduction.explanation,
+            moves = when (pending) {
+                null -> listOf(from, to)
+                move.from -> listOf(to)
+                else -> listOf(Move.SetMark(pending, Mark.FILLED), from, to)
+            },
         )
     }
 
-    /**
-     * Solves [puzzle] with the technique solver from its initial state and returns its [Grade].
-     *
-     * Rejects puzzles that are not unique ([TacticsRules.countSolutions] != 1), puzzles whose
-     * pack band does not match their mate horizon and piece count, or puzzles where the hint
-     * sequence becomes stuck.
-     */
+    /** Requires an exact unique mate followed by a complete solve with the supported techniques. */
     fun grade(puzzle: TacticsPuzzle): Grade {
-        require(TacticsRules.countSolutions(puzzle, limit = 2) == 1) {
+        require(TacticsRules.countSolutions(puzzle) == 1) {
             "Tactics grading requires exactly one solution"
         }
-        require(TacticsRules.isValidSolution(puzzle)) {
-            "Tactics grading requires a valid solution line"
-        }
-
         val pieceCount = puzzle.initialBoard.pieces.count { it != null }
         val expectedPack = TacticsPackBands.packFor(puzzle.mateIn, pieceCount)
         require(puzzle.pack == expectedPack) {
             "Tactics puzzle pack ${puzzle.pack} does not match expected pack $expectedPack for mate-in-${puzzle.mateIn} with $pieceCount pieces"
         }
-
-        var state = TacticsState.initial(puzzle)
-        val visited = hashSetOf(state)
-        var stepCount = 0
-        var hardestTechnique: Technique? = null
-
-        while (!TacticsRules.isSolved(puzzle, state)) {
-            val step = nextStep(puzzle, state) ?: throw IllegalArgumentException(
-                "Tactics puzzle is stuck with the supported techniques",
-            )
-            val nextState = step.moves.fold(state) { current, move -> current.withMove(move) }
-            require(nextState != state && visited.add(nextState)) {
-                "Tactics hint sequence did not make unique progress"
-            }
-            state = nextState
-            stepCount++
-            if (hardestTechnique == null || step.technique.difficultyRank > hardestTechnique.difficultyRank) {
-                hardestTechnique = step.technique
-            }
+        return requireNotNull(gradeLine(puzzle.initialBoard, puzzle.solutionLine, expectedPack)) {
+            "Tactics puzzle is stuck with the supported techniques"
         }
-
-        return Grade(hardestTechnique, stepCount, expectedPack)
     }
 
-    private fun classifyMove(
-        afterMove: TacticsBoard,
-        move: ChessMove,
-        movingPiece: Piece,
-        isCheckmate: Boolean,
-        isCheck: Boolean,
-        isCapture: Boolean,
-        remainingMateIn: Int,
-    ): Pair<Technique, String> {
-        val destSquare = cellToSquare(move.to)
-        if (isCheckmate) {
-            if (isSmotheredMate(afterMove, movingPiece)) {
-                return TacticsTechniques.SMOTHERED_MATE to "Move to $destSquare delivers smothered mate against the trapped king."
+    internal fun gradeLine(start: TacticsBoard, line: List<ChessMove>, pack: Pack): Grade? {
+        var board = start
+        var hardest: Technique? = null
+        val turns = (line.size + 1) / 2
+        for (turn in 0 until turns) {
+            val deduction = deduce(board, turns - turn, requireUnique = true) ?: return null
+            if (deduction.move != line[turn * 2]) return null
+            if (hardest == null || deduction.technique.difficultyRank > hardest.difficultyRank) {
+                hardest = deduction.technique
             }
-            if (isBackRankMate(afterMove, move, movingPiece)) {
-                return TacticsTechniques.BACK_RANK_MATE to "Move to $destSquare delivers back-rank mate on the edge rank."
-            }
-            return if (isCapture) {
-                TacticsTechniques.CHECKMATE to "Captures on $destSquare to deliver checkmate."
-            } else {
-                TacticsTechniques.CHECKMATE to "Move to $destSquare delivers checkmate."
-            }
+            board = board.applyMoveInternal(deduction.move)
+            if (turn + 1 < turns) board = board.applyMoveInternal(line[turn * 2 + 1])
         }
-
-        if (isCheck) {
-            return if (isCapture) {
-                TacticsTechniques.CAPTURE to "Captures the piece on $destSquare with check."
-            } else {
-                TacticsTechniques.CHECK to "Checks the king from $destSquare."
-            }
-        }
-
-        if (isCapture) {
-            return TacticsTechniques.CAPTURE to "Captures the piece on $destSquare."
-        }
-
-        return TacticsTechniques.FORCES_MATE to "Move to $destSquare forces mate in $remainingMateIn."
+        return Grade(hardest, turns, pack)
     }
 
-    /**
-     * Returns true if [afterMove] is a smothered mate delivered by [movingPiece]:
-     * The checking piece is a knight and all squares adjacent to the enemy king on the board
-     * are occupied by the defending side's own pieces.
-     */
-    private fun isSmotheredMate(afterMove: TacticsBoard, movingPiece: Piece): Boolean {
-        if (movingPiece.type != PieceType.KNIGHT) return false
-        val kingColor = afterMove.sideToMove
-        val kingCell = afterMove.kingCell(kingColor)
-        val kingRow = kingCell.index / 8
-        val kingCol = kingCell.index % 8
+    private data class Deduction(val move: ChessMove, val technique: Technique, val explanation: String)
 
-        var totalAdjacent = 0
-        var friendlyOccupied = 0
-        for (dr in -1..1) {
-            for (dc in -1..1) {
-                if (dr == 0 && dc == 0) continue
-                val r = kingRow + dr
-                val c = kingCol + dc
-                if (r in 0..7 && c in 0..7) {
-                    totalAdjacent++
-                    val p = afterMove.pieceAt(r, c)
-                    if (p != null && p.color == kingColor) {
-                        friendlyOccupied++
-                    }
-                }
+    private fun deduce(board: TacticsBoard, remaining: Int, requireUnique: Boolean): Deduction? {
+        var first: Deduction? = null
+        for (move in board.legalMoves()) {
+            val deduction = prove(board, move, remaining) ?: continue
+            if (!requireUnique) return deduction
+            if (first != null) return null
+            first = deduction
+        }
+        return first
+    }
+
+    private fun prove(board: TacticsBoard, move: ChessMove, remaining: Int): Deduction? {
+        val movedPiece = requireNotNull(board.pieceAt(move.from))
+        val capture = board.pieceAt(move.to) != null ||
+            (movedPiece.type == PieceType.PAWN && move.to == board.enPassant)
+        val after = board.applyMoveInternal(move)
+        val check = after.isCheck()
+        if (!check && (!capture || remaining == 1)) return null
+        if (check && after.isCheckmate()) return describeMate(after, move)
+        if (remaining == 1) return null
+
+        val replies = after.legalMoves()
+        if (replies.isEmpty()) return null
+        var continuation: Deduction? = null
+        for (reply in replies) {
+            val next = deduce(after.applyMoveInternal(reply), remaining - 1, requireUnique = false) ?: return null
+            if (continuation == null) continuation = next
+        }
+
+        val square = cellToSquare(move.to)
+        val technique = if (capture) TacticsTechniques.CAPTURE else TacticsTechniques.CHECK
+        val action = if (capture) "The capture on $square" else "The checking move to $square"
+        val reply = replies.first()
+        val replyMove = "${cellToSquare(reply.from)} to ${cellToSquare(reply.to)}"
+        val next = requireNotNull(continuation)
+        val nextSquare = cellToSquare(next.move.to)
+        val followUp = when (next.technique) {
+            TacticsTechniques.CHECK -> "a check on $nextSquare"
+            TacticsTechniques.CAPTURE -> "a capture on $nextSquare"
+            else -> "${next.technique.displayName.replaceFirstChar { it.lowercaseChar() }} on $nextSquare"
+        }
+        val explanation = if (replies.size == 1) {
+            "$action forces $replyMove and sets up $followUp."
+        } else {
+            "$action leaves a mating continuation against every reply, including $followUp after $replyMove."
+        }
+        return Deduction(move, technique, explanation)
+    }
+
+    private fun describeMate(board: TacticsBoard, move: ChessMove): Deduction {
+        val piece = requireNotNull(board.pieceAt(move.to))
+        val king = board.kingCell(board.sideToMove)
+        val kingRow = king.index / 8
+        val kingCol = king.index % 8
+        val row = move.to.index / 8
+        val col = move.to.index % 8
+        val rankDistance = abs(row - kingRow)
+        val fileDistance = abs(col - kingCol)
+        val square = cellToSquare(move.to)
+        val kingSquare = cellToSquare(king)
+        val slider = piece.type == PieceType.ROOK || piece.type == PieceType.QUEEN
+        val backRank = if (board.sideToMove == PieceColor.BLACK) 0 else 7
+        val rankStep = if (kingRow == 0) 1 else -1
+        val fileStep = if (kingCol == 0) 1 else -1
+        val knight = Piece(piece.color, PieceType.KNIGHT)
+
+        return when {
+            piece.type == PieceType.KNIGHT && rankDistance * fileDistance == 2 &&
+                neighboursOccupied(board, kingRow, kingCol) ->
+                Deduction(move, TacticsTechniques.SMOTHERED_MATE,
+                    "The knight on $square delivers smothered mate because the king's own pieces block every escape square.")
+            slider && row == kingRow && kingRow == backRank &&
+                board.pieceAt(kingRow + rankStep, kingCol)?.color == board.sideToMove &&
+                clearLine(board, row, col, kingRow, kingCol) ->
+                Deduction(move, TacticsTechniques.BACK_RANK_MATE,
+                    "The move to $square delivers back-rank mate because the king's own pieces block escape from the rank.")
+            piece.type == PieceType.ROOK && kingCol in listOf(0, 7) && col == kingCol && kingRow in 1..6 &&
+                board.pieceAt(kingRow, kingCol + fileStep) == Piece(board.sideToMove, PieceType.PAWN) &&
+                board.pieceAt(kingRow, kingCol + 3 * fileStep) == knight &&
+                clearLine(board, row, col, kingRow, kingCol) ->
+                Deduction(move, TacticsTechniques.ANASTASIA_MATE,
+                    "The rook on $square delivers Anastasia's mate because the knight and pawn seal the neighbouring file.")
+            piece.type == PieceType.ROOK && kingRow in listOf(0, 7) && kingCol in listOf(0, 7) &&
+                rankDistance + fileDistance == 1 &&
+                board.pieceAt(kingRow + 2 * rankStep, kingCol + 2 * fileStep) == knight ->
+                Deduction(move, TacticsTechniques.ARABIAN_MATE,
+                    "The rook on $square delivers Arabian mate, protected by the knight that also cuts off the corner escape.")
+            else -> Deduction(move, TacticsTechniques.CHECKMATE,
+                "The move to $square delivers checkmate because the king on $kingSquare has no legal defence.")
+        }
+    }
+
+    private fun neighboursOccupied(board: TacticsBoard, kingRow: Int, kingCol: Int): Boolean {
+        for (row in maxOf(0, kingRow - 1)..minOf(7, kingRow + 1)) {
+            for (col in maxOf(0, kingCol - 1)..minOf(7, kingCol + 1)) {
+                if (board.pieceAt(row, col)?.color != board.sideToMove) return false
             }
         }
-        return totalAdjacent > 0 && friendlyOccupied == totalAdjacent
+        return true
     }
 
-    /**
-     * Returns true if [afterMove] is a back-rank mate:
-     * A rook or queen delivers checkmate along the defending king's back rank, and the square
-     * directly in front of the king is blocked by a friendly piece.
-     */
-    private fun isBackRankMate(afterMove: TacticsBoard, move: ChessMove, movingPiece: Piece): Boolean {
-        if (movingPiece.type != PieceType.ROOK && movingPiece.type != PieceType.QUEEN) return false
-        val kingColor = afterMove.sideToMove
-        val kingCell = afterMove.kingCell(kingColor)
-        val kingRow = kingCell.index / 8
-        val kingCol = kingCell.index % 8
-
-        val isBackRank = if (kingColor == PieceColor.BLACK) kingRow == 0 else kingRow == 7
-        if (!isBackRank) return false
-        if (move.to.index / 8 != kingRow) return false
-
-        val shieldRow = if (kingColor == PieceColor.BLACK) 1 else 6
-        val pieceInFront = afterMove.pieceAt(shieldRow, kingCol)
-        return pieceInFront != null && pieceInFront.color == kingColor
-    }
+    private fun clearLine(board: TacticsBoard, row: Int, col: Int, kingRow: Int, kingCol: Int): Boolean =
+        if (row == kingRow) {
+            (minOf(col, kingCol) + 1 until maxOf(col, kingCol)).all { board.pieceAt(row, it) == null }
+        } else {
+            (minOf(row, kingRow) + 1 until maxOf(row, kingRow)).all { board.pieceAt(it, col) == null }
+        }
 }

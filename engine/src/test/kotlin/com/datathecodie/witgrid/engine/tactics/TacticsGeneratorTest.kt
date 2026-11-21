@@ -63,6 +63,31 @@ class TacticsGeneratorTest {
     }
 
     @Test
+    fun regularAndDailyBankSeedsYieldDistinctStartingPositionsAtLaunchVolume() {
+        // The bank forks one SplitMix64 stream per file, then seeds one generator per entry.
+        val regular = Pack.entries.associateWith { pack ->
+            val seeds = SplitMix64(1)
+            List(150) { TacticsEngine.generate(SplitMix64(seeds.nextLong()), pack) }
+        }
+        val dailySeeds = SplitMix64(2)
+        val daily = List(365) { index ->
+            val pack = Pack.entries[index % Pack.entries.size]
+            TacticsEngine.generate(SplitMix64(dailySeeds.nextLong()), pack)
+        }.groupBy { it.pack }
+
+        val seenBoards = hashSetOf<TacticsBoard>()
+        val seenIds = hashSetOf<String>()
+        for (pack in Pack.entries) {
+            val puzzles = regular.getValue(pack) + daily.getValue(pack)
+            val distinctPositions = puzzles.map { it.initialBoard }.toSet()
+            assertEquals(puzzles.size, distinctPositions.size, "Distinct regular and daily positions for $pack")
+            assertTrue(distinctPositions.all(seenBoards::add), "Positions must differ across packs")
+            assertTrue(puzzles.all { seenIds.add(it.id) }, "IDs must differ across files")
+        }
+        assertEquals(965, seenBoards.size)
+    }
+
+    @Test
     fun boundarySeedsGenerateValidPuzzlesForEveryPack() {
         val boundarySeeds = listOf(0L, -1L, 2L, Long.MIN_VALUE, Long.MAX_VALUE)
         for (pack in Pack.entries) {
@@ -96,10 +121,17 @@ class TacticsGeneratorTest {
                 "Hard puzzle must have > ${TacticsPackBands.MAX_MEDIUM_PIECES} pieces, had $hardPieces",
             )
             assertEquals(2, hard.mateIn)
+            assertTrue(openingChecks(medium) <= 2, "Medium should offer at most two checking moves")
+            assertTrue(openingChecks(hard) >= 3, "Hard should offer at least three checking moves")
 
             val expert = TacticsEngine.generate(SplitMix64(seed), Pack.EXPERT)
             assertEquals(3, expert.mateIn)
         }
+    }
+
+    private fun openingChecks(puzzle: TacticsPuzzle): Int {
+        val board = puzzle.initialBoard
+        return board.legalMoves().count { board.applyMove(it).isCheck() }
     }
 
     private fun generateBatch(seed: Long, pack: Pack, count: Int): List<TacticsPuzzle> {

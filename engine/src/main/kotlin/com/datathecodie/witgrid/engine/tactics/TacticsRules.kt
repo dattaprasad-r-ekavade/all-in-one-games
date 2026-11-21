@@ -1,150 +1,108 @@
+
 package com.datathecodie.witgrid.engine.tactics
 
 import com.datathecodie.witgrid.engine.core.Cell
 
-/**
- * Rules, solution counting, and state validation for Chess Tactics.
- */
 object TacticsRules {
-    /** Returns whether [puzzle]'s stored solution line is legally valid and ends in checkmate. */
-    fun isValidSolution(puzzle: TacticsPuzzle): Boolean {
-        var board = puzzle.initialBoard
-        for (move in puzzle.solutionLine) {
-            if (!board.legalMoves().contains(move)) return false
-            board = board.applyMoveInternal(move)
-        }
-        return board.isCheckmate()
-    }
 
-    /**
-     * Returns true if all solution moves have been correctly executed and the final position is checkmate.
-     */
+    /** Checks that the stored line forces mate at the declared depth against best defence. */
+    fun isValidSolution(puzzle: TacticsPuzzle): Boolean = countSolutions(puzzle, limit = 1) == 1
+
+    /** Returns true once the player completes the unique mate sequence. */
     fun isSolved(puzzle: TacticsPuzzle, state: TacticsState): Boolean {
         require(state.puzzle == puzzle) { "Tactics state belongs to a different puzzle" }
-        if (!isValidSolution(puzzle)) return false
-        if (mistakes(puzzle, state).isNotEmpty()) return false
-
-        val requiredPlayerMoves = (puzzle.solutionLine.size + 1) / 2
-        if (state.completedPlayerMoves.size != requiredPlayerMoves) return false
-
-        return state.currentBoard.isCheckmate()
+        return state.completedPlayerMoves.size == puzzle.mateIn &&
+            mistakes(puzzle, state).isEmpty() &&
+            state.currentBoard.isCheckmate() &&
+            countSolutions(puzzle) == 1
     }
 
     /**
-     * Returns incorrect committed entries in row-major order; empty cells and in-progress picks are ignored.
-     *
-     * For Chess Tactics, a committed player move (a completed from-and-to square pick) is a mistake if it
-     * does not match the unique solution move for that turn in the puzzle's solution line. For each incorrect
-     * player move, its destination cell is reported as a mistake (in row-major order). An in-progress move
-     * (where only the from-square has been picked) is not a mistake.
+     * Returns the destination squares of committed moves that differ from the stored line,
+     * in row-major order. A source-square selection alone is never a mistake.
      */
     fun mistakes(puzzle: TacticsPuzzle, state: TacticsState): List<Cell> {
         require(state.puzzle == puzzle) { "Tactics state belongs to a different puzzle" }
-        val mistakeCells = ArrayList<Cell>()
-
-        for ((index, move) in state.completedPlayerMoves.withIndex()) {
-            val solutionStep = index * 2
-            val expectedMove = puzzle.solutionLine.getOrNull(solutionStep)
-            if (move != expectedMove) {
-                mistakeCells.add(move.to)
-            }
-        }
-
-        return mistakeCells.distinct().sortedBy { it.index }
+        return state.completedPlayerMoves.mapIndexedNotNull { index, move ->
+            move.to.takeIf { move != puzzle.solutionLine.getOrNull(index * 2) }
+        }.distinct().sortedBy { it.index }
     }
 
     /**
-     * Counts solutions under the 'unique mate sequence' rule:
-     * At every player turn along the stored solution line (advancing with the stored opponent replies),
-     * exactly one move must keep a forced mate in the remaining moves.
-     *
-     * Returns the capped count of the worst turn across all player turns:
-     * - Returns 0 if any player turn has no move that forces checkmate in the remaining moves.
-     * - Returns [limit] (e.g. 2) if any player turn has two or more winning moves.
-     * - Returns 1 if every player turn has exactly one winning move.
+     * Returns zero for an invalid stored line. Otherwise returns the largest number of winning
+     * moves at any player turn along that line, capped at [limit].
      */
     fun countSolutions(puzzle: TacticsPuzzle, limit: Int = 2): Int {
         require(limit > 0) { "Solution limit must be positive" }
+        var board = puzzle.initialBoard
+        if (canForceMate(board, puzzle.mateIn - 1)) return 0
 
-        var worstCount = 1
-        var currentBoard = puzzle.initialBoard
-        val totalMoves = puzzle.solutionLine.size
-        val playerTurns = (totalMoves + 1) / 2
+        var largestCount = 1
+        for (turn in 0 until puzzle.mateIn) {
+            val remaining = puzzle.mateIn - turn
+            val move = puzzle.solutionLine[2 * turn]
+            val legalMoves = board.legalMoves()
+            if (move !in legalMoves) return 0
+            val afterMove = board.applyMoveInternal(move)
+            if (!forcesMate(afterMove, remaining)) return 0
 
-        for (turn in 0 until playerTurns) {
-            val remainingMateIn = puzzle.mateIn - turn
-            var turnWinningMoves = 0
-
-            for (move in currentBoard.legalMoves()) {
-                if (isWinningMove(currentBoard, move, remainingMateIn, puzzle.sideToMove)) {
-                    turnWinningMoves++
-                    if (turnWinningMoves >= limit) break
+            var winningCount = 1
+            if (largestCount < limit) {
+                for (alternative in legalMoves) {
+                    if (alternative != move && forcesMate(board.applyMoveInternal(alternative), remaining)) {
+                        if (++winningCount == limit) break
+                    }
                 }
             }
+            largestCount = maxOf(largestCount, winningCount)
 
-            if (turnWinningMoves == 0) {
-                return 0
-            }
-            if (turnWinningMoves > worstCount) {
-                worstCount = turnWinningMoves
-            }
-            if (worstCount >= limit) {
-                return limit
-            }
-
-            val playerStep = turn * 2
-            val playerMove = puzzle.solutionLine[playerStep]
-            currentBoard = currentBoard.applyMoveInternal(playerMove)
-
-            val opponentStep = playerStep + 1
-            if (opponentStep < totalMoves) {
-                val opponentMove = puzzle.solutionLine[opponentStep]
-                currentBoard = currentBoard.applyMoveInternal(opponentMove)
+            board = afterMove
+            if (remaining > 1) {
+                val reply = puzzle.solutionLine[2 * turn + 1]
+                if (bestReply(board, remaining - 1) != reply) return 0
+                board = board.applyMoveInternal(reply)
             }
         }
-
-        return minOf(limit, worstCount)
+        return largestCount
     }
 
-    /**
-     * Evaluates whether [move] from [board] forces checkmate for [winningColor] against all defenses
-     * within [movesRemaining] player moves.
-     */
-    private fun isWinningMove(
-        board: TacticsBoard,
-        move: ChessMove,
-        movesRemaining: Int,
-        winningColor: PieceColor,
-    ): Boolean {
-        val afterMove = board.applyMoveInternal(move)
-        if (afterMove.isCheckmate()) {
-            return afterMove.sideToMove != winningColor
-        }
-        if (afterMove.isStalemate() || movesRemaining <= 1) {
-            return false
-        }
-        val replies = afterMove.legalMoves()
-        if (replies.isEmpty()) return false
-        return replies.all { reply ->
-            canForceMate(afterMove.applyMoveInternal(reply), movesRemaining - 1, winningColor)
-        }
-    }
-
-    /**
-     * Evaluates whether [winningColor] can force checkmate from [board] in at most [movesRemaining] moves,
-     * where it is [winningColor]'s turn to move.
-     */
-    private fun canForceMate(
-        board: TacticsBoard,
-        movesRemaining: Int,
-        winningColor: PieceColor,
-    ): Boolean {
-        if (movesRemaining <= 0) return false
-        for (candidate in board.legalMoves()) {
-            if (isWinningMove(board, candidate, movesRemaining, winningColor)) {
-                return true
+    /** Finds an exact-length mate with one winning move per player turn and one best defence. */
+    internal fun findUniqueLine(start: TacticsBoard, mateIn: Int): List<ChessMove>? {
+        val line = ArrayList<ChessMove>(2 * mateIn - 1)
+        var board = start
+        for (remaining in mateIn downTo 1) {
+            val move = winningMoves(board, remaining, limit = 2).singleOrNull() ?: return null
+            board = board.applyMoveInternal(move)
+            line.add(move)
+            if (remaining > 1) {
+                val reply = bestReply(board, remaining - 1) ?: return null
+                board = board.applyMoveInternal(reply)
+                line.add(reply)
             }
         }
-        return false
+        return line
     }
+
+    internal fun winningMoves(board: TacticsBoard, remaining: Int, limit: Int = Int.MAX_VALUE): List<ChessMove> =
+        board.legalMoves().asSequence()
+            .filter { forcesMate(board.applyMoveInternal(it), remaining) }
+            .take(limit)
+            .toList()
+
+    // The attacker has already proved mate in 'remaining' after every legal reply.
+    private fun bestReply(board: TacticsBoard, remaining: Int): ChessMove? =
+        board.legalMoves().singleOrNull { reply ->
+            !canForceMate(board.applyMoveInternal(reply), remaining - 1)
+        }
+
+    // At a defender node every legal reply must still allow mate, and stalemate is a refutation.
+    private fun forcesMate(defender: TacticsBoard, remaining: Int): Boolean {
+        if (remaining == 1) return defender.isCheckmate()
+        val replies = defender.legalMoves()
+        if (replies.isEmpty()) return defender.isCheck()
+        return replies.all { canForceMate(defender.applyMoveInternal(it), remaining - 1) }
+    }
+
+    private fun canForceMate(attacker: TacticsBoard, remaining: Int): Boolean =
+        remaining > 0 && attacker.legalMoves().any { forcesMate(attacker.applyMoveInternal(it), remaining) }
 }

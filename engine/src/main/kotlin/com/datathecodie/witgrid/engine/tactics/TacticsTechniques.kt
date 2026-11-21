@@ -17,6 +17,8 @@ object TacticsTechniques {
     val CHECKMATE = Technique("checkmate", "Checkmate", 3)
     val BACK_RANK_MATE = Technique("back-rank-mate", "Back-rank mate", 4)
     val SMOTHERED_MATE = Technique("smothered-mate", "Smothered mate", 5)
+    val ANASTASIA_MATE = Technique("anastasia-mate", "Anastasia's mate", 6)
+    val ARABIAN_MATE = Technique("arabian-mate", "Arabian mate", 7)
 
     val all: List<Technique> = listOf(
         CHECK,
@@ -25,6 +27,8 @@ object TacticsTechniques {
         CHECKMATE,
         BACK_RANK_MATE,
         SMOTHERED_MATE,
+        ANASTASIA_MATE,
+        ARABIAN_MATE,
     )
 
     fun byId(id: String): Technique? = all.firstOrNull { it.id == id }
@@ -37,18 +41,18 @@ object TacticsTechniques {
  * - Easy: Mate in 1
  * - Medium: Mate in 2 with fewer pieces (up to [MAX_MEDIUM_PIECES])
  * - Hard: Mate in 2 with more pieces (exceeding [MAX_MEDIUM_PIECES])
- * - Expert: Mate in 3 or higher
+ * - Expert: Mate in 3
  */
 object TacticsPackBands {
     /** Maximum piece count for a Medium mate-in-2; boards with more pieces are categorized as Hard. */
     const val MAX_MEDIUM_PIECES: Int = 10
 
     /** Returns the canonical pack band for a puzzle with [mateIn] horizon and [pieceCount] pieces. */
-    fun packFor(mateIn: Int, pieceCount: Int): Pack = when {
-        mateIn <= 1 -> Pack.EASY
-        mateIn == 2 && pieceCount <= MAX_MEDIUM_PIECES -> Pack.MEDIUM
-        mateIn == 2 -> Pack.HARD
-        else -> Pack.EXPERT
+    fun packFor(mateIn: Int, pieceCount: Int): Pack = when (mateIn) {
+        1 -> Pack.EASY
+        2 -> if (pieceCount <= MAX_MEDIUM_PIECES) Pack.MEDIUM else Pack.HARD
+        3 -> Pack.EXPERT
+        else -> throw IllegalArgumentException("Unsupported Tactics mate horizon: $mateIn")
     }
 
     /** Returns whether [puzzle] has a pack band consistent with its mate horizon and piece count. */

@@ -20,7 +20,14 @@ class TacticsState(
     val picks: List<Cell> = immutableList(picks)
 
     /** Currently selected source square, or null if awaiting a piece selection. */
-    val pendingFrom: Cell? get() = if (picks.size % 2 == 1) picks.last() else null
+    val pendingFrom: Cell?
+        get() = picks.lastOrNull()?.takeIf {
+            picks.size == 2 * completedPlayerMoves.size + 1 &&
+                !hasMistake && currentBoard.sideToMove == puzzle.sideToMove &&
+                currentBoard.pieceAt(it)?.color == puzzle.sideToMove
+        }
+
+    private val hasMistake: Boolean
 
     /** All completed player moves made so far. */
     val completedPlayerMoves: List<ChessMove>
@@ -47,31 +54,30 @@ class TacticsState(
             val from = this.picks[2 * i]
             val to = this.picks[2 * i + 1]
             val playerMove = ChessMove(from, to)
-            playerMoves.add(playerMove)
+
+            if (board.sideToMove != puzzle.sideToMove || board.pieceAt(from)?.color != puzzle.sideToMove) {
+                break
+            }
 
             val stepIndex = i * 2
-            val expectedMove = puzzle.solutionLine.getOrNull(stepIndex)
-
-            if (!mistakeOccurred && playerMove == expectedMove) {
-                board = board.applyMoveInternal(playerMove)
-                lastAny = playerMove
-
-                val opponentStep = stepIndex + 1
-                if (opponentStep < puzzle.solutionLine.size) {
-                    val opponentMove = puzzle.solutionLine[opponentStep]
-                    board = board.applyMoveInternal(opponentMove)
-                    lastOpponent = opponentMove
-                    lastAny = opponentMove
-                }
-            } else {
+            val legal = playerMove in board.legalMoves()
+            playerMoves.add(playerMove)
+            lastAny = playerMove
+            if (legal) board = board.applyMoveInternal(playerMove)
+            if (!legal || playerMove != puzzle.solutionLine.getOrNull(stepIndex)) {
+                // Keep the mistake visible until undo without letting the player move the defender.
                 mistakeOccurred = true
-                if (board.legalMoves().contains(playerMove)) {
-                    board = board.applyMoveInternal(playerMove)
-                }
-                lastAny = playerMove
+                break
             }
+
+            val reply = puzzle.solutionLine.getOrNull(stepIndex + 1) ?: break
+            if (reply !in board.legalMoves()) break
+            board = board.applyMoveInternal(reply)
+            lastOpponent = reply
+            lastAny = reply
         }
 
+        this.hasMistake = mistakeOccurred
         this.completedPlayerMoves = Collections.unmodifiableList(playerMoves)
         this.currentBoard = board
         this.lastOpponentMove = lastOpponent
@@ -93,19 +99,28 @@ class TacticsState(
             "Tactics supports cell picks via SetMark or SetDigit only"
         }
 
+        if (hasMistake || currentBoard.sideToMove != puzzle.sideToMove ||
+            completedPlayerMoves.size == puzzle.mateIn
+        ) {
+            return this
+        }
+
         val cell = move.cell
         val currentFrom = pendingFrom
 
         return when {
             currentFrom == null -> {
-                TacticsState(puzzle, picks + cell)
+                if (currentBoard.pieceAt(cell)?.color == puzzle.sideToMove) {
+                    TacticsState(puzzle, picks + cell)
+                } else {
+                    this
+                }
             }
             cell == currentFrom -> {
                 // Deselect tapped piece
                 TacticsState(puzzle, picks.dropLast(1))
             }
-            currentBoard.pieceAt(cell)?.color == puzzle.sideToMove &&
-                !currentBoard.legalMoves().contains(ChessMove(currentFrom, cell)) -> {
+            currentBoard.pieceAt(cell)?.color == puzzle.sideToMove -> {
                 // Switch selected piece
                 TacticsState(puzzle, picks.dropLast(1) + cell)
             }

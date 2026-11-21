@@ -112,6 +112,9 @@ data class CastlingRights(
     companion object {
         fun fromFen(text: String): CastlingRights {
             if (text == "-") return CastlingRights()
+            require(text.isNotEmpty() && text.all { it in "KQkq" } && text.toSet().size == text.length) {
+                "Invalid FEN castling field: $text"
+            }
             return CastlingRights(
                 whiteKingside = 'K' in text,
                 whiteQueenside = 'Q' in text,

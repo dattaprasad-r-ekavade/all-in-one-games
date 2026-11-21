@@ -11,21 +11,86 @@ import java.util.Collections
  * Row 0 corresponds to rank 8 (a8 = 0, b8 = 1, ..., h8 = 7).
  * Row 7 corresponds to rank 1 (a1 = 56, b1 = 57, ..., h1 = 63).
  */
-class TacticsBoard(
-    pieces: List<Piece?>,
+class TacticsBoard private constructor(
+    pieces: ArrayList<Piece?>,
     val sideToMove: PieceColor,
     val castling: CastlingRights,
     val enPassant: Cell?,
 ) {
-    val pieces: List<Piece?> = Collections.unmodifiableList(ArrayList(pieces))
+    val pieces: List<Piece?> = Collections.unmodifiableList(pieces)
 
-    init {
+    constructor(
+        pieces: List<Piece?>,
+        sideToMove: PieceColor,
+        castling: CastlingRights,
+        enPassant: Cell?,
+    ) : this(ArrayList(pieces), sideToMove, castling, enPassant) {
+        validatePosition()
+    }
+
+    private fun validatePosition() {
         require(this.pieces.size == 64) { "Tactics board must have exactly 64 squares" }
-        require(enPassant == null || enPassant.index in 0 until 64) { "En passant cell outside board" }
         val whiteKings = this.pieces.count { it?.color == PieceColor.WHITE && it.type == PieceType.KING }
         val blackKings = this.pieces.count { it?.color == PieceColor.BLACK && it.type == PieceType.KING }
         require(whiteKings == 1) { "Tactics board must have exactly one white king" }
         require(blackKings == 1) { "Tactics board must have exactly one black king" }
+        val whiteKing = kingCell(PieceColor.WHITE).index
+        val blackKing = kingCell(PieceColor.BLACK).index
+        require(kotlin.math.abs(whiteKing / 8 - blackKing / 8) > 1 ||
+            kotlin.math.abs(whiteKing % 8 - blackKing % 8) > 1
+        ) { "White and Black kings cannot be adjacent" }
+        for (col in 0..7) {
+            require(pieceAt(0, col)?.type != PieceType.PAWN) { "Pawns cannot be placed on rank 8" }
+            require(pieceAt(7, col)?.type != PieceType.PAWN) { "Pawns cannot be placed on rank 1" }
+        }
+
+        // Validate castling rights: king and respective rook must be on their initial squares
+        if (castling.whiteKingside) {
+            require(pieces[60] == Piece(PieceColor.WHITE, PieceType.KING) && pieces[63] == Piece(PieceColor.WHITE, PieceType.ROOK)) {
+                "White kingside castling requires king on e1 and rook on h1"
+            }
+        }
+        if (castling.whiteQueenside) {
+            require(pieces[60] == Piece(PieceColor.WHITE, PieceType.KING) && pieces[56] == Piece(PieceColor.WHITE, PieceType.ROOK)) {
+                "White queenside castling requires king on e1 and rook on a1"
+            }
+        }
+        if (castling.blackKingside) {
+            require(pieces[4] == Piece(PieceColor.BLACK, PieceType.KING) && pieces[7] == Piece(PieceColor.BLACK, PieceType.ROOK)) {
+                "Black kingside castling requires king on e8 and rook on h8"
+            }
+        }
+        if (castling.blackQueenside) {
+            require(pieces[4] == Piece(PieceColor.BLACK, PieceType.KING) && pieces[0] == Piece(PieceColor.BLACK, PieceType.ROOK)) {
+                "Black queenside castling requires king on e8 and rook on a8"
+            }
+        }
+
+        // FEN records the last double push even if no opposing pawn can capture it.
+        if (enPassant != null) {
+            val epIndex = enPassant.index
+            require(epIndex in 0 until 64) { "En passant cell outside board" }
+            require(pieces[epIndex] == null) { "En passant target square must be empty" }
+            val epRow = epIndex / 8
+            val epCol = epIndex % 8
+            if (sideToMove == PieceColor.WHITE) {
+                require(epRow == 2) { "En passant target square for White must be on rank 6" }
+                require(pieces[3 * 8 + epCol] == Piece(PieceColor.BLACK, PieceType.PAWN)) {
+                    "En passant target requires enemy pawn on rank 5"
+                }
+                require(pieces[1 * 8 + epCol] == null) {
+                    "En passant origin square on rank 7 must be empty"
+                }
+            } else {
+                require(epRow == 5) { "En passant target square for Black must be on rank 3" }
+                require(pieces[4 * 8 + epCol] == Piece(PieceColor.WHITE, PieceType.PAWN)) {
+                    "En passant target requires enemy pawn on rank 4"
+                }
+                require(pieces[6 * 8 + epCol] == null) {
+                    "En passant origin square on rank 2 must be empty"
+                }
+            }
+        }
     }
 
     fun pieceAt(cell: Cell): Piece? = pieces[cell.index]
@@ -46,7 +111,7 @@ class TacticsBoard(
         // 1. Attacked by enemy pawns
         val pawnRow = if (attackerColor == PieceColor.WHITE) targetRow + 1 else targetRow - 1
         if (pawnRow in 0..7) {
-            for (dc in listOf(-1, 1)) {
+            for (dc in pawnCaptureFiles) {
                 val pawnCol = targetCol + dc
                 if (pawnCol in 0..7) {
                     val piece = pieceAt(pawnRow, pawnCol)
@@ -58,10 +123,6 @@ class TacticsBoard(
         }
 
         // 2. Attacked by enemy knights
-        val knightOffsets = listOf(
-            -2 to -1, -2 to 1, -1 to -2, -1 to 2,
-            1 to -2, 1 to 2, 2 to -1, 2 to 1,
-        )
         for ((dr, dc) in knightOffsets) {
             val r = targetRow + dr
             val c = targetCol + dc
@@ -89,8 +150,7 @@ class TacticsBoard(
         }
 
         // 4. Attacked by diagonal sliders (Bishop, Queen)
-        val diagonalDirs = listOf(-1 to -1, -1 to 1, 1 to -1, 1 to 1)
-        for ((dr, dc) in diagonalDirs) {
+        for ((dr, dc) in diagonalDirections) {
             var r = targetRow + dr
             var c = targetCol + dc
             while (r in 0..7 && c in 0..7) {
@@ -107,8 +167,7 @@ class TacticsBoard(
         }
 
         // 5. Attacked by orthogonal sliders (Rook, Queen)
-        val orthogonalDirs = listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)
-        for ((dr, dc) in orthogonalDirs) {
+        for ((dr, dc) in orthogonalDirections) {
             var r = targetRow + dr
             var c = targetCol + dc
             while (r in 0..7 && c in 0..7) {
@@ -131,8 +190,24 @@ class TacticsBoard(
     fun isCheck(color: PieceColor = sideToMove): Boolean =
         isSquareAttacked(kingCell(color), color.opponent())
 
-    /** Generates all strictly legal FIDE moves for [sideToMove]. */
+    /** Generates legal moves for [sideToMove] using queen-only promotion. */
     fun legalMoves(): List<ChessMove> {
+        val king = kingCell(sideToMove)
+        return pseudoLegalMoves().filter { legalAfterSimulation(it, king) }
+    }
+
+    private fun hasLegalMove(): Boolean {
+        val king = kingCell(sideToMove)
+        return pseudoLegalMoves().any { legalAfterSimulation(it, king) }
+    }
+
+    private fun legalAfterSimulation(move: ChessMove, king: Cell): Boolean {
+        if (pieceAt(move.to)?.type == PieceType.KING) return false
+        val kingAfterMove = if (move.from == king) move.to else king
+        return !applyMoveInternal(move).isSquareAttacked(kingAfterMove, sideToMove.opponent())
+    }
+
+    private fun pseudoLegalMoves(): List<ChessMove> {
         val pseudoMoves = ArrayList<ChessMove>(64)
         val movingColor = sideToMove
         val opponentColor = movingColor.opponent()
@@ -156,7 +231,7 @@ class TacticsBoard(
                             pseudoMoves.add(ChessMove(cell, Cell(doubleRow * 8 + col)))
                         }
                     }
-                    for (dc in listOf(-1, 1)) {
+                    for (dc in pawnCaptureFiles) {
                         val captureCol = col + dc
                         if (nextRow in 0..7 && captureCol in 0..7) {
                             val targetCell = Cell(nextRow * 8 + captureCol)
@@ -171,11 +246,7 @@ class TacticsBoard(
                 }
 
                 PieceType.KNIGHT -> {
-                    val offsets = listOf(
-                        -2 to -1, -2 to 1, -1 to -2, -1 to 2,
-                        1 to -2, 1 to 2, 2 to -1, 2 to 1,
-                    )
-                    for ((dr, dc) in offsets) {
+                    for ((dr, dc) in knightOffsets) {
                         val r = row + dr
                         val c = col + dc
                         if (r in 0..7 && c in 0..7) {
@@ -187,11 +258,11 @@ class TacticsBoard(
                     }
                 }
 
-                PieceType.BISHOP -> addRays(cell, row, col, movingColor, pseudoMoves, listOf(-1 to -1, -1 to 1, 1 to -1, 1 to 1))
-                PieceType.ROOK -> addRays(cell, row, col, movingColor, pseudoMoves, listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1))
+                PieceType.BISHOP -> addRays(cell, row, col, movingColor, pseudoMoves, diagonalDirections)
+                PieceType.ROOK -> addRays(cell, row, col, movingColor, pseudoMoves, orthogonalDirections)
                 PieceType.QUEEN -> {
-                    addRays(cell, row, col, movingColor, pseudoMoves, listOf(-1 to -1, -1 to 1, 1 to -1, 1 to 1))
-                    addRays(cell, row, col, movingColor, pseudoMoves, listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1))
+                    addRays(cell, row, col, movingColor, pseudoMoves, diagonalDirections)
+                    addRays(cell, row, col, movingColor, pseudoMoves, orthogonalDirections)
                 }
 
                 PieceType.KING -> {
@@ -209,9 +280,9 @@ class TacticsBoard(
                         }
                     }
 
-                    // Castling (only if king is not currently in check)
-                    if (!isCheck(movingColor)) {
-                        if (movingColor == PieceColor.WHITE) {
+                    // Castling (only if king is on its home square and not currently in check)
+                    if (castling != noCastling && !isCheck(movingColor)) {
+                        if (movingColor == PieceColor.WHITE && cell.index == 60) {
                             if (castling.whiteKingside &&
                                 pieceAt(7, 5) == null && pieceAt(7, 6) == null &&
                                 pieceAt(7, 7) == Piece(PieceColor.WHITE, PieceType.ROOK) &&
@@ -228,7 +299,7 @@ class TacticsBoard(
                             ) {
                                 pseudoMoves.add(ChessMove(cell, Cell(7 * 8 + 2)))
                             }
-                        } else {
+                        } else if (movingColor == PieceColor.BLACK && cell.index == 4) {
                             if (castling.blackKingside &&
                                 pieceAt(0, 5) == null && pieceAt(0, 6) == null &&
                                 pieceAt(0, 7) == Piece(PieceColor.BLACK, PieceType.ROOK) &&
@@ -251,11 +322,7 @@ class TacticsBoard(
             }
         }
 
-        // Filter out pseudo-legal moves that leave the king in check
-        return pseudoMoves.filter { move ->
-            val nextBoard = applyMoveInternal(move)
-            !nextBoard.isSquareAttacked(nextBoard.kingCell(movingColor), opponentColor)
-        }
+        return pseudoMoves
     }
 
     private fun addRays(
@@ -292,8 +359,8 @@ class TacticsBoard(
         return applyMoveInternal(move)
     }
 
-    /** Low-level move application without legalMoves check (used for simulation and move execution). */
-    fun applyMoveInternal(move: ChessMove): TacticsBoard {
+    /** Applies a generated move during simulation or a move whose legality was already checked. */
+    internal fun applyMoveInternal(move: ChessMove): TacticsBoard {
         val movingPiece = requireNotNull(pieceAt(move.from)) { "No piece at ${move.from}" }
         val updated = ArrayList<Piece?>(pieces)
         var newEnPassant: Cell? = null
@@ -381,10 +448,10 @@ class TacticsBoard(
     }
 
     /** True if the side to move is in check and has no legal moves. */
-    fun isCheckmate(): Boolean = isCheck(sideToMove) && legalMoves().isEmpty()
+    fun isCheckmate(): Boolean = isCheck() && !hasLegalMove()
 
     /** True if the side to move is not in check but has no legal moves. */
-    fun isStalemate(): Boolean = !isCheck(sideToMove) && legalMoves().isEmpty()
+    fun isStalemate(): Boolean = !isCheck() && !hasLegalMove()
 
     /** Formats board as standard FEN string (pieces, side, castling, en passant). */
     fun toFen(): String {
@@ -420,6 +487,15 @@ class TacticsBoard(
     override fun hashCode(): Int = listOf(pieces, sideToMove, castling, enPassant).hashCode()
 
     companion object {
+        private val pawnCaptureFiles = intArrayOf(-1, 1)
+        private val knightOffsets = listOf(
+            -2 to -1, -2 to 1, -1 to -2, -1 to 2,
+            1 to -2, 1 to 2, 2 to -1, 2 to 1,
+        )
+        private val diagonalDirections = listOf(-1 to -1, -1 to 1, 1 to -1, 1 to 1)
+        private val orthogonalDirections = listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)
+        private val noCastling = CastlingRights()
+
         /** Parses a standard or truncated FEN string into a [TacticsBoard]. */
         fun fromFen(fen: String): TacticsBoard {
             val parts = fen.trim().split(Regex("\\s+"))
@@ -432,7 +508,7 @@ class TacticsBoard(
             for (rankStr in rankStrings) {
                 var col = 0
                 for (char in rankStr) {
-                    if (char.isDigit()) {
+                    if (char in '1'..'8') {
                         val emptyCount = char.digitToInt()
                         repeat(emptyCount) { pieces.add(null) }
                         col += emptyCount
@@ -454,7 +530,7 @@ class TacticsBoard(
             val castling = CastlingRights.fromFen(parts[2])
             val enPassant = if (parts[3] == "-") null else squareToCell(parts[3])
 
-            return TacticsBoard(pieces, sideToMove, castling, enPassant)
+            return TacticsBoard(pieces, sideToMove, castling, enPassant).also { it.validatePosition() }
         }
     }
 }

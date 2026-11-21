@@ -30,8 +30,10 @@ class TacticsPuzzle(
     val solutionLine: List<ChessMove> = immutableList(solutionLine)
 
     init {
-        require(mateIn in 1..4) { "Tactics mate-in horizon must be between 1 and 4" }
-        require(this.solutionLine.isNotEmpty()) { "Tactics solution line must not be empty" }
+        require(mateIn in 1..3) { "Tactics mate-in horizon must be between 1 and 3" }
+        require(this.solutionLine.size == 2 * mateIn - 1) {
+            "Tactics solution line size (${this.solutionLine.size}) must match mate-in-$mateIn horizon (expected ${2 * mateIn - 1} plies)"
+        }
         require(initialBoard.sideToMove == sideToMove) { "Puzzle initial board side must match sideToMove" }
         require(!initialBoard.isCheck(sideToMove.opponent())) {
             "Opponent cannot be in check in the initial position"

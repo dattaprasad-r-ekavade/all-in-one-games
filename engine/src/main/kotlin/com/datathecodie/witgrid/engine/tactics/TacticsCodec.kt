@@ -12,7 +12,7 @@ object TacticsCodec {
         require(bankLine.size == 8) { "Tactics board size must be 8" }
 
         val tokens = bankLine.payload.trim().split(Regex("\\s+"))
-        require(tokens.size >= 4) { "Tactics payload must have at least 4 tokens for FEN representation" }
+        require(tokens.size in 4..7) { "Tactics payload must contain FEN and an optional mate horizon" }
 
         val fenString = "${tokens[0]} ${tokens[1]} ${tokens[2]} ${tokens[3]}"
         val initialBoard = TacticsBoard.fromFen(fenString)
@@ -22,10 +22,10 @@ object TacticsCodec {
         }
         require(solutionMoves.isNotEmpty()) { "Tactics solution line must not be empty" }
 
-        val mateIn = when (tokens.size) {
-            5 -> tokens[4].toIntOrNull() ?: ((solutionMoves.size + 1) / 2)
-            7 -> tokens[6].toIntOrNull() ?: ((solutionMoves.size + 1) / 2)
-            else -> (solutionMoves.size + 1) / 2
+        val mateIn = if (tokens.size == 5 || tokens.size == 7) {
+            requireNotNull(tokens.last().toIntOrNull()) { "Invalid Tactics mate horizon" }
+        } else {
+            (solutionMoves.size + 1) / 2
         }
 
         val puzzle = TacticsPuzzle(

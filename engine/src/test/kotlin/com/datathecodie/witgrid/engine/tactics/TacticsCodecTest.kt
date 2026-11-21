@@ -33,6 +33,17 @@ class TacticsCodecTest {
     }
 
     @Test
+    fun rejectsInvalidDeclaredMateHorizons() {
+        val puzzle = TacticsRulesTest.mate1UniquePuzzle()
+        val line = TacticsCodec.encode(puzzle)
+        val fen = puzzle.initialBoard.toFen()
+        for (horizon in listOf("3", "4", "invalid", "0 1 invalid")) {
+            val invalid = line.replace("$fen 1|", "$fen $horizon|")
+            assertThrows(IllegalArgumentException::class.java) { TacticsCodec.decode(invalid) }
+        }
+    }
+
+    @Test
     fun rejectsMalformedBankLine() {
         // Size not 8
         assertThrows(IllegalArgumentException::class.java) {

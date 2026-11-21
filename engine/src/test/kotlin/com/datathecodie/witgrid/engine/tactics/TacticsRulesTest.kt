@@ -7,6 +7,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -27,7 +28,12 @@ class TacticsRulesTest {
     @Test
     fun mateSequenceUniquenessCatchesAmbiguityOnLaterTurns() {
         val puzzle = mate2FirstMoveUniqueSecondMoveDoublePuzzle()
-        // First move a3a8 is unique, but after h8h7 White can deliver checkmate with both a8g8# and g1g7#
+        val opener = puzzle.solutionLine[0]
+        val reply = puzzle.solutionLine[1]
+        assertEquals(listOf(opener), TacticsRules.winningMoves(puzzle.initialBoard, 2))
+        val afterOpener = puzzle.initialBoard.applyMove(opener)
+        assertEquals(listOf(reply), afterOpener.legalMoves())
+        assertEquals(3, TacticsRules.winningMoves(afterOpener.applyMove(reply), 1).size)
         assertEquals(2, TacticsRules.countSolutions(puzzle))
     }
 
@@ -46,15 +52,15 @@ class TacticsRulesTest {
 
         val s2 = TacticsEngine.applyMove(s1, Move.SetMark(squareToCell("d8"), Mark.FILLED))
         assertNull(s2.pendingFrom)
-        // Black auto-replied with Be7xd8
-        assertEquals(ChessMove(squareToCell("e7"), squareToCell("d8")), s2.lastOpponentMove)
-        assertEquals(Piece(PieceColor.BLACK, PieceType.BISHOP), s2.currentBoard.pieceAt(squareToCell("d8")))
+        // Black auto-replied with forced Nc6xd8
+        assertEquals(ChessMove(squareToCell("c6"), squareToCell("d8")), s2.lastOpponentMove)
+        assertEquals(Piece(PieceColor.BLACK, PieceType.KNIGHT), s2.currentBoard.pieceAt(squareToCell("d8")))
         assertFalse(TacticsEngine.isSolved(puzzle, s2))
         assertEquals(emptyList<Cell>(), TacticsEngine.mistakes(puzzle, s2))
 
-        // Second move: White plays Rd1xd8#
-        val s3 = TacticsEngine.applyMove(s2, Move.SetDigit(squareToCell("d1"), 1))
-        val s4 = TacticsEngine.applyMove(s3, Move.SetDigit(squareToCell("d8"), 1))
+        // Second move: White plays Re1-e8#
+        val s3 = TacticsEngine.applyMove(s2, Move.SetDigit(squareToCell("e1"), 1))
+        val s4 = TacticsEngine.applyMove(s3, Move.SetDigit(squareToCell("e8"), 1))
         assertTrue(TacticsEngine.isSolved(puzzle, s4))
         assertEquals(emptyList<Cell>(), TacticsEngine.mistakes(puzzle, s4))
         assertTrue(s4.currentBoard.isCheckmate())
@@ -87,15 +93,128 @@ class TacticsRulesTest {
         val s1 = TacticsEngine.applyMove(s0, Move.SetMark(squareToCell("d3"), Mark.FILLED))
         assertEquals(squareToCell("d3"), s1.pendingFrom)
 
-        // Switch to Rook at d1 (another friendly piece, not a legal capture)
-        val s2 = TacticsEngine.applyMove(s1, Move.SetMark(squareToCell("d1"), Mark.FILLED))
-        assertEquals(squareToCell("d1"), s2.pendingFrom)
+        // Switch to Rook at e1 (another friendly piece, not a legal capture)
+        val s2 = TacticsEngine.applyMove(s1, Move.SetMark(squareToCell("e1"), Mark.FILLED))
+        assertEquals(squareToCell("e1"), s2.pendingFrom)
+    }
+
+    @Test
+    fun legalMistakeDoesNotHandControlToDefendingSide() {
+        val puzzle = mate2UniquePuzzle()
+        val s0 = TacticsEngine.initialState(puzzle)
+        val mistake = ChessMove.fromUci("c4a2")
+
+        val s1 = TacticsEngine.applyMove(s0, Move.SetMark(mistake.from, Mark.FILLED))
+        val s2 = TacticsEngine.applyMove(s1, Move.SetMark(mistake.to, Mark.FILLED))
+        assertEquals(puzzle.initialBoard.applyMove(mistake), s2.currentBoard)
+        assertNull(s2.lastOpponentMove)
+        assertEquals(listOf(mistake.to), TacticsEngine.mistakes(puzzle, s2))
+
+        // Next tap: attempting to tap a black piece (e.g. King on g8 or Rook on d8) must be ignored
+        val s3 = TacticsEngine.applyMove(s2, Move.SetMark(squareToCell("d8"), Mark.FILLED))
+        assertNull(s3.pendingFrom)
+        assertEquals(s2, s3)
+
+        // Attempting to complete a move for Black must not be permitted
+        val s4 = TacticsEngine.applyMove(s3, Move.SetMark(squareToCell("d7"), Mark.FILLED))
+        assertEquals(s2, s4)
+        assertFalse(s4.completedPlayerMoves.any { it.from == squareToCell("d8") })
+    }
+
+    @Test
+    fun counterRejectsCooperativeNonWinningStoredLine() {
+        val start = TacticsBoard.fromFen("3r2k1/4bppp/8/2B5/8/3Q4/8/3R2K1 w - -")
+        val puzzle = TacticsPuzzle(
+            "cooperative-mate", start, PieceColor.WHITE, 2,
+            listOf("c5e7", "g8h8", "d3d8").map(ChessMove.Companion::fromUci),
+            Pack.MEDIUM, "checkmate:2",
+        )
+        assertTrue(puzzle.solutionLine.fold(start, TacticsBoard::applyMove).isCheckmate())
+        assertFalse(TacticsRules.isValidSolution(puzzle))
+        assertEquals(0, TacticsRules.countSolutions(puzzle))
+        assertThrows(IllegalArgumentException::class.java) { TacticsEngine.grade(puzzle) }
+        assertThrows(IllegalArgumentException::class.java) { TacticsCodec.encode(puzzle) }
+    }
+
+    @Test
+    fun counterRejectsTiedDefencesToAWinningMove() {
+        val start = TacticsBoard.fromFen("3r2k1/4bppp/8/2B5/8/3Q4/8/3R2K1 w - -")
+        val puzzle = TacticsPuzzle(
+            "tied-defences", start, PieceColor.WHITE, 2,
+            listOf("d3d8", "e7d8", "d1d8").map(ChessMove.Companion::fromUci),
+            Pack.MEDIUM, "back-rank-mate:2",
+        )
+        assertEquals(listOf(puzzle.solutionLine.first()), TacticsRules.winningMoves(start, 2))
+        assertEquals(2, start.applyMove(puzzle.solutionLine.first()).legalMoves().size)
+        assertTrue(puzzle.solutionLine.fold(start, TacticsBoard::applyMove).isCheckmate())
+        assertEquals(0, TacticsRules.countSolutions(puzzle))
+    }
+
+    @Test
+    fun counterAcceptsUniqueBestDefenceWhenOtherRepliesAllowFasterMate() {
+        val puzzle = TacticsTechniqueSolverTest.expertMateInThreeFixture()
+        val afterOpener = puzzle.initialBoard.applyMove(puzzle.solutionLine[0])
+        val bestReply = puzzle.solutionLine[1]
+        val replies = afterOpener.legalMoves()
+        assertTrue(replies.size > 1)
+        val repliesThatAvoidMateInOne = replies.filter { reply ->
+            TacticsRules.winningMoves(afterOpener.applyMove(reply), 1).isEmpty()
+        }
+        assertEquals(listOf(bestReply), repliesThatAvoidMateInOne)
+        assertEquals(1, TacticsRules.countSolutions(puzzle))
+    }
+
+    @Test
+    fun counterRejectsAFullLengthLineWhenMateIsAvailableSooner() {
+        val start = TacticsBoard.fromFen("6k1/1p3ppp/8/8/8/8/8/R5K1 w - -")
+        val puzzle = TacticsPuzzle(
+            "slower-cooperative-mate", start, PieceColor.WHITE, 3,
+            listOf("a1a2", "b7b6", "a2a3", "b6b5", "a3a8").map(ChessMove.Companion::fromUci),
+            Pack.EXPERT, "back-rank-mate:3",
+        )
+        assertTrue(puzzle.solutionLine.fold(start, TacticsBoard::applyMove).isCheckmate())
+        assertTrue(start.applyMove(ChessMove.fromUci("a1a8")).isCheckmate())
+        assertEquals(0, TacticsRules.countSolutions(puzzle))
+        assertThrows(IllegalArgumentException::class.java) { TacticsEngine.grade(puzzle) }
+    }
+
+    @Test
+    fun malformedFenMetadataIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("7k/8/8/4P3/8/8/8/K7 w - d6")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("7k/8/8/3pP3/8/8/8/K7 w - d3")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("7k/3r4/8/3pP3/8/8/8/K7 w - d6")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("7k/8/3N4/3pP3/8/8/8/K7 w - d6")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("r3k2r/8/8/8/8/8/4K3/R6R w K - 0 1")
+        }
+
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("7k/8/8/8/8/8/8/4K3 w K -")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("7k/8/8/8/8/8/8/4K2R w KK -")
+        }
+        // A FEN target is valid after a double push even without a pawn that can take it.
+        val noCapturer = "7k/8/8/3p4/8/8/8/K7 w - d6"
+        assertEquals(noCapturer, TacticsBoard.fromFen(noCapturer).toFen())
+
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("P6k/8/8/8/8/8/8/7K w - - 0 1")
+        }
     }
 
     @Test
     fun enPassantAndPromotionRules() {
         // En passant position: White pawn at e5, Black plays d7-d5 -> White captures e5xd6 e.p.
-        val fen = "rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 2"
+        val fen = "rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR w - d6 0 2"
         val board = TacticsBoard.fromFen(fen)
         assertEquals(squareToCell("d6"), board.enPassant)
 
@@ -103,7 +222,7 @@ class TacticsRulesTest {
         assertTrue(board.legalMoves().contains(epMove))
 
         val afterEp = board.applyMove(epMove)
-        assertNull(afterEp.pieceAt(squareToCell("d5"))) // captured Black pawn removed
+        assertNull(afterEp.pieceAt(squareToCell("d5")))
         assertEquals(Piece(PieceColor.WHITE, PieceType.PAWN), afterEp.pieceAt(squareToCell("d6")))
 
         // Promotion position: White pawn at a7, moves to a8 and promotes to Queen
@@ -144,7 +263,7 @@ class TacticsRulesTest {
             mateIn = 1,
             solutionLine = listOf(ChessMove(squareToCell("d7"), squareToCell("g7"))),
             pack = Pack.EASY,
-            storedGrade = "MATE_1",
+            storedGrade = "checkmate:1",
         )
 
         fun mate1DoublePuzzle(): TacticsPuzzle = TacticsPuzzle(
@@ -154,7 +273,7 @@ class TacticsRulesTest {
             mateIn = 1,
             solutionLine = listOf(ChessMove(squareToCell("e7"), squareToCell("g7"))),
             pack = Pack.EASY,
-            storedGrade = "MATE_1",
+            storedGrade = "checkmate:1",
         )
 
         fun zeroMatePuzzle(): TacticsPuzzle = TacticsPuzzle(
@@ -164,35 +283,35 @@ class TacticsRulesTest {
             mateIn = 1,
             solutionLine = listOf(ChessMove(squareToCell("e2"), squareToCell("e4"))),
             pack = Pack.EASY,
-            storedGrade = "NONE",
+            storedGrade = "none:1",
         )
 
         fun mate2UniquePuzzle(): TacticsPuzzle = TacticsPuzzle(
             id = "mate2-unique",
-            initialBoard = TacticsBoard.fromFen("3r2k1/4bppp/8/2B5/8/3Q4/8/3R2K1 w - - 0 1"),
+            initialBoard = TacticsBoard.fromFen("3r2k1/5ppp/2n5/8/2B5/3Q4/8/4R1K1 w - - 0 1"),
             sideToMove = PieceColor.WHITE,
             mateIn = 2,
             solutionLine = listOf(
                 ChessMove(squareToCell("d3"), squareToCell("d8")),
-                ChessMove(squareToCell("e7"), squareToCell("d8")),
-                ChessMove(squareToCell("d1"), squareToCell("d8")),
+                ChessMove(squareToCell("c6"), squareToCell("d8")),
+                ChessMove(squareToCell("e1"), squareToCell("e8")),
             ),
             pack = Pack.MEDIUM,
-            storedGrade = "MATE_2",
+            storedGrade = "back-rank-mate:2",
         )
 
         fun mate2FirstMoveUniqueSecondMoveDoublePuzzle(): TacticsPuzzle = TacticsPuzzle(
             id = "mate2-first-unique-second-double",
-            initialBoard = TacticsBoard.fromFen("7k/5K2/7p/8/8/Q7/8/6R1 w - - 0 1"),
+            initialBoard = TacticsBoard.fromFen("7k/5K2/7p/8/8/Q7/2r5/4n1R1 w - - 0 1"),
             sideToMove = PieceColor.WHITE,
             mateIn = 2,
             solutionLine = listOf(
-                ChessMove(squareToCell("a3"), squareToCell("a8")),
+                ChessMove(squareToCell("a3"), squareToCell("f8")),
                 ChessMove(squareToCell("h8"), squareToCell("h7")),
-                ChessMove(squareToCell("a8"), squareToCell("g8")),
+                ChessMove(squareToCell("f8"), squareToCell("g7")),
             ),
             pack = Pack.MEDIUM,
-            storedGrade = "MATE_2",
+            storedGrade = "checkmate:2",
         )
     }
 }
