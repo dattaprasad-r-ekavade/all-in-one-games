@@ -49,7 +49,8 @@ try {
     $ErrorActionPreference = 'Continue'
     # Through cmd, stderr arrives as plain text, so PowerShell does not wrap or cut long error lines.
     # Push-Location does not change the folder of child processes, so cmd moves there itself.
-    $output = & cmd /c "cd /d `"$wt`" && gradlew.bat check --no-daemon 2>&1"
+    # Use the full path: cmd may not search the current folder (NoDefaultCurrentDirectoryInExePath).
+    $output = & cmd /c "cd /d $wt && $wt\gradlew.bat check --no-daemon 2>&1"
     $exit = $LASTEXITCODE
 } finally {
     Pop-Location
