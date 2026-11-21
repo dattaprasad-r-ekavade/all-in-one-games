@@ -92,7 +92,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
-| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 active (Gemini) |
+| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 active (Gemini), PA2 active (Gemini) |
 | PAA | Path board | M | Codex | Claude | A4, PA2 | todo |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
@@ -104,7 +104,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
-| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 review, CT2 active (Gemini) |
+| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 review, CT2 active (Gemini), CT3 active (Gemini) |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
