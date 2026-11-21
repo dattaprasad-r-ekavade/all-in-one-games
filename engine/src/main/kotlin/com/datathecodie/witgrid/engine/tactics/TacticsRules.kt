@@ -54,63 +54,97 @@ object TacticsRules {
     }
 
     /**
-     * Counts how many distinct first moves for [puzzle]'s side to move force checkmate in at most
-     * [puzzle.mateIn] moves, stopping when [limit] is reached.
+     * Counts solutions under the 'unique mate sequence' rule:
+     * At every player turn along the stored solution line (advancing with the stored opponent replies),
+     * exactly one move must keep a forced mate in the remaining moves.
+     *
+     * Returns the capped count of the worst turn across all player turns:
+     * - Returns 0 if any player turn has no move that forces checkmate in the remaining moves.
+     * - Returns [limit] (e.g. 2) if any player turn has two or more winning moves.
+     * - Returns 1 if every player turn has exactly one winning move.
      */
     fun countSolutions(puzzle: TacticsPuzzle, limit: Int = 2): Int {
         require(limit > 0) { "Solution limit must be positive" }
-        var count = 0
 
-        for (move in puzzle.initialBoard.legalMoves()) {
-            val nextBoard = puzzle.initialBoard.applyMoveInternal(move)
-            if (forcesMate(nextBoard, puzzle.mateIn, puzzle.sideToMove)) {
-                count++
-                if (count >= limit) return limit
+        var worstCount = 1
+        var currentBoard = puzzle.initialBoard
+        val totalMoves = puzzle.solutionLine.size
+        val playerTurns = (totalMoves + 1) / 2
+
+        for (turn in 0 until playerTurns) {
+            val remainingMateIn = puzzle.mateIn - turn
+            var turnWinningMoves = 0
+
+            for (move in currentBoard.legalMoves()) {
+                if (isWinningMove(currentBoard, move, remainingMateIn, puzzle.sideToMove)) {
+                    turnWinningMoves++
+                    if (turnWinningMoves >= limit) break
+                }
+            }
+
+            if (turnWinningMoves == 0) {
+                return 0
+            }
+            if (turnWinningMoves > worstCount) {
+                worstCount = turnWinningMoves
+            }
+            if (worstCount >= limit) {
+                return limit
+            }
+
+            val playerStep = turn * 2
+            val playerMove = puzzle.solutionLine[playerStep]
+            currentBoard = currentBoard.applyMoveInternal(playerMove)
+
+            val opponentStep = playerStep + 1
+            if (opponentStep < totalMoves) {
+                val opponentMove = puzzle.solutionLine[opponentStep]
+                currentBoard = currentBoard.applyMoveInternal(opponentMove)
             }
         }
 
-        return count
+        return minOf(limit, worstCount)
     }
 
     /**
-     * Evaluates whether [winningColor] can force checkmate against all defenses within [turnsRemaining].
+     * Evaluates whether [move] from [board] forces checkmate for [winningColor] against all defenses
+     * within [movesRemaining] player moves.
      */
-    private fun forcesMate(
+    private fun isWinningMove(
         board: TacticsBoard,
-        turnsRemaining: Int,
+        move: ChessMove,
+        movesRemaining: Int,
         winningColor: PieceColor,
     ): Boolean {
-        if (board.isCheckmate()) {
-            return board.sideToMove != winningColor
+        val afterMove = board.applyMoveInternal(move)
+        if (afterMove.isCheckmate()) {
+            return afterMove.sideToMove != winningColor
         }
-        if (turnsRemaining <= 1) {
+        if (afterMove.isStalemate() || movesRemaining <= 1) {
             return false
         }
-        if (board.isStalemate()) {
-            return false
+        val replies = afterMove.legalMoves()
+        if (replies.isEmpty()) return false
+        return replies.all { reply ->
+            canForceMate(afterMove.applyMoveInternal(reply), movesRemaining - 1, winningColor)
         }
+    }
 
-        return if (board.sideToMove != winningColor) {
-            // Defending opponent: winningColor must force mate against EVERY legal reply
-            val replies = board.legalMoves()
-            if (replies.isEmpty()) return false
-            for (reply in replies) {
-                val afterReply = board.applyMoveInternal(reply)
-                if (!forcesMate(afterReply, turnsRemaining - 1, winningColor)) {
-                    return false
-                }
+    /**
+     * Evaluates whether [winningColor] can force checkmate from [board] in at most [movesRemaining] moves,
+     * where it is [winningColor]'s turn to move.
+     */
+    private fun canForceMate(
+        board: TacticsBoard,
+        movesRemaining: Int,
+        winningColor: PieceColor,
+    ): Boolean {
+        if (movesRemaining <= 0) return false
+        for (candidate in board.legalMoves()) {
+            if (isWinningMove(board, candidate, movesRemaining, winningColor)) {
+                return true
             }
-            true
-        } else {
-            // Winning side: at least ONE move must force mate
-            val candidates = board.legalMoves()
-            for (candidate in candidates) {
-                val afterCandidate = board.applyMoveInternal(candidate)
-                if (forcesMate(afterCandidate, turnsRemaining, winningColor)) {
-                    return true
-                }
-            }
-            false
         }
+        return false
     }
 }

@@ -25,6 +25,13 @@ class TacticsRulesTest {
     }
 
     @Test
+    fun mateSequenceUniquenessCatchesAmbiguityOnLaterTurns() {
+        val puzzle = mate2FirstMoveUniqueSecondMoveDoublePuzzle()
+        // First move a3a8 is unique, but after h8h7 White can deliver checkmate with both a8g8# and g1g7#
+        assertEquals(2, TacticsRules.countSolutions(puzzle))
+    }
+
+    @Test
     fun mateInTwoCounterAndPlaythrough() {
         val puzzle = mate2UniquePuzzle()
         assertEquals(1, TacticsRules.countSolutions(puzzle))
@@ -132,7 +139,7 @@ class TacticsRulesTest {
     companion object {
         fun mate1UniquePuzzle(): TacticsPuzzle = TacticsPuzzle(
             id = "mate1-unique",
-            initialBoard = TacticsBoard.fromFen("8/3Q4/5K2/8/8/8/8/7k w - - 0 1"),
+            initialBoard = TacticsBoard.fromFen("7k/3Q4/5K2/8/8/8/8/8 w - - 0 1"),
             sideToMove = PieceColor.WHITE,
             mateIn = 1,
             solutionLine = listOf(ChessMove(squareToCell("d7"), squareToCell("g7"))),
@@ -142,10 +149,10 @@ class TacticsRulesTest {
 
         fun mate1DoublePuzzle(): TacticsPuzzle = TacticsPuzzle(
             id = "mate1-double",
-            initialBoard = TacticsBoard.fromFen("8/8/6KQ/8/8/8/8/7k w - - 0 1"),
+            initialBoard = TacticsBoard.fromFen("7k/4Q3/6K1/8/8/8/8/8 w - - 0 1"),
             sideToMove = PieceColor.WHITE,
             mateIn = 1,
-            solutionLine = listOf(ChessMove(squareToCell("g6"), squareToCell("g7"))),
+            solutionLine = listOf(ChessMove(squareToCell("e7"), squareToCell("g7"))),
             pack = Pack.EASY,
             storedGrade = "MATE_1",
         )
@@ -162,13 +169,27 @@ class TacticsRulesTest {
 
         fun mate2UniquePuzzle(): TacticsPuzzle = TacticsPuzzle(
             id = "mate2-unique",
-            initialBoard = TacticsBoard.fromFen("3r2k1/4bppp/8/8/8/3Q4/8/3R2K1 w - - 0 1"),
+            initialBoard = TacticsBoard.fromFen("3r2k1/4bppp/8/2B5/8/3Q4/8/3R2K1 w - - 0 1"),
             sideToMove = PieceColor.WHITE,
             mateIn = 2,
             solutionLine = listOf(
                 ChessMove(squareToCell("d3"), squareToCell("d8")),
                 ChessMove(squareToCell("e7"), squareToCell("d8")),
                 ChessMove(squareToCell("d1"), squareToCell("d8")),
+            ),
+            pack = Pack.MEDIUM,
+            storedGrade = "MATE_2",
+        )
+
+        fun mate2FirstMoveUniqueSecondMoveDoublePuzzle(): TacticsPuzzle = TacticsPuzzle(
+            id = "mate2-first-unique-second-double",
+            initialBoard = TacticsBoard.fromFen("7k/5K2/7p/8/8/Q7/8/6R1 w - - 0 1"),
+            sideToMove = PieceColor.WHITE,
+            mateIn = 2,
+            solutionLine = listOf(
+                ChessMove(squareToCell("a3"), squareToCell("a8")),
+                ChessMove(squareToCell("h8"), squareToCell("h7")),
+                ChessMove(squareToCell("a8"), squareToCell("g8")),
             ),
             pack = Pack.MEDIUM,
             storedGrade = "MATE_2",

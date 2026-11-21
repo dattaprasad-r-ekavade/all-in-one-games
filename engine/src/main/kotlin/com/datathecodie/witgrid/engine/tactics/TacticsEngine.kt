@@ -30,13 +30,13 @@ object TacticsEngine : GameEngine<TacticsPuzzle, TacticsState> {
         TacticsRules.countSolutions(puzzle, limit)
 
     override fun nextStep(puzzle: TacticsPuzzle, state: TacticsState): HintStep? =
-        throw NotImplementedError("tactics")
+        throw NotImplementedError("An operation is not implemented: tactics")
 
     override fun grade(puzzle: TacticsPuzzle): Grade =
-        throw NotImplementedError("tactics")
+        throw NotImplementedError("An operation is not implemented: tactics")
 
     override fun generate(rng: SplitMix64, pack: Pack): TacticsPuzzle =
-        throw NotImplementedError("tactics")
+        throw NotImplementedError("An operation is not implemented: tactics")
 
     override fun encodeState(state: TacticsState): ByteArray = TacticsStateCodec.encode(state)
 

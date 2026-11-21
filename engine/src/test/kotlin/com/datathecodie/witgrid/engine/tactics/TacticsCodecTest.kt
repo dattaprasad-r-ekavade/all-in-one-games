@@ -36,7 +36,7 @@ class TacticsCodecTest {
     fun rejectsMalformedBankLine() {
         // Size not 8
         assertThrows(IllegalArgumentException::class.java) {
-            TacticsCodec.decode("bad-size|6|8/3Q4/5K2/8/8/8/8/7k w - - 1|d7g7|EASY|MATE_1")
+            TacticsCodec.decode("bad-size|6|7k/3Q4/5K2/8/8/8/8/8 w - - 1|d7g7|EASY|MATE_1")
         }
 
         // Invalid FEN payload
@@ -46,12 +46,12 @@ class TacticsCodecTest {
 
         // Invalid solution move
         assertThrows(IllegalArgumentException::class.java) {
-            TacticsCodec.decode("bad-move|8|8/3Q4/5K2/8/8/8/8/7k w - - 1|z9z9|EASY|MATE_1")
+            TacticsCodec.decode("bad-move|8|7k/3Q4/5K2/8/8/8/8/8 w - - 1|z9z9|EASY|MATE_1")
         }
 
         // Solution does not deliver checkmate
         assertThrows(IllegalArgumentException::class.java) {
-            TacticsCodec.decode("no-mate|8|8/3Q4/5K2/8/8/8/8/7k w - - 1|d7d8|EASY|MATE_1")
+            TacticsCodec.decode("no-mate|8|7k/3Q4/5K2/8/8/8/8/8 w - - 1|d7d8|EASY|MATE_1")
         }
     }
 }
