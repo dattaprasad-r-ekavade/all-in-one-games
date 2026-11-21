@@ -16,6 +16,8 @@ param(
     [string]$Base = 'main'
 )
 $ErrorActionPreference = 'Stop'
+# 'powershell -File' passes "A,B,C" as one string, so split it here.
+$Tasks = @($Tasks | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
 
 $repo = (git rev-parse --show-toplevel).Trim()
 $wtRoot = Join-Path (Split-Path $repo -Parent) 'witgrid-wt'
