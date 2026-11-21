@@ -1,15 +1,11 @@
 package com.datathecodie.witgrid.bankgen
 
 import com.datathecodie.witgrid.engine.Registry
-import com.datathecodie.witgrid.engine.binary.BinaryGradeCodec
 import com.datathecodie.witgrid.engine.core.BankLine
 import com.datathecodie.witgrid.engine.core.GameEngine
 import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
-import com.datathecodie.witgrid.engine.crowns.CrownsGradeCodec
-import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuGradeCodec
-import com.datathecodie.witgrid.engine.nonogram.NonogramGradeCodec
 
 /** Type-safe bank operations for one registered game. */
 internal interface BankGame {
@@ -30,7 +26,7 @@ internal data class BankEntry(
 /** Captures the puzzle and state types from one heterogeneous engine registry entry. */
 internal class EngineBankGame<P : Any, S : Any>(
     private val engine: GameEngine<P, S>,
-    private val gradeEncoder: (Grade) -> String,
+    private val gradeEncoder: (Grade) -> String = BankGrade::encode,
 ) : BankGame {
     override val id: String = engine.id
 
@@ -64,19 +60,17 @@ internal class EngineBankGame<P : Any, S : Any>(
     }
 }
 
-internal fun registeredBankGames(): List<BankGame> = Registry.engines.map { engine ->
-    bindEngine(engine)
+internal fun registeredBankGames(
+    extraFamilyA: List<GameEngine<*, *>> = emptyList(),
+): List<BankGame> {
+    val familyA = (Registry.engines + extraFamilyA).map { bindEngine(it) }
+    val familyB = discoverFamilyBBankGames()
+    return familyA + familyB
 }
 
 private fun bindEngine(engine: GameEngine<*, *>): BankGame = bindCapturedEngine(engine)
 
 private fun <P : Any, S : Any> bindCapturedEngine(engine: GameEngine<P, S>): BankGame =
-    EngineBankGame(engine) { grade -> encodeGradeForGame(engine.id, grade) }
+    EngineBankGame(engine, ::encodeFamilyAGrade)
 
-private fun encodeGradeForGame(gameId: String, grade: Grade): String = when (gameId) {
-    "crowns" -> CrownsGradeCodec.encode(grade)
-    "binary" -> BinaryGradeCodec.encode(grade)
-    "nonogram" -> NonogramGradeCodec.encode(grade)
-    "minisudoku" -> MiniSudokuGradeCodec.encode(grade)
-    else -> throw IllegalArgumentException("Unsupported bank game '$gameId'")
-}
+private fun encodeFamilyAGrade(grade: Grade): String = BankGrade.encode(grade)
