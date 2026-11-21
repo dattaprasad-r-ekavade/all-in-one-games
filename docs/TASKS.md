@@ -92,7 +92,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
-| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 active (Gemini), PA2 active (Gemini) |
+| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 review, PA2 active (Gemini) |
 | PAA | Path board | M | Codex | Claude | A4, PA2 | todo |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
@@ -112,7 +112,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
-| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 review, FU2 active (Gemini) |
+| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 review, FU2 review |
 | FUA | Futoshiki board | M | Codex | Claude | A4, FU2 | todo |
 | FUB | Futoshiki bank | L | Claude | Codex | FU3, B6 | todo |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
@@ -120,7 +120,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SKA | Skyscrapers board | M | Codex | Claude | A4, SK2 | todo |
 | SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
-| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 review, MO2 active (Gemini) |
+| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 review, MO2 review |
 | MOA | Mosaic board | M | Codex | Claude | A4, MO2 | todo |
 | MOB | Mosaic bank | L | Claude | Codex | MO3, B6 | todo |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
