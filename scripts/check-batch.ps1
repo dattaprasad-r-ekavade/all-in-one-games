@@ -47,7 +47,8 @@ try {
     # No daemon: a daemon keeps the caller's output pipe open, so a background caller never sees the end.
     # PowerShell 5.1 turns redirected stderr lines into errors, so 'Stop' would end the script on a warning.
     $ErrorActionPreference = 'Continue'
-    $output = & .\gradlew.bat check --no-daemon 2>&1
+    # Through cmd, stderr arrives as plain text, so PowerShell does not wrap or cut long error lines.
+    $output = & cmd /c 'gradlew.bat check --no-daemon 2>&1'
     $exit = $LASTEXITCODE
 } finally {
     Pop-Location
