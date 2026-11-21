@@ -4,6 +4,7 @@ import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.core.SplitMix64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -275,7 +276,8 @@ class FutoshikiRulesTest {
         assertFalse(FutoshikiEngine.isSolved(decoded, state))
 
         // Unimplemented methods throw NotImplementedError
-        assertThrows(NotImplementedError::class.java) { FutoshikiEngine.nextStep(decoded, state) }
-        assertThrows(NotImplementedError::class.java) { FutoshikiEngine.grade(decoded) }
+        assertThrows(NotImplementedError::class.java) {
+            FutoshikiEngine.generate(SplitMix64(1L), Pack.EASY)
+        }
     }
 }

@@ -4,6 +4,7 @@ import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.core.SplitMix64
 import com.datathecodie.witgrid.engine.core.Technique
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -135,7 +136,7 @@ class FutoshikiTechniqueSolverTest {
         assertFalse(
             FutoshikiPackBands.isGradeInPackBand(
                 Pack.EASY,
-                Grade(FutoshikiTechniques.SIGN_BOUNDS, 0, Pack.EASY),
+                Grade(null, 0, Pack.EASY),
             ),
         )
     }
@@ -335,18 +336,18 @@ class FutoshikiTechniqueSolverTest {
 
         fun expertPuzzle(pack: Pack = Pack.EXPERT): FutoshikiPuzzle {
             val givens = listOf<Int?>(
-                null, null, null, null, 5, null, null,
-                null, null, null, null, 5, null, null,
-                null, 1, 2, 6, null, null, 4,
-                null, null, null, null, 2, null, null,
-                null, 7, 6, null, null, null, null,
-                null, null, null, null, null, 1, 7,
-                null, 5, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                null, null, null, 2, 6, null, null,
+                null, null, null, null, null, null, 3,
+                5, 3, 7, 6, 2, 1, 4,
+                6, 7, 2, 5, 3, 4, 1,
+                7, 6, 5, 1, 4, 3, 2,
             )
-            val hSigns = "-<--<-><----<---->-------<------------>---".map {
+            val hSigns = "-------->------<---<->--------->----->-->-".map {
                 FutoshikiSign.fromHorizontalChar(it)
             }
-            val vSigns = "--^-------v-^v^-----v---------------v--^--".map {
+            val vSigns = "^v-v-v--^---^---^--------^---^v----^v-----".map {
                 FutoshikiSign.fromVerticalChar(it)
             }
             return FutoshikiPuzzle(
@@ -357,7 +358,7 @@ class FutoshikiTechniqueSolverTest {
                 verticalSigns = vSigns,
                 solution = expertSolution,
                 pack = pack,
-                storedGrade = "naked-pair:37",
+                storedGrade = "naked-pair:25",
             )
         }
 
