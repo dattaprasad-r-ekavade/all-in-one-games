@@ -4,6 +4,45 @@ Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and ta
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
 
+<!-- progress:start -->
+## Progress
+
+Updated 21 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `python scripts/progress.py`.
+
+█ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
+
+```text
+All tasks                         █████████▒▒░░░░░░░░░  47 %  (68 of 144 done, 10 in progress)
+
+Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
+Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
+Phase 2 — Core app                ████████████████████ 100 %  (14 of 14 done)
+Phase 3 — Retention               ████████████████████ 100 %  (6 of 6 done)
+Phase 4 — Monetisation and data   ████████████░░░░░░░░  62 %  (5 of 8 done)
+UI cleanup                        ████████████████████ 100 %  (10 of 10 done)
+Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
+Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
+Phase 7 — Launch catalog          █▒▒░░░░░░░░░░░░░░░░░   3 %  (2 of 70 done, 10 in progress)
+
+Launch catalog, by game
+  Sudoku 9x9                      ███░░░░░░░░░░░░░░░░░  14 %  (1 of 7 done)
+  Killer Sudoku                   ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done)
+  Futoshiki                       ▒▒▒▒▒▒░░░░░░░░░░░░░░   0 %  (0 of 7 done, 2 in progress)
+  Skyscrapers                     ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
+  Mosaic                          ▒▒▒▒▒▒░░░░░░░░░░░░░░   0 %  (0 of 7 done, 2 in progress)
+  Colour Sort                     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Path                            ▒▒▒░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done, 1 in progress)
+  Arrows                          ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Klondike                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Chess tactics                   ▒▒▒░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done, 1 in progress)
+  Shared (B6, E3, H7)             ███████▒▒▒▒▒▒░░░░░░░  33 %  (1 of 3 done, 1 in progress)
+
+Launch games playable             ██████░░░░░░░░░░░░░░  29 %  (4 of 14 ready)
+```
+
+Open human tasks: H0.1, H1, H4, H5, H6, H7.
+<!-- progress:end -->
+
 Labels used in this plan:
 - **[Estimate]** — my estimate, not measured data.
 - **[Verify]** — a fact from web research on 16 Nov 2026 that you must check again before you depend on it.
