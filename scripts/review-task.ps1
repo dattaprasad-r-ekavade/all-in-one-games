@@ -10,7 +10,11 @@
 param(
     [Parameter(Mandatory = $true)][string]$Task,
     [Parameter(Mandatory = $true)][ValidateSet('codex', 'claude', 'gemini')][string]$Reviewer,
-    [string]$Base = 'main'
+    [string]$Base = 'main',
+    # Codex model for the review.
+    [string]$Model = 'gpt-6.2-sol',
+    # Extra context for the reviewer, for example which lane cards the branch holds.
+    [string]$Extra = ''
 )
 $ErrorActionPreference = 'Stop'
 
@@ -30,10 +34,11 @@ Check: spec match, correctness, AGENTS.md section 5 hard rules, scope (Owns line
 Do not run Gradle; the lead runs the gate.
 Output: '## Review: $Task', 'Verdict: merge | fix first', 'Blockers:' numbered with file:line or 'none', 'Suggestions:'.
 Report only real problems.
+$Extra
 "@
     if ($Reviewer -eq 'codex') {
         # 'codex review --base' does not accept a custom prompt, so use a read-only exec run.
-        codex exec -m gpt-6.1-sol -c 'model_reasoning_effort="high"' -s read-only -o $review $instructions
+        codex exec -m $Model -c 'model_reasoning_effort="high"' -s read-only -o $review $instructions
         Get-Content $review
     } elseif ($Reviewer -eq 'gemini') {
         # Windows PowerShell 5.1 breaks quotes inside long native arguments, so the prompt goes in a file.
