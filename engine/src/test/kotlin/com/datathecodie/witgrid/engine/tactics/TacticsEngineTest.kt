@@ -7,6 +7,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -37,19 +38,17 @@ class TacticsEngineTest {
     }
 
     @Test
-    fun unimplementedFeaturesThrowInX1() {
+    fun nextStepAndGradeAreImplementedWhileGenerateThrows() {
         val puzzle = TacticsRulesTest.mate1UniquePuzzle()
         val state = TacticsEngine.initialState(puzzle)
 
-        val nextStepError = assertThrows(NotImplementedError::class.java) {
-            TacticsEngine.nextStep(puzzle, state)
-        }
-        assertEquals("An operation is not implemented: tactics", nextStepError.message)
+        val step = TacticsEngine.nextStep(puzzle, state)
+        assertNotNull(step)
+        assertEquals(TacticsTechniques.CHECKMATE, step!!.technique)
 
-        val gradeError = assertThrows(NotImplementedError::class.java) {
-            TacticsEngine.grade(puzzle)
-        }
-        assertEquals("An operation is not implemented: tactics", gradeError.message)
+        val grade = TacticsEngine.grade(puzzle)
+        assertEquals(Pack.EASY, grade.pack)
+        assertEquals(1, grade.stepCount)
 
         val generateError = assertThrows(NotImplementedError::class.java) {
             TacticsEngine.generate(SplitMix64(42L), Pack.EASY)
