@@ -29,9 +29,11 @@ object MosaicEngine : GameEngine<MosaicPuzzle, MosaicState> {
     override fun countSolutions(puzzle: MosaicPuzzle, limit: Int): Int =
         MosaicRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: MosaicPuzzle, state: MosaicState): HintStep? = unavailable()
+    override fun nextStep(puzzle: MosaicPuzzle, state: MosaicState): HintStep? =
+        MosaicTechniqueSolver.nextStep(puzzle, state)
 
-    override fun grade(puzzle: MosaicPuzzle): Grade = unavailable()
+    override fun grade(puzzle: MosaicPuzzle): Grade =
+        MosaicTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): MosaicPuzzle = unavailable()
 

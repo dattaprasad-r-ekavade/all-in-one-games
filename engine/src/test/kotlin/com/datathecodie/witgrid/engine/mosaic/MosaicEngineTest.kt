@@ -78,19 +78,15 @@ class MosaicEngineTest {
     }
 
     @Test
-    fun x2AndGeneratorOperationsThrowNotImplementedError() {
+    fun generatorThrowsNotImplementedErrorAndSolverDelegates() {
         val state = MosaicEngine.initialState(puzzle)
         val rng = SplitMix64(42L)
 
-        val nextStepError = assertThrows(NotImplementedError::class.java) {
-            MosaicEngine.nextStep(puzzle, state)
-        }
-        assertEquals("MO", nextStepError.message)
-
-        val gradeError = assertThrows(NotImplementedError::class.java) {
+        // Puzzle is technique-stuck, so nextStep returns null and grade rejects it
+        assertEquals(null, MosaicEngine.nextStep(puzzle, state))
+        assertThrows(IllegalArgumentException::class.java) {
             MosaicEngine.grade(puzzle)
         }
-        assertEquals("MO", gradeError.message)
 
         val generateError = assertThrows(NotImplementedError::class.java) {
             MosaicEngine.generate(rng, Pack.EASY)

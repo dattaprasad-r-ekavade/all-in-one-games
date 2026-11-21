@@ -1,6 +1,7 @@
 package com.datathecodie.witgrid.engine.mosaic
 
 import com.datathecodie.witgrid.engine.core.Cell
+import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.Grid
 import com.datathecodie.witgrid.engine.core.Pack
 import java.util.ArrayList
@@ -86,6 +87,9 @@ object MosaicPackBands {
         15 -> Pack.EXPERT
         else -> throw IllegalArgumentException("No launch pack for Mosaic size $size")
     }
+
+    /** Returns whether [grade] matches the pack band. */
+    fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean = grade.pack == pack
 }
 
 internal fun <T> immutableList(values: List<T>): List<T> =
