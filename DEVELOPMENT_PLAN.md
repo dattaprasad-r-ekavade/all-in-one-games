@@ -1,6 +1,6 @@
 # Witgrid: Offline Logic Puzzles — Development Plan
 
-Plan date: 16 Nov 2026. Status: no code written yet. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5).
+Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`.
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
 
@@ -16,8 +16,9 @@ Labels used in this plan:
 |---|---|
 | Title | Witgrid: Offline Logic Puzzles (30 characters, the Play limit) |
 | Platform | Android, Google Play. No iOS at launch. |
-| Product | Many small logic games in one app. All games work with no connection. |
-| Launch games | Crowns, Binary, Nonogram, Mini Sudoku 6x6 |
+| Product | A growing puzzle hub. All games work with no connection. |
+| Closed-test games | Crowns, Binary, Nonogram, Mini Sudoku 6x6 |
+| Hub catalog (next) | Sudoku 9x9, Colour Sort, Path, Arrows, Klondike, Chess tactics (section 12) |
 | USP | Clean UI, low distraction, no ad during a puzzle, hints that explain the logic |
 | Income | Interstitial ad at level finish, rewarded ads for hints / checks / lives, one-time Premium at $7.99 |
 | Income goal | About $100 each month |
@@ -28,7 +29,7 @@ Labels used in this plan:
 | Topic | GDD | This plan |
 |---|---|---|
 | Name | Gridwise / Fivefold / Daily Five (all collide with other apps) | Witgrid: Offline Logic Puzzles |
-| Launch modes | 5 | 4. Path moves to wave 3. |
+| Launch modes | 5 | 4 for the closed test. Path, Sudoku 9x9, Colour Sort, Arrows, Klondike and Chess tactics are the hub catalog (section 12). |
 | Puzzle source | Generated on the device from a date seed | Pre-generated, solver-validated puzzle bank in the app |
 | Core loop | One daily set of five puzzles | Level packs for each game, plus one daily puzzle for each game |
 | Connection | Not stated | Offline first. No backend. |
@@ -59,15 +60,15 @@ Labels used in this plan:
 |---|---|---|
 | End of closed test | Crash-free sessions ≥ 99 %; no puzzle with two solutions | Fix before production |
 | 30 days after launch | Day-1 retention ≈ 30 %, day-7 ≈ 12 % (puzzle benchmarks: 29 % and 11 %) | Improve onboarding and the first 10 levels |
-| 90 days after launch | Income trend toward $100 each month | Add wave 1 games; test Premium price; then decide to continue or stop |
+| 90 days after launch | Income trend toward $100 each month | Tune ads and Premium price. Keep adding hub games from section 12. Then decide to continue or stop. |
 
 ## 4. Design principles and art direction
 
 1. **Clean UI.** One screen has one job. No pop-up offers during play.
 2. **No ad interrupts a puzzle.** Ads are presented only outside an active puzzle board. Interstitials show only after a level finish and the player's tap on "Next".
 3. **Offline first.** Each game, each level and each save works with no connection.
-4. **Fair puzzles.** Each puzzle has exactly one solution and needs no guess.
-5. **Hints explain.** A hint shows the next logical step and says why.
+4. **Fair puzzles.** Family A (unique grids) has exactly one solution and needs no guess. Family B (sort, arrows, cards) is winnable, or has a legal fail. Family B does not use the unique-no-guess bank rule (section 7.3).
+5. **Hints explain.** A Family A hint shows the next logical step and says why. A Family B hint names one legal improving action.
 6. **Generic names.** No name or look from another company's game.
 7. **Endless play.** Show only "Level N". Never show a total, "x of y", a percent or a progress bar for levels or packs. A total gives a sense of an end; the player must feel that the puzzles never run out. Counts inside one puzzle (for example "2 of 7 crowns placed", mistakes) are permitted.
 8. **No fixed game count.** No string, screen title or store text says how many games there are. Screen layouts must work for any number of games. Game descriptions do not go in titles.
@@ -109,7 +110,7 @@ The owner approved the mockups in `docs/design/` (light and dark PNGs for Welcom
 
 ## 5. Launch scope
 
-**In the launch**
+**In the closed test (launch of the first APK)**
 - 4 games, each with 4 difficulty packs and one daily puzzle.
 - First-run welcome (3 pages) and the Android 12+ splash.
 - Home screen with the game list, the next level of each game, and the streak.
@@ -120,8 +121,10 @@ The owner approved the mockups in `docs/design/` (light and dark PNGs for Welcom
 - Ads, consent, Premium purchase, analytics, crash reports, Remote Config.
 - Analytics and Crashlytics collection start only after explicit opt-in in Settings and stop when the player opts out.
 
-**Not in the launch**
-- Path mode, widget, leaderboards, share card, cloud save, accounts, subscription, banner ads, app-open ads, on-device puzzle generation, iOS, web.
+**Not in the closed-test APK**
+- Hub catalog games (section 12), widget, leaderboards, share card, cloud save, accounts, subscription, banner ads, app-open ads, on-device puzzle generation, iOS, web.
+
+Hub catalog work (Phase 7) can run in parallel with closed test. It does not block H5.
 
 ## 6. The four launch games
 
@@ -176,9 +179,9 @@ Level content for each game: 4 packs x 150 levels = 600 regular levels, plus 365
 
 ### 6.5 Rules for all games
 
-- Each bank puzzle stores its solution, its difficulty pack and its technique grade.
-- Two different solvers check each puzzle: the technique solver and a brute-force solver that counts solutions.
 - The first level of each game is a small, guided puzzle with one coach line. There is no tutorial wall.
+- **Family A** (Crowns, Binary, Nonogram, Mini Sudoku, Sudoku 9x9, Path, Chess tactics): each bank puzzle stores its solution, its difficulty pack and its technique grade. Two solvers check each puzzle: the technique solver and a brute-force solver that counts solutions (cap 2). Unique and no-guess.
+- **Family B** (Colour Sort, Arrows, Klondike): each level is winnable, or has a legal fail. Many solution paths are allowed. `bankgen validate` checks winnable (or `isLost` only after a wrong action), not uniqueness. Hints name one legal improving action.
 
 ## 7. Tech stack and architecture
 
@@ -210,7 +213,7 @@ Native Kotlin + Jetpack Compose. Versions are as reported on 16 Nov 2026. **[Ver
 
 ```
 witgrid/
-  engine/      Pure Kotlin, no Android code. Grid model, solvers, generators, graders, hint logic.
+  engine/      Pure Kotlin, no Android code. Family A grid engines, Family B play engines, generators, graders, hints.
   bankgen/     JVM command-line tool. Uses engine/ to build and validate the puzzle bank on the PC.
   app/         Android app. Compose UI, storage, ads, billing, analytics.
     assets/bank/   One compressed file for each game and pack.
@@ -220,55 +223,52 @@ witgrid/
 - `bankgen/` writes the bank files into `app/assets/bank/`. The bank is a build output that you commit to the repository.
 - Use integer maths only in `engine/`. Write a small integer PRNG (for example SplitMix64). Do not use `kotlin.random.Random(seed)`, because a new Kotlin version can change its output.
 
-### 7.3 One interface for each game
+### 7.3 Two engine families
 
-Each game is one package that implements the same interface. A new game needs no change to the home screen, the save system, the ad logic or the hint UI.
+Each game is one package. A new game needs no change to the home screen, the save system or the ad logic. Home, Game and endless levels already iterate `GameRegistry`. Never state a game count.
 
-The interface has two halves, so that `engine/` stays free of Android code:
-- `GameEngine<P, S>` in `engine/` (task E1): rules, solution counter, technique solver, grader, hints, generator, state codec.
-- `GameModule` in `app/` (task A3): wraps one `GameEngine`, and adds `levelsPerInterstitial` and the Compose `Board`.
+**Family A — unique no-guess grids.** `GameEngine<P, S>` (task E1) plus `GameModule` (task A3). `Move` stays `SetMark`, `SetDigit` and `SetNotes`. Do not add a fourth `Move` variant; every existing engine uses an exhaustive `when`.
 
-The sketch below shows the combined surface.
+- Sudoku 9x9 copies Mini Sudoku. Size, digits, boxes and notes are hardcoded to 6 today, so this is a new `sudoku` package, not a one-line change.
+- Path uses `SetDigit` as the pair colour (1..n, 0 clears). Uniqueness is required. The generator may add walls so the fill is unique.
+- Chess tactics uses cell picks for from-square and to-square. Unique winning move (or unique mate sequence). Pure Kotlin rules and a bounded mate search. No chess-engine library and no online play.
 
-```kotlin
-interface GameModule<S : GameState> {
-    val id: String                      // "crowns", "binary", ...
-    val levelsPerInterstitial: Int      // 1 for long levels, 2 for short levels
-    fun loadLevel(ref: LevelRef): Level
-    fun newState(level: Level): S
-    fun applyMove(state: S, move: Move): S
-    fun isSolved(state: S): Boolean
-    fun findMistakes(state: S): List<Cell>
-    fun nextHint(state: S): Hint        // technique name, cells, explanation text
-    fun encode(state: S): ByteArray     // for the save system
-    fun decode(bytes: ByteArray): S
-    @Composable fun Board(state: S, onMove: (Move) -> Unit)
-}
-```
+**Family B — many solutions or failure-as-play.** New `PlayEngine<P, S, A>` (task E3). Game-defined actions (`Pour`, `Slide`, `CardMove`). Colour Sort, Arrows and Klondike use this. Later block puzzle would use it too.
+
+- Do not force unique-no-guess on Family B.
+- `PlayGameModule` in `app/` wraps one `PlayEngine` so Play, Result, Continue and saves still work.
+- Integer maths and `SplitMix64` still apply.
+
+Family A `GameModule` is unchanged from A3. Family B `PlayEngine` (E3) uses a game-defined action type instead of `Move`. Both register in `GameRegistry` so Home and Play iterate one list.
 
 ### 7.4 Puzzle bank format
 
-One text line for each puzzle, in a gzip file for each game and pack:
+One text line for each puzzle, in a gzip file for each game and pack.
 
-`id | size | givens or regions | solution | pack | technique grade`
+Family A: `id | size | givens or regions | solution | pack | technique grade`
 
-[Estimate] The full launch bank is smaller than 1 MB.
+Family B: `id | size | layout or deal seed | pack | difficulty`. No unique-solution field.
+
+[Estimate] The four-game closed-test bank is smaller than 1 MB. Hub banks add more files; keep each game under 1 MB compressed.
 
 ### 7.5 Saves
 
 - Save the level state after each move. A crash or a closed app loses nothing.
 - Store for each level: state, elapsed time, hints used, completed flag, best time.
 - **Endless levels.** Each game and pack has a level number that only goes up. Level N plays bank puzzle `(N − 1) mod packSize` (0-based). For example, with 600 puzzles, level 601 plays bank puzzle 1 again. The player sees only "Level N". A looped level starts from an empty board; its best time is kept per bank puzzle.
-- One shared streak day is earned by completing any one of that local date's four daily puzzles. Completing more daily puzzles that date does not add another day.
+- One shared streak day is earned by completing any one of that local date's daily puzzles. Completing more daily puzzles that date does not add another day.
 - Keep at most one free streak freeze. Refill it to one each local Monday; unused freezes do not accumulate. Automatically use it to cover one missed local day.
 - Store the streak and freeze state with the device date. There is no server check.
 
 ### 7.6 Hint logic
 
+Family A:
 1. If the board has a mistake, the hint points at the mistake first.
 2. If not, the technique solver finds the easiest next step.
 3. The hint highlights the cells, names the technique, and shows one sentence that explains the step.
 4. The player then applies the step, or taps "Apply".
+
+Family B: the hint names one legal improving action (a pour, a sliding arrow, a card move). There is no unique-technique grade.
 
 ## 8. Monetisation specification
 
@@ -282,7 +282,7 @@ Show an interstitial only when all these conditions are true:
 - The player does not have Premium.
 - An ad is loaded. If no ad is loaded, continue with no delay.
 
-Default `levelsPerInterstitial`: Crowns 1, Nonogram 10x10 and larger 1, Binary 2, Mini Sudoku 2, Nonogram 5x5 2.
+Default `levelsPerInterstitial`: Crowns 1, Nonogram 10x10 and larger 1, Binary 2, Mini Sudoku 2, Nonogram 5x5 2, Sudoku 9x9 1, Path 2, Chess tactics 2, Colour Sort 2, Arrows 2, Klondike 1 (each finished deal).
 
 **Never:** an interstitial during a puzzle, at app start, at level start, or on a back action.
 
@@ -314,14 +314,15 @@ Rules:
 
 | Game type | Rule |
 |---|---|
-| Logic grids (the four launch games, later sudoku and killer sudoku) | "Mistake limit" is a setting, **off by default**. When it is on, the game flags a wrong entry immediately, and three mistakes fail the level. |
-| Games where failure is natural (later: block puzzle, minesweeper, sort games) | Lives are always part of the game: a revive in block puzzle, a second chance in minesweeper, an extra tube or undo in sort games. |
+| Family A logic grids (the four closed-test games, Sudoku 9x9, Path, Chess tactics) | "Mistake limit" is a setting, **off by default**. When it is on, the game flags a wrong entry immediately, and three mistakes fail the level. |
+| Family B, failure is natural (Colour Sort, Arrows, Klondike; later block puzzle) | Lives are always part of the game: extra tube (Colour Sort), revive (Arrows, later block puzzle), extra undo (Klondike). |
 
 When a level fails or lives are gone, show two buttons:
 1. "Continue" — one rewarded ad, or free with Premium.
 2. "Restart" — always free, with no ad.
 
-For the four launch logic games, Continue grants one additional mistake and keeps the board as-is. Each later Continue grants one more mistake.
+For Family A, Continue grants one additional mistake and keeps the board as-is. Each later Continue grants one more mistake.
+For Colour Sort, Continue adds one empty tube. For Arrows, Continue revives the board to the last sliding position (or undoes the last slide). For Klondike, Continue grants one extra undo. Restart is always free and never shows an ad.
 
 The default of the mistake limit is a Remote Config key, so you can test "on by default" later.
 
@@ -445,42 +446,117 @@ Open-source references with the MIT licence: Simon Tatham's Portable Puzzle Coll
 
 ### Phase 6 — Launch and first 30 days (week 10 onward)
 - H6 (you): replace test ad units with live ad units (Gradle properties outside the repo), check `app-ads.txt` status, staged rollout, posts in your app community and puzzle communities, weekly review of the section 10 measures, one Remote Config change at a time.
-- Start wave 1 with the post-launch card template at the end of `docs/TASKS.md`.
+- Hub catalog (Phase 7 in `docs/TASKS.md`) can start now. Sudoku 9x9 does not wait on E3. Colour Sort, Arrows and Klondike wait on E3. Closed test (H5) does not wait on Phase 7.
 
-## 12. Post-launch game waves
+## 12. Hub catalog (owner, 18 Nov 2026)
 
-Release about one game each 2 to 3 weeks. Each new game is a store update and a reason to post.
+Keep adding modes. Development time is not a stop. Fit is. Closed test still ships the four Family A games. Phase 7 in `docs/TASKS.md` adds six more. Research: `docs/reports/extra-launch-games.md`. Decision: `docs/decisions/prototype-catalog.md`.
 
-| Wave | Game | Content source | Level time | Interstitial rule | Notes |
-|---|---|---|---|---|---|
-| 1 | Sudoku 9x9 | Bank | 5 to 15 min | Each level | Reuses the 6x6 engine |
-| 1 | Block puzzle (8x8, place shapes, clear lines) | Procedural, endless | 3 to 10 min | At game over | Revive with a rewarded ad |
-| 1 | Minesweeper, no-guess | Procedural + solver | 1 to 5 min | Each level | Second chance with a rewarded ad |
-| 2 | Arrows escape | Bank | 30 to 120 s | Each 2 levels | 2026 breakout genre; line art fits the style |
-| 2 | Colour sort | Bank | 45 to 120 s | Each 2 levels | Extra tube with a rewarded ad |
-| 2 | Number merge | Procedural, endless | 3 to 10 min | At game over | Undo with a rewarded ad |
-| 3 | Number link and Path | Bank | 20 to 90 s | Each 2 levels | The Path generator needs walls for a unique solution |
-| 3 | Killer sudoku | Bank | 10 to 20 min | Each level | Strong fit with the brand |
-| 3 | Klondike solitaire | Procedural + solver (winnable deals) | 3 to 7 min | Each game | Needs code-drawn cards |
-| 4 | Word search | Procedural + word list | 90 to 240 s | Each level | Widens the audience |
-| 4 | Bridges, tents, calcudoku | Bank | 1 to 5 min | Each level | Low demand; cheap library growth |
+Build order (dependencies, not calendar): Sudoku 9x9 → Colour Sort (needs E3) → Path → Arrows → Klondike → Chess tactics.
 
-**Do not add:** screw sort, hexa sort, tile match, mahjong, jigsaw, five-letter word guess, sliding block escape.
+| Order | Game | Family | Content | Level time | Interstitial | Continue |
+|---|---|---|---|---|---|---|
+| 1 | Sudoku 9x9 | A | Bank, 4×150 + 365 daily | 5 to 15 min | Each level | Extra mistake |
+| 2 | Colour Sort | B | Bank of tube layouts, winnable, not unique | 45 to 120 s | Each 2 levels | Extra empty tube |
+| 3 | Path | A | Bank, unique fill. Walls allowed | 20 to 90 s | Each 2 levels | Extra mistake |
+| 4 | Arrows | B | Bank of layouts, at least one clear-all | 30 to 120 s | Each 2 levels | Revive / undo last slide |
+| 5 | Klondike | B | Winnable deals stored as seeds | 3 to 7 min | Each deal | Extra undo |
+| 6 | Chess tactics | A | Bank of unique mates | 30 to 180 s | Each 2 levels | Extra mistake |
+
+### 12.1 Sudoku 9x9
+
+| Item | Spec |
+|---|---|
+| Package | `sudoku` (copy Mini Sudoku; do not generalise the 6x6 lane) |
+| Rule | Digits 1 to 9. Each digit one time in each row, column and 3x3 box. |
+| Sizes | 9x9 for all packs. Pack sets the technique level. |
+| Input | Select a cell, tap a digit. Notes mode. Same `Move`s as Mini Sudoku. |
+| Generator | Full valid grid. Remove givens while unique and the technique solver still solves. |
+| Solver techniques | Easy: naked single. Medium: hidden single. Hard: locked candidates, naked pair. Expert: hidden pair, naked triple, X-Wing. |
+| Name rule | Use "Sudoku". Mini Sudoku stays the 6x6 game. |
+
+### 12.2 Colour Sort
+
+| Item | Spec |
+|---|---|
+| Package | `coloursort` |
+| Rule | Pour from one tube onto another. A pour is legal when the source top colour matches the dest top colour, or the dest is empty, and the dest has space. Win when every tube is empty or a single colour. |
+| Packs | Easy 4 tubes, Medium 6, Hard 8, Expert 10. One or two empty tubes at the start. |
+| Input | Tap source tube, tap dest tube. Family B action `Pour`. |
+| Generator | Start from a solved set of tubes, shuffle pours in reverse. Accept if a solver can re-sort. Many solutions allowed. |
+| Hint | One pour that does not increase the number of colour runs. |
+| Name rule | Use "Colour Sort". Do not use Water Sort as a product name. |
+
+### 12.3 Path
+
+| Item | Spec |
+|---|---|
+| Package | `path` |
+| Rule | Join each equal-number pair with a path. Paths do not branch or cross. Every cell is filled. Exactly one solution. |
+| Sizes | Easy 6x6, Medium 8x8, Hard 10x10, Expert 12x12. Walls allowed. |
+| Input | Drag along empty cells. `SetDigit` stores the pair colour. |
+| Generator | Place pairs (and optional walls). Accept only if `countSolutions` is 1 and the technique solver fills the board. |
+| Solver techniques | Endpoint extension, forced neighbour, last empty cell in a region. No guess. |
+| Name rule | Use "Path". Do not use Zip or Flow Free. |
+
+### 12.4 Arrows
+
+| Item | Spec |
+|---|---|
+| Package | `arrows` |
+| Rule | Each cell holds one arrow or is empty. Tap an arrow. It slides off the board in its direction if every cell on that path is empty. Win when the board is empty. Fail when no arrow can slide and arrows remain. |
+| Sizes | Easy 5x5, Medium 6x6, Hard 8x8, Expert 10x10. |
+| Input | Tap an arrow. Family B action `Slide`. |
+| Generator | Place arrows so at least one sequence clears the board. Uniqueness of tap order is not required. |
+| Hint | One arrow that can slide now. |
+| Art | Line-art arrows on the paper grid. No sprites. |
+
+### 12.5 Klondike
+
+| Item | Spec |
+|---|---|
+| Package | `klondike` |
+| Rule | Standard Klondike: 7 tableau columns, 4 foundations A→K by suit, stock. Draw-1. Win when all 52 cards sit on foundations. |
+| Packs | Easy: more face-up tableau cards. Medium: standard. Hard / Expert: fewer face-up, longer solutions. |
+| Input | Tap or drag a face-up card to a legal dest. Family B action `CardMove`. |
+| Generator | Deal from `SplitMix64`. A solver must win. Store the seed in the bank line. Reject unwinnable deals. |
+| Hint | One legal move that the solver uses on the winning line. |
+| Art | Code-drawn cards. Ranks as tabular numerals, suits as simple marks. No face sprites. |
+| Name rule | Use "Klondike". Do not ship 50 solitaire variants. |
+
+### 12.6 Chess tactics
+
+| Item | Spec |
+|---|---|
+| Package | `tactics` |
+| Rule | 8x8 chess, FIDE movement. The side to move has a unique mate in N. Player plays the winning side only. Opponent replies are forced (or the unique defence). |
+| Packs | Easy mate in 1. Medium mate in 2. Hard mate in 2 with more pieces. Expert mate in 3. |
+| Input | Tap from-square, tap to-square. Encode as cell picks on `GameEngine`. Promotion: queen only in the bank. |
+| Generator | Pure Kotlin rules and a bounded mate search. Place a king plus a small piece set from a pattern list, then search. Accept only if the mate is unique. No Stockfish, no JNI, no new library. |
+| Solver techniques | Checks, forced captures, mating patterns named in the hint sentence. |
+| Name rule | Use "Tactics". Not a chess server, not ratings, not clocks, not online play. |
+
+### 12.7 Later options
+
+After the six hub games: Killer Sudoku, Futoshiki, Skyscrapers, Tents, no-guess Minesweeper, generic 8x8 block puzzle (third family: piece drag + revive; never use the name Block Blast).
+
+**Do not add:** match-3, mahjong, tile match, full online chess, 50-variant solitaire, screw sort, hexa sort, jigsaw, five-letter word guess, sliding block escape, number merge, word search as a near-term game.
 
 **Names to avoid in the app and the store listing:** Queens, Tango, Zip, LinkedIn, NYT, Takuzu, Binairo, Picross, KenKen, Tetris, Block Blast, 2048, Flow Free, Rush Hour, Wordle.
 
-**Later options, after the income goal is met:** share card, home-screen widget, nonogram picture packs, more ad networks through AdMob mediation (after about 1,000 to 2,000 daily players), iOS.
+**After the income goal is met:** share card, home-screen widget, nonogram picture packs, more ad networks through AdMob mediation (after about 1,000 to 2,000 daily players), iOS.
 
 ## 13. Store listing
 
 | Field | Draft |
 |---|---|
 | Title (30 max) | Witgrid: Offline Logic Puzzles |
-| Short description (80 max) | Clean offline logic puzzles: nonogram, sudoku, star battle, binary. No wifi. |
+| Short description (80 max) | Offline puzzles: sudoku, nonogram, path, colour sort. No wifi needed. |
 | Category | Puzzle |
 | Target audience | 13 and older |
 
-- The head search terms "offline games" and "no wifi games" belong to apps with 100M+ installs. Aim at long terms: "offline logic puzzles", "nonogram offline", "mini sudoku", "binary puzzle", "star battle".
+- Lead the listing with Sudoku, Nonogram, Path and Colour Sort once those hub games ship. Crowns, Binary, Tactics and Klondike sit in the list, not in the title. Never state a game count.
+- The head search terms "offline games" and "no wifi games" belong to apps with 100M+ installs. Aim at long terms: "offline logic puzzles", "nonogram offline", "sudoku offline", "colour sort", "path puzzle".
 - Play rules: no emoji in the title, no repeated keywords, no ranking claims, no other company's brand.
 - Screenshots: show one clean board for each game, the dark mode, and the "works offline" message.
 - **[Verify]** "star battle" as a free term. The web check found no registration, but it was not an official search.
@@ -489,11 +565,11 @@ Release about one game each 2 to 3 weeks. Each new game is a store update and a 
 
 | Risk | Effect | Mitigation |
 |---|---|---|
-| Few installs. A competitor with a similar feature list has only 100+ installs. | Income stays below the goal | Your app community, long search terms, one new game each 2 to 3 weeks |
+| Few installs. A competitor with a similar feature list has only 100+ installs. | Income stays below the goal | Your app community, long search terms, hub catalog updates from section 12 |
 | Offline players see no ads | Lower ad income | Premium offer when an ad cannot load; measure the offline share |
 | AdMob account disabled for invalid traffic | Ad income stops permanently | Test ad units only; never tap live ads; no ad placement near tap targets |
-| A puzzle with two solutions or a need to guess | 1-star reviews | Two solvers check each puzzle; hand test of each pack |
-| Scope growth | Late launch | Section 5 is fixed. New ideas go to section 12. |
+| A Family A puzzle with two solutions or a need to guess | 1-star reviews | Two solvers check each Family A puzzle; hand test of each pack |
+| Scope growth | Late closed test | Section 5 is fixed. Hub games go to section 12 / Phase 7 and do not block H5. |
 | Trademark complaint | Listing removed | The name rules in sections 6 and 12 |
 | Interstitial after each level harms reviews | Lower rating, lower search rank | Minimum gap, "each 2 levels" for short levels, Remote Config tuning |
 | $7.99 is higher than comparable apps | Fewer Premium sales | Premium includes unlimited hints and lives; price experiment |
@@ -535,8 +611,8 @@ All code comes from AI agents. You are the lead: you pick tasks, read handoff no
 
 ### 16.2 Why this split works
 
-- **Engine first.** `engine/` is pure Kotlin with a strong test oracle: "exactly one solution, and the technique solver solves it". Agents do well on this work, and the tests catch their mistakes.
-- **Contracts before lanes.** E1 (engine) and A3 (app) fix the interfaces. After that, the four game lanes and the four boards run in parallel, with no shared files.
+- **Engine first.** Family A in `engine/` has a strong test oracle: "exactly one solution, and the technique solver solves it". Family B uses winnable / `isLost` oracles. Agents do well on this work, and the tests catch their mistakes.
+- **Contracts before lanes.** E1 (Family A) and A3 (app) are done. E3 (Family B) must land before Colour Sort, Arrows and Klondike. Sudoku 9x9 and Path do not wait on E3.
 - **Two families.** Codex builds most of the engine and Claude builds most of the UI. Tests and reviews come from the other family, so one model's misreading of the spec does not pass through unseen.
 - **Logic out of the UI.** Ad rules, streaks and allowances are plain Kotlin with JVM tests. Agents cannot check a Compose screen by eye, but they can check a unit test.
 - **Humans keep the risky steps.** Accounts, keys, live ad IDs, hand tests, art approval and store forms are cards with tier **Human**.

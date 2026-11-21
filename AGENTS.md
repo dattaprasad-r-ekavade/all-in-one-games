@@ -5,7 +5,7 @@ Human contributors follow the same rules.
 
 ## 1. What the project is
 
-Witgrid: Offline Logic Puzzles. An Android app with many small logic games. All play works with no connection.
+Witgrid: Offline Logic Puzzles. An Android puzzle hub. All play works with no connection.
 
 - Product spec (source of truth): `DEVELOPMENT_PLAN.md`
 - Task backlog: `docs/TASKS.md`
@@ -48,7 +48,7 @@ The Android SDK path comes from the `ANDROID_HOME` environment variable. Do not 
 ## 4. Module rules
 
 ```
-engine/    Pure Kotlin/JVM. No Android imports. Solvers, generators, graders, hints.
+engine/    Pure Kotlin/JVM. No Android imports. Family A grid engines, Family B play engines, solvers, generators, graders, hints.
 bankgen/   JVM command-line tool. Builds and validates the puzzle bank with engine/.
 app/       Android app. Compose UI, storage, ads, billing, analytics.
 ```
@@ -75,9 +75,9 @@ Package root: `com.datathecodie.witgrid`. Each game has its own package, for exa
 1. **No ad during a puzzle.** An interstitial shows only after "Next" on the result screen (plan 8.1).
 2. **Test ad units only.** Use Google's public test ad unit IDs. Never write a real AdMob app ID or ad unit ID into the repository.
 3. **No secrets.** Never create, read or commit a keystore, `keystore.properties`, signing passwords or service-account keys.
-4. **Name rules.** Never use these words in code strings, resources or store text: Queens, Tango, Zip, LinkedIn, NYT, Takuzu, Binairo, Picross, KenKen, Tetris, Block Blast, 2048, Flow Free, Rush Hour, Wordle. Use the generic names in the plan (Crowns, Binary, Nonogram, Mini Sudoku).
+4. **Name rules.** Never use these words in code strings, resources or store text: Queens, Tango, Zip, LinkedIn, NYT, Takuzu, Binairo, Picross, KenKen, Tetris, Block Blast, 2048, Flow Free, Rush Hour, Wordle. Use the generic names in the plan (Crowns, Binary, Nonogram, Mini Sudoku, Sudoku, Colour Sort, Path, Arrows, Klondike, Tactics).
 5. **No new libraries** unless the task card permits them.
-6. **Fair puzzles.** Every bank puzzle has exactly one solution and the technique solver solves it with no guess.
+6. **Fair puzzles.** Family A bank puzzles have exactly one solution and the technique solver solves them with no guess. Family B levels are winnable (or have a legal fail); uniqueness is not required (plan 6.5, 7.3).
 7. **Offline first.** No feature may block play when there is no connection.
 
 ## 6. Code style

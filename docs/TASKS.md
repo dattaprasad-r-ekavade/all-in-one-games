@@ -81,6 +81,33 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
 | **Phase 6 — Launch** |||||||
 | H6 | Live ad units, staged rollout, weekly review | Human | — | — | H5 | todo |
+| **Phase 7 — Hub catalog** |||||||
+| B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | ready |
+| E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | ready |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | ready |
+| SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
+| SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
+| SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
+| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | todo |
+| CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
+| CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
+| CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
+| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | todo |
+| PAA | Path board | M | Codex | Claude | A4, PA2 | todo |
+| PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
+| PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
+| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | todo |
+| ARA | Arrows board | M | Claude | Codex | AR2 | todo |
+| ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
+| ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
+| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | todo |
+| KLA | Klondike board | H | Codex | Claude | KL2 | todo |
+| KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
+| KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
+| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | todo |
+| CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
+| CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
+| CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
 
 ---
 
@@ -597,8 +624,181 @@ Plan: 11 phase 6, 3.
 
 ---
 
-## Template for post-launch games (plan section 12)
+## Phase 7 — Hub catalog
 
-Each new game gets the same card set as a launch lane, with a new two-letter prefix (for example `SU` for Sudoku 9x9):
-`x1`–`x4` engine lane → bank cards → board card → intro level → `levelsPerInterstitial` and config key → store update notes.
-Games with lives (block puzzle, minesweeper, sort) add one card for the revive flow (plan 8.4).
+Owner direction 18 Nov 2026: keep adding modes. Time is not a stop. Closed test (H5) does not wait on this phase. Plan: 12, 7.3, 8.4. Decision: `docs/decisions/prototype-catalog.md`.
+
+Build order: B6 and SU can start now. E3 before Colour Sort, Arrows and Klondike. Then Path, Arrows, Klondike, Chess tactics.
+
+Do not add a fourth `Move` variant on Family A. Do not use banned names (Flow Free, Zip, Water Sort as a product name, Block Blast, Wordle, …).
+
+### B6 — `bankgen` any engine; Family B validate
+Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
+Plan: 7.3, 7.4, 12.
+**Owns:** `bankgen/src/main/**`, `bankgen/src/test/**`. Do not hardcode the four launch game ids.
+**Do:** Discover engines from `Registry` (Family A) and the Family B registry once E3 exists. `validate --all` for Family A stays: unique, technique-solvable, grade band, no duplicate, stable ids. For Family B: winnable (or `isLost` only after a wrong action), no uniqueness check. A fifth Family A id must not throw.
+**Done when:** `./gradlew :bankgen:test` passes. A fake fifth Family A engine validates. A fake Family B engine with two solutions still passes validate. A broken Family B layout fails validate.
+
+### E3 — Family B `PlayEngine` contract
+Tier H · Build Codex (`gpt-6.1-sol` high) · Review Claude + human
+Plan: 7.3, 8.4.
+**Owns:** `engine/src/main/kotlin/com/datathecodie/witgrid/engine/core/PlayEngine.kt` (and neighbouring core types it needs), `engine/src/test/kotlin/com/datathecodie/witgrid/engine/core/PlayEngineTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/PlayGameModule.kt`. Do not change existing `GameEngine` `when (move)` branches.
+**Do:** `PlayEngine<P, S, A>` with generate, apply action, `isWon`, `isLost`, hint action, encode/decode state. `PlayGameModule` wraps it for Home, Play, Result, Continue and saves. Register beside `GameRegistry` without listing a game count. Integer maths, `SplitMix64` only. Human reads this contract before merge (same bar as E1 and A3).
+**Done when:** `./gradlew :engine:test :app:testDebugUnitTest` pass with a tiny fake Family B engine. Existing four games still play in unit tests.
+
+### Hub Family A lanes (SU, PA, CT)
+
+Same four engine cards as CR/BI/NO/MS. **Owns:** `engine/…/<game>/**` and its tests. x4 owns only `engine/src/test/kotlin/…/<game>/spec/**`.
+
+| Lane | Package | Plan | x1–x3 | x3 tier |
+|---|---|---|---|---|
+| SU | `sudoku` | 12.1 | Copy Mini Sudoku. Size 9, digits 1–9, 3×3 boxes, 9-bit notes. Do not edit `minisudoku/**`. Techniques: Easy naked single; Medium hidden single; Hard locked candidates + naked pair; Expert hidden pair, naked triple, X-Wing. | M |
+| PA | `path` | 12.3 | Pair colour in `SetDigit` (1..n, 0 clears). Fill every cell. Walls allowed. Unique. Techniques: endpoint extension, forced neighbour, last empty cell. | H |
+| CT | `tactics` | 12.6 | 8×8 FIDE movement. Unique mate in N. From-square / to-square as cell picks. Queen promotions only. Pure Kotlin bounded mate search. No Stockfish, no JNI, no new library. Easy mate in 1; Medium mate in 2; Hard mate in 2 more pieces; Expert mate in 3. | H |
+
+**Done when (each engine card):** `./gradlew :engine:test` passes, plus the launch-lane x1–x4 checks (unique, technique-solvable, seed-stable). CT `countSolutions` counts distinct winning first moves (cap 2).
+
+### Hub Family B lanes (CS, AR, KL)
+
+Three engine cards (no unique-technique x2). **Owns:** `engine/…/<game>/**` and its tests.
+
+| Card | Work | Tier | Needs |
+|---|---|---|---|
+| x1 | Rules, puzzle/state, actions, `isWon` / `isLost`, codec | M | E3 |
+| x2 | Hint action, pack difficulty, generator | H | x1 |
+| x3 | Independent tests from the plan, hand-made fixtures | L | x2, E2 |
+
+| Lane | Package | Plan | Actions | Generator |
+|---|---|---|---|---|
+| CS | `coloursort` | 12.2 | `Pour(from, to)` | Reverse-shuffle a solved tube set. Solver can re-sort. Many solutions OK. Packs: 4 / 6 / 8 / 10 tubes. |
+| AR | `arrows` | 12.4 | `Slide(cell)` | Layout with at least one clear-all sequence. Tap order need not be unique. Sizes 5, 6, 8, 10. |
+| KL | `klondike` | 12.5 | `CardMove` | Draw-1 Klondike. Deal from `SplitMix64`, keep only solver-won seeds. Store the seed. Code-drawn cards later on the board card. |
+
+**Done when:** `./gradlew :engine:test` passes. x2: seed 1 gives 10 winnable levels per pack, same seed same output. x3: fixtures cover win, lose, illegal action, hint on a mid-game state.
+
+### SUA — Sudoku 9x9 board
+Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
+Plan: 12.1, 4.1.
+**Owns:** `app/…/games/sudoku/**`.
+**Do:** Copy Mini Sudoku board and keypad. Digits 1–9, 3×3 box tint, notes. `BoardCanvas` drag off. Do not edit `minisudoku/**`.
+**Done when:** `./gradlew :app:testDebugUnitTest` passes. A test plays the first bank (or fixture) puzzle to solved.
+
+### SUB — Sudoku 9x9 bank
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.1, 6.
+**Owns:** `app/src/main/assets/bank/sudoku-*.txt.gz`, `docs/reports/bank-sudoku.md`.
+**Do:** 4×150 + 365 daily. Fixed seeds in the report. `validate --all` includes Sudoku.
+**Done when:** `./gradlew :bankgen:run --args="validate --all"` passes. Report lists counts, sizes, histograms.
+
+### SUC — Sudoku 9x9 intro, config, strings
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.1, 8.1, 8.6.
+**Owns:** `app/…/games/sudoku/Intro.kt`, `app/src/main/res/values/strings.xml` (new keys only), interstitial/config wiring for id `sudoku` (`levelsPerInterstitial` 1).
+**Do:** Guided first level. Register in `GameRegistry` and `engine.Registry`. User-visible name "Sudoku". No game count in any string.
+**Done when:** `./gradlew check` passes.
+
+### CSA — Colour Sort board
+Tier M · Build Claude (`builder`) · Review Codex
+Plan: 12.2, 4.
+**Owns:** `app/…/games/coloursort/**`.
+**Do:** Tube UI on paper-and-ink. Tap source, tap dest. Not `BoardCanvas` cells. No sprites.
+**Done when:** `./gradlew :app:testDebugUnitTest` passes. A test pours a fixture to won.
+
+### CSB — Colour Sort bank
+Tier L · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.2.
+**Owns:** `app/src/main/assets/bank/coloursort-*.txt.gz`, `docs/reports/bank-coloursort.md`.
+**Do:** 4×150 + 365 daily layouts. Winnable, not unique.
+**Done when:** Family B `validate --all` passes.
+
+### CSC — Colour Sort intro, extra tube, config
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.2, 8.4.
+**Owns:** intro, strings, `levelsPerInterstitial` 2, Continue = extra empty tube (uses M5 continue flow, new reward kind).
+**Done when:** `./gradlew check` passes. A unit test shows Continue adds one empty tube.
+
+### PAA — Path board
+Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
+Plan: 12.3.
+**Owns:** `app/…/games/path/**`.
+**Do:** Drag-paint pair colour on `BoardCanvas`. Walls are givens. Pair endpoints shown as digits.
+**Done when:** `./gradlew :app:testDebugUnitTest` passes. A test fills the first bank (or fixture) puzzle.
+
+### PAB — Path bank
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.3.
+**Owns:** `app/src/main/assets/bank/path-*.txt.gz`, `docs/reports/bank-path.md`.
+**Do:** 4×150 + 365 daily. Unique, technique-solvable.
+**Done when:** `validate --all` passes.
+
+### PAC — Path intro, config, strings
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.3, 8.1.
+**Owns:** intro, strings, register id `path`, `levelsPerInterstitial` 2. Name "Path".
+**Done when:** `./gradlew check` passes.
+
+### ARA — Arrows board
+Tier M · Build Claude (`builder`) · Review Codex
+Plan: 12.4.
+**Owns:** `app/…/games/arrows/**`.
+**Do:** Line-art arrows on a cell grid. Tap to slide. Animate the slide with reduce-motion respected. Not a rotate gesture if tap-slide is enough.
+**Done when:** `./gradlew :app:testDebugUnitTest` passes. A test clears a fixture.
+
+### ARB — Arrows bank
+Tier L · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.4.
+**Owns:** `app/src/main/assets/bank/arrows-*.txt.gz`, `docs/reports/bank-arrows.md`.
+**Do:** 4×150 + 365 daily. At least one clear-all sequence each.
+**Done when:** Family B `validate --all` passes.
+
+### ARC — Arrows intro, revive, config
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.4, 8.4.
+**Owns:** intro, strings, `levelsPerInterstitial` 2, Continue = undo last slide / revive.
+**Done when:** `./gradlew check` passes.
+
+### KLA — Klondike board
+Tier H · Build Codex (`gpt-6.1-sol` high) · Review Claude
+Plan: 12.5, 4.
+**Owns:** `app/…/games/klondike/**`.
+**Do:** Code-drawn cards (rank + suit marks). Tableau, foundations, stock. Tap/drag legal moves. No face sprites, no card photo assets.
+**Done when:** `./gradlew :app:testDebugUnitTest` passes. A test wins a canned Easy deal.
+
+### KLB — Klondike winnable-deal bank
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.5.
+**Owns:** `app/src/main/assets/bank/klondike-*.txt.gz`, `docs/reports/bank-klondike.md`.
+**Do:** 4×150 + 365 daily seeds. Each seed wins under the engine solver.
+**Done when:** Family B `validate --all` passes.
+
+### KLC — Klondike intro, extra undo, config
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.5, 8.4.
+**Owns:** intro, strings, `levelsPerInterstitial` 1, Continue = extra undo.
+**Done when:** `./gradlew check` passes.
+
+### CTA — Chess tactics board
+Tier M · Build Claude (`builder`) · Review Codex
+Plan: 12.6, 4.
+**Owns:** `app/…/games/tactics/**`.
+**Do:** 8×8 paper-and-ink pieces (letters or simple marks, not photo sprites). Tap from, tap to. Last opponent reply shown.
+**Done when:** `./gradlew :app:testDebugUnitTest` passes. A test mates a mate-in-1 fixture.
+
+### CTB — Chess tactics bank
+Tier L · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.6.
+**Owns:** `app/src/main/assets/bank/tactics-*.txt.gz`, `docs/reports/bank-tactics.md`.
+**Do:** 4×150 + 365 daily. Unique mate. Generation may be slow; run on the PC.
+**Done when:** `validate --all` passes.
+
+### CTC — Chess tactics intro, config, strings
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.6, 8.1.
+**Owns:** intro, strings, register id `tactics`, `levelsPerInterstitial` 2. Name "Tactics".
+**Done when:** `./gradlew check` passes.
+
+---
+
+## Template for later games (plan 12.7)
+
+Each later game (Killer, Futoshiki, Skyscrapers, Tents, Minesweeper, block puzzle) gets the same shape as Phase 7: engine lane → board → bank → intro/config. Family A uses SU/PA/CT. Family B (or a third family for piece-drag block puzzle) uses E3. Lives games add Continue mapping on the intro/config card. The lead writes the cards when that game is next.
