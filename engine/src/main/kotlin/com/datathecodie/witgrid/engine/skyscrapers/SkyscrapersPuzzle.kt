@@ -1,5 +1,6 @@
 package com.datathecodie.witgrid.engine.skyscrapers
 
+import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.Grid
 import com.datathecodie.witgrid.engine.core.Pack
 import java.util.ArrayList
@@ -129,6 +130,10 @@ object SkyscrapersPackBands {
         Pack.HARD -> 6
         Pack.EXPERT -> 7
     }
+
+    /** Returns whether [grade] matches the difficulty pack band. */
+    fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean =
+        grade.pack == pack
 }
 
 /** Defensive read-only list copy preventing external mutation. */

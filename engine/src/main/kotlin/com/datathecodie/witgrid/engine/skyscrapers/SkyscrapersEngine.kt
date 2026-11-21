@@ -29,9 +29,11 @@ object SkyscrapersEngine : GameEngine<SkyscrapersPuzzle, SkyscrapersState> {
     override fun countSolutions(puzzle: SkyscrapersPuzzle, limit: Int): Int =
         SkyscrapersRules.countSolutions(puzzle, limit)
 
-    override fun nextStep(puzzle: SkyscrapersPuzzle, state: SkyscrapersState): HintStep? = unavailable()
+    override fun nextStep(puzzle: SkyscrapersPuzzle, state: SkyscrapersState): HintStep? =
+        SkyscrapersTechniqueSolver.nextStep(puzzle, state)
 
-    override fun grade(puzzle: SkyscrapersPuzzle): Grade = unavailable()
+    override fun grade(puzzle: SkyscrapersPuzzle): Grade =
+        SkyscrapersTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): SkyscrapersPuzzle = unavailable()
 
@@ -39,5 +41,5 @@ object SkyscrapersEngine : GameEngine<SkyscrapersPuzzle, SkyscrapersState> {
 
     override fun decodeState(bytes: ByteArray): SkyscrapersState = SkyscrapersStateCodec.decode(bytes)
 
-    private fun unavailable(): Nothing = throw NotImplementedError("Skyscrapers x2/x3")
+    private fun unavailable(): Nothing = throw NotImplementedError("Skyscrapers x3")
 }

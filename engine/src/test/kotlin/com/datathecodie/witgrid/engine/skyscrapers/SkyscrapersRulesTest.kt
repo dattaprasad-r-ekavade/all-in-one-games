@@ -4,6 +4,7 @@ import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.core.SplitMix64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -272,11 +273,10 @@ class SkyscrapersRulesTest {
         assertEquals(listOf(Cell(0)), SkyscrapersEngine.mistakes(decoded, state))
         assertFalse(SkyscrapersEngine.isSolved(decoded, state))
 
+        assertEquals(SkyscrapersTechniqueSolver.nextStep(decoded, state), SkyscrapersEngine.nextStep(decoded, state))
+        assertEquals(SkyscrapersTechniqueSolver.grade(decoded), SkyscrapersEngine.grade(decoded))
         assertThrows(NotImplementedError::class.java) {
-            SkyscrapersEngine.nextStep(decoded, state)
-        }
-        assertThrows(NotImplementedError::class.java) {
-            SkyscrapersEngine.grade(decoded)
+            SkyscrapersEngine.generate(SplitMix64(1L), Pack.EASY)
         }
     }
 
