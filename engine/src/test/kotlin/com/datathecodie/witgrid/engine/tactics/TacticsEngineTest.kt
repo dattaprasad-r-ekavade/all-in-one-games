@@ -38,7 +38,7 @@ class TacticsEngineTest {
     }
 
     @Test
-    fun nextStepAndGradeAreImplementedWhileGenerateThrows() {
+    fun nextStepAndGradeAndGenerateAreImplemented() {
         val puzzle = TacticsRulesTest.mate1UniquePuzzle()
         val state = TacticsEngine.initialState(puzzle)
 
@@ -50,9 +50,8 @@ class TacticsEngineTest {
         assertEquals(Pack.EASY, grade.pack)
         assertEquals(1, grade.stepCount)
 
-        val generateError = assertThrows(NotImplementedError::class.java) {
-            TacticsEngine.generate(SplitMix64(42L), Pack.EASY)
-        }
-        assertEquals("An operation is not implemented: tactics", generateError.message)
+        val generated = TacticsEngine.generate(SplitMix64(42L), Pack.EASY)
+        assertEquals(Pack.EASY, generated.pack)
+        assertEquals(1, TacticsRules.countSolutions(generated))
     }
 }

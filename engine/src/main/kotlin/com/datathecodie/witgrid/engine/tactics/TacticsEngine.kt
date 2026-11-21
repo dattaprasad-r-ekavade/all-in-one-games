@@ -36,7 +36,7 @@ object TacticsEngine : GameEngine<TacticsPuzzle, TacticsState> {
         TacticsTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): TacticsPuzzle =
-        throw NotImplementedError("An operation is not implemented: tactics")
+        TacticsGenerator.generate(rng, pack)
 
     override fun encodeState(state: TacticsState): ByteArray = TacticsStateCodec.encode(state)
 
