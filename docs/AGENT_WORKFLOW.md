@@ -33,6 +33,10 @@ Your Codex default is `gpt-6-luna` at `xhigh`. That is a poor fit for most cards
 
 **Gemini (added 21 Nov 2026).** A third family through the Antigravity CLI (`agy`). It reads `AGENTS.md` by itself. Use it for L and M cards when Codex or Claude is busy: `.\scriptsgent-task.ps1 -Task FU1 -Agent gemini -Tier M`. Codex or Claude reviews its work (`review-task.ps1 -Reviewer codex`). `--mode auto` is not available on this account; the default mode runs edits and shell commands in print mode.
 
+**Quota (22 Nov 2026).** Five or six parallel Gemini runs used the individual Gemini quota in about 4 hours (error 429). Run 2 or 3 Gemini agents at a time. Move unfinished Gemini work to Codex on the same worktree (`agent-task.ps1 -Task <ID> -Agent codex` keeps the uncommitted files).
+
+**Package tests for every agent (22 Nov 2026).** All build agents (Codex, Claude and Gemini) now run only their own package tests by default. Use `-RunGradle` for the full 'Done when' commands. Codex builds use `gpt-6.2-sol` for M and H cards.
+
 **Batch gate for Gemini (21 Nov 2026).** Parallel Gradle runs slow the PC too much. Gemini runs do not run the full suite by default. They write code and tests, run only the tests of their own package (for example `:engine:test --tests 'com.datathecodie.witgrid.engine.mosaic.*'`), fix every failure without weakening a test, commit, and hand off. The lead then tests the finished branches together: `.\scripts\check-batch.ps1 -Tasks FU1,SK1,MO1`. It merges them into `..\witgrid-wt\_batch` and runs `gradlew check` one time. Errors go back to the builder with `-Extra`. Use `-RunGradle` to let one Gemini run test its own work.
 
 The **Build** column in `docs/TASKS.md` shows the default for each card. You can swap families when one quota is low. Keep the tier.

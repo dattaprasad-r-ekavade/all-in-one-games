@@ -10,7 +10,7 @@
 .NOTES
   Worktrees go to ..\witgrid-wt\<Task>. Handoff notes go to ..\witgrid-wt\_logs\<Task>.md.
   Tier -> model:
-    codex : L = gpt-6-luna (medium), M = gpt-6.1-sol (medium), H = gpt-6.1-sol (high)
+    codex : L = gpt-6-luna (medium), M = gpt-6.2-sol (medium), H = gpt-6.2-sol (high)
     claude: L = haiku,               M = sonnet,               H = sonnet
     gemini: L = gemini-3.8-flash-medium, M = gemini-3.8-flash-high, H = gemini-3.8-flash-high
             (Antigravity CLI 'agy'. Flash only; prefer codex for H cards.)
@@ -21,7 +21,7 @@ param(
     [ValidateSet('L', 'M', 'H')][string]$Tier = 'M',
     [string]$Base = 'main',
     [string]$Extra = '',
-    # Gemini runs skip Gradle by default; the lead tests finished branches together with check-batch.ps1.
+    # Agents run only their own package tests by default; the lead tests finished branches together with check-batch.ps1.
     [switch]$RunGradle
 )
 $ErrorActionPreference = 'Stop'
@@ -41,7 +41,7 @@ if (-not (Test-Path $wt)) {
 }
 
 $handoff = Join-Path $logDir "$Task.md"
-if ($Agent -eq 'gemini' -and -not $RunGradle) {
+if (-not $RunGradle) {
     # Full test runs in parallel block the PC; the lead runs one batch gate instead (scripts/check-batch.ps1).
     # The agent runs only its own package's tests: this catches bad fixtures and compile errors cheaply.
     $gateRules = @"
@@ -74,7 +74,7 @@ $Extra
 "@
 
 if ($Agent -eq 'codex') {
-    $model  = @{ L = 'gpt-6-luna'; M = 'gpt-6.1-sol'; H = 'gpt-6.1-sol' }[$Tier]
+    $model  = @{ L = 'gpt-6-luna'; M = 'gpt-6.2-sol'; H = 'gpt-6.2-sol' }[$Tier]
     $effort = @{ L = 'medium';     M = 'medium';      H = 'high' }[$Tier]
     $gradleHome = Join-Path $env:USERPROFILE '.gradle'
     New-Item -ItemType Directory -Force $gradleHome | Out-Null

@@ -2,14 +2,14 @@
 
 > **Keep the progress bars current.** The "Progress" section below is generated from the Status column in `docs/TASKS.md`. Do not edit the bars by hand. After you change any status in `docs/TASKS.md`, run `python scripts/progress.py` from the repo root, and commit `DEVELOPMENT_PLAN.md` together with `docs/TASKS.md`.
 
-Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14).
+Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14). Launch-catalog engine status and rule decisions from review added 22 Nov 2026 (sections 12, 12.3, 12.6, 12.8, 12.10, 14, 16).
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
 
 <!-- progress:start -->
 ## Progress
 
-Updated 21 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `python scripts/progress.py`.
+Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `python scripts/progress.py`.
 
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
@@ -493,6 +493,19 @@ Open-source references with the MIT licence: Simon Tatham's Portable Puzzle Coll
 
 The production launch ships 14 games: the 4 built games plus the 10 below. Minimum 12. If the build runs late, cut Chess tactics first, then Klondike. Do not cut a cheap Family A game to save time. After launch, keep adding games from 12.11. Phase 7 in `docs/TASKS.md` has the cards. Research: `docs/reports/extra-launch-games.md`. Decision: `docs/decisions/prototype-catalog.md`.
 
+**Engine status (22 Nov 2026).** Each lane has x1 (rules and counter), x2 (technique solver and hints) and x3 (generator). The app cards (board, bank, intro) start after the engine is merged.
+
+| Game | x1 | x2 | x3 | State |
+|---|---|---|---|---|
+| Sudoku 9x9 | done | Codex | — | SU1 merged |
+| Futoshiki | built | built | built | First Codex review: fix first. Fixes done; batch and second review next. |
+| Mosaic | built | built | built | First Codex review: fix first. Fixes done; batch and second review next. |
+| Path | built | built | built | First Codex review: fix first. Fixes done and batch passed; second review running. |
+| Skyscrapers | built | built | in progress | Review fixes and the generator in progress (Codex). |
+| Chess tactics | built | built | built | Review found 6 blockers, including generator volume. Fixes in progress (Codex). First game to cut. |
+| Killer Sudoku | — | — | — | Waits for SU3. |
+| Colour Sort, Arrows, Klondike | — | — | — | Wait for E3 (Family B contract, in review). |
+
 Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Futoshiki, Skyscrapers and Mosaic in parallel; E3 → Colour Sort → Arrows → Klondike; then Path → Chess tactics. Killer Sudoku, Futoshiki, Skyscrapers and Mosaic reuse the existing Family A input (`SetDigit`, `SetMark`), so they are the cheapest.
 
 | Order | Game | Family | Content | Level time | Interstitial | Continue |
@@ -537,7 +550,8 @@ Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Fut
 | Item | Spec |
 |---|---|
 | Package | `path` |
-| Rule | Join each equal-number pair with a path. Paths do not branch or cross. Every cell is filled. Exactly one solution. |
+| Rule | Join each equal-number pair with a path. Paths do not branch or cross. Every cell is filled. A path never touches itself (no cell of a path is next to another cell of the same path except its neighbours on the path; so no 2x2 block of one colour). Exactly one solution. |
+| Uniqueness (lead decision, 22 Nov 2026) | Because paths never touch themselves, one route equals one colouring, so `countSolutions` counts colourings, which is what the player enters. |
 | Sizes | Easy 6x6, Medium 8x8, Hard 10x10, Expert 12x12. Walls allowed. |
 | Input | Drag along empty cells. `SetDigit` stores the pair colour. |
 | Generator | Place pairs (and optional walls). Accept only if `countSolutions` is 1 and the technique solver fills the board. |
@@ -575,6 +589,8 @@ Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Fut
 |---|---|
 | Package | `tactics` |
 | Rule | 8x8 chess, FIDE movement. The side to move has a unique mate in N. Player plays the winning side only. Opponent replies are forced (or the unique defence). |
+| Uniqueness (lead decision, 22 Nov 2026) | Unique mate sequence: at every player turn along the stored line, exactly one move keeps a forced mate. `countSolutions` returns the worst turn, capped at 2. A second mate on the last move makes the puzzle invalid. |
+| Volume (review, 22 Nov 2026) | The bank needs at least 241 distinct starting positions per pack (150 regular plus the daily share). The first generator made only 40 Expert positions. If the fix cannot reach the volume, cut Chess tactics from the launch (launch with 13). |
 | Packs | Easy mate in 1. Medium mate in 2. Hard mate in 2 with more pieces. Expert mate in 3. |
 | Input | Tap from-square, tap to-square. Encode as cell picks on `GameEngine`. Promotion: queen only in the bank. |
 | Generator | Pure Kotlin rules and a bounded mate search. Place a king plus a small piece set from a pattern list, then search. Accept only if the mate is unique. No Stockfish, no JNI, no new library. |
@@ -598,7 +614,7 @@ Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Fut
 |---|---|
 | Package | `futoshiki` |
 | Rule | Latin square: each digit 1 to n one time in each row and column. A < or > sign between two cells must hold. |
-| Sizes | Easy 5x5, Medium 6x6, Hard 7x7, Expert 7x7 with fewer signs. |
+| Sizes | Easy 5x5, Medium 6x6, Hard 7x7, Expert 7x7 with fewer signs. Hard has at least 10 signs; Expert has at most 8 (review fix, 22 Nov 2026). |
 | Input | Mini Sudoku digit pad and notes. Signs drawn on cell edges. |
 | Generator | Random Latin square. Add all signs, then remove signs and givens while unique and technique-solvable. |
 | Solver techniques | Singles, sign chains (min/max bounds), naked pair. |
@@ -625,6 +641,7 @@ Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Fut
 | Generator | Random fill. Compute all clues, then remove clues while unique and technique-solvable. |
 | Solver techniques | Full and empty areas (0 and 9), overlap between two clues. |
 | Name rule | Use "Mosaic". |
+| Generator speed | Expert 15x15 takes about 50 s per puzzle, so the full Expert pack takes about 2 hours on the developer PC. Profile it before the bank card (MOB). |
 
 ### 12.11 Later options
 
@@ -660,6 +677,7 @@ After the launch: Tents, no-guess Minesweeper, generic 8x8 block puzzle (third f
 | AdMob account disabled for invalid traffic | Ad income stops permanently | Test ad units only; never tap live ads; no ad placement near tap targets |
 | A Family A puzzle with two solutions or a need to guess | 1-star reviews | Two solvers check each Family A puzzle; hand test of each pack |
 | Scope growth | Late launch | The launch set is fixed at 14 (section 12). Nothing from 12.11 enters before launch. Cut Chess tactics, then Klondike, if late. Closed test runs in parallel. |
+| Agent code passes its own tests but has logic bugs | Wrong puzzles, wrong hints | Every lane gets a cross-family review. On 22 Nov the first Codex review of five Gemini lanes said "fix first" for all five; the fixes go through the batch gate and a second review before merge. |
 | 14 games are not checked well | 1-star reviews on a weak game | Same two-solver bank checks for every Family A game; H7 hand test of every new game; the U8 screenshot sheet covers every game |
 | Trademark complaint | Listing removed | The name rules in sections 6 and 12 |
 | Interstitial after each level harms reviews | Lower rating, lower search rank | Minimum gap, "each 2 levels" for short levels, Remote Config tuning |
@@ -688,17 +706,27 @@ All code comes from AI agents. You are the lead: you pick tasks, read handoff no
 | `docs/TASKS.md` | The backlog: one card for each task, with tier, owner, owned files, plan sections and "done when" commands. |
 | `docs/AGENT_WORKFLOW.md` | Setup, the task loop, parallel work, known risks. |
 | `.claude/agents/` | Claude subagents: `builder` (Sonnet), `test-writer` (Haiku), `chore` (Haiku), `reviewer` (Sonnet). |
-| `scripts/agent-task.ps1` | Starts one task in its own git worktree with Codex or Claude. |
-| `scripts/review-task.ps1` | Cross-review of a task branch by the other agent family. |
+| `scripts/agent-task.ps1` | Starts one task in its own git worktree with Codex, Claude or Gemini. |
+| `scripts/review-task.ps1` | Cross-review of a task branch by another agent family (default Codex `gpt-6.2-sol`). |
+| `scripts/check-batch.ps1` | Merges several finished task branches into one scratch worktree and runs `gradlew check` one time. |
+| `scripts/progress.py` | Rebuilds the progress bars at the top of this plan from `docs/TASKS.md`. |
 
 ### 16.1 Model tiers
 
-| Tier | Work | Claude | Codex |
-|---|---|---|---|
-| L | Tests from spec, wiring, CI, strings, reports | Haiku 5.5 | `gpt-6-luna`, effort medium |
-| M | Screens, storage, boards, normal features | Sonnet 5.5 | `gpt-6.1-sol`, effort medium |
-| H | Contracts, solvers, generators, gestures, consent, billing | Sonnet 5.5 | `gpt-6.1-sol`, effort high |
-| Escalation | Failed the gate two times | Opus 5.5 | `gpt-6-astra` |
+| Tier | Work | Claude | Codex | Gemini (`agy`) |
+|---|---|---|---|---|
+| L | Tests from spec, wiring, CI, strings, reports | Haiku 5.5 | `gpt-6-luna`, effort medium | `gemini-3.8-flash-medium` |
+| M | Screens, storage, boards, normal features | Sonnet 5.5 | `gpt-6.2-sol`, effort medium | `gemini-3.8-flash-high` |
+| H | Contracts, solvers, generators, gestures, consent, billing | Sonnet 5.5 | `gpt-6.2-sol`, effort high | Not recommended (Flash only) |
+| Escalation | Failed the gate two times | Opus 5.5 | `gpt-6-astra` | — |
+
+**Test gate (21 to 22 Nov 2026).** Parallel `gradlew check` runs made the PC too slow. Now:
+1. A build agent runs only the tests of its own package (for example `:engine:test --tests 'com.datathecodie.witgrid.engine.mosaic.*'`), fixes every failure without weakening a test, and commits.
+2. The lead tests finished branches together with `scripts/check-batch.ps1` (one `gradlew check`).
+3. Codex (`gpt-6.2-sol`) reviews each lane branch. Several reviews run in parallel; they are read-only and do not run Gradle.
+4. Review blockers go back to a builder on the newest branch of the lane. The fix passes the batch and a second review before merge.
+
+**Gemini quota (22 Nov 2026).** Five or six parallel Gemini runs used the individual quota in about 4 hours (error 429, reset after about 30 minutes). Run 2 or 3 Gemini agents at a time, or upgrade the subscription. Unfinished Gemini work moves to Codex on the same worktree.
 
 ### 16.2 Why this split works
 
