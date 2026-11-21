@@ -80,8 +80,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | S3 | Release build configuration | M | Codex | Claude | M3, M6, M7 | todo |
 | H5 | Art, keystore, closed test, production access | Human | — | — | S1, S2, S3 | todo |
 | **Phase 6 — Launch** |||||||
-| H6 | Live ad units, staged rollout, weekly review | Human | — | — | H5 | todo |
-| **Phase 7 — Hub catalog** |||||||
+| H6 | Live ad units, staged rollout, weekly review | Human | — | — | H5, Phase 7 (12+ games), H7 | todo |
+| **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | ready |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | ready |
 | SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | ready |
@@ -108,6 +108,23 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
+| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | todo |
+| KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
+| KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
+| KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
+| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | ready |
+| FUA | Futoshiki board | M | Codex | Claude | A4, FU2 | todo |
+| FUB | Futoshiki bank | L | Claude | Codex | FU3, B6 | todo |
+| FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
+| SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | ready |
+| SKA | Skyscrapers board | M | Codex | Claude | A4, SK2 | todo |
+| SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
+| SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
+| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | ready |
+| MOA | Mosaic board | M | Codex | Claude | A4, MO2 | todo |
+| MOB | Mosaic bank | L | Claude | Codex | MO3, B6 | todo |
+| MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
+| H7 | Hand-test the launch catalog | Human | — | — | All Phase 7 bank cards | todo |
 
 ---
 
@@ -624,11 +641,11 @@ Plan: 11 phase 6, 3.
 
 ---
 
-## Phase 7 — Hub catalog
+## Phase 7 — Launch catalog
 
-Owner direction 18 Nov 2026: keep adding modes. Time is not a stop. Closed test (H5) does not wait on this phase. Plan: 12, 7.3, 8.4. Decision: `docs/decisions/prototype-catalog.md`.
+Owner decision 21 Nov 2026: the production launch ships 14 games (minimum 12), not 4. This phase must finish before H6. Closed test (H5) does not wait on this phase: start it with the current games and add each new game to the closed track when it is done. If the build is late, cut Chess tactics (CT) first, then Klondike (KL). Plan: 12, 7.3, 8.4. Decision: `docs/decisions/prototype-catalog.md`.
 
-Build order: B6 and SU can start now. E3 before Colour Sort, Arrows and Klondike. Then Path, Arrows, Klondike, Chess tactics.
+Build order: B6, E3, SU, FU, SK and MO can start now (they do not overlap). KS after SU3. Colour Sort, Arrows and Klondike after E3. Then Path and Chess tactics.
 
 Do not add a fourth `Move` variant on Family A. Do not use banned names (Flow Free, Zip, Water Sort as a product name, Block Blast, Wordle, …).
 
@@ -646,7 +663,7 @@ Plan: 7.3, 8.4.
 **Do:** `PlayEngine<P, S, A>` with generate, apply action, `isWon`, `isLost`, hint action, encode/decode state. `PlayGameModule` wraps it for Home, Play, Result, Continue and saves. Register beside `GameRegistry` without listing a game count. Integer maths, `SplitMix64` only. Human reads this contract before merge (same bar as E1 and A3).
 **Done when:** `./gradlew :engine:test :app:testDebugUnitTest` pass with a tiny fake Family B engine. Existing four games still play in unit tests.
 
-### Hub Family A lanes (SU, PA, CT)
+### Hub Family A lanes (SU, PA, CT, KS, FU, SK, MO)
 
 Same four engine cards as CR/BI/NO/MS. **Owns:** `engine/…/<game>/**` and its tests. x4 owns only `engine/src/test/kotlin/…/<game>/spec/**`.
 
@@ -655,6 +672,10 @@ Same four engine cards as CR/BI/NO/MS. **Owns:** `engine/…/<game>/**` and its 
 | SU | `sudoku` | 12.1 | Copy Mini Sudoku. Size 9, digits 1–9, 3×3 boxes, 9-bit notes. Do not edit `minisudoku/**`. Techniques: Easy naked single; Medium hidden single; Hard locked candidates + naked pair; Expert hidden pair, naked triple, X-Wing. | M |
 | PA | `path` | 12.3 | Pair colour in `SetDigit` (1..n, 0 clears). Fill every cell. Walls allowed. Unique. Techniques: endpoint extension, forced neighbour, last empty cell. | H |
 | CT | `tactics` | 12.6 | 8×8 FIDE movement. Unique mate in N. From-square / to-square as cell picks. Queen promotions only. Pure Kotlin bounded mate search. No Stockfish, no JNI, no new library. Easy mate in 1; Medium mate in 2; Hard mate in 2 more pieces; Expert mate in 3. | H |
+| KS | `killersudoku` | 12.7 | Copy the `sudoku` lane. Add cages (cells + sum). Do not edit `sudoku/**`. Techniques: Sudoku set plus cage combinations, 45 rule, innie/outie. | H |
+| FU | `futoshiki` | 12.8 | Latin square 5 to 7 with < > signs on cell edges. `SetDigit`, `SetNotes`. Techniques: singles, sign chains (min/max bounds), naked pair. | M |
+| SK | `skyscrapers` | 12.9 | Latin square 4 to 7 with outside visibility clues. `SetDigit`, `SetNotes`. Techniques: clue 1 and n, height bounds, singles. | M |
+| MO | `mosaic` | 12.10 | Fill/Cross grid 8 to 15. A clue counts filled cells in its 3x3 area. `SetMark`. Techniques: 0 and 9 areas, clue overlap. | M |
 
 **Done when (each engine card):** `./gradlew :engine:test` passes, plus the launch-lane x1–x4 checks (unique, technique-solvable, seed-stable). CT `countSolutions` counts distinct winning first moves (cap 2).
 
@@ -799,6 +820,15 @@ Plan: 12.6, 8.1.
 
 ---
 
-## Template for later games (plan 12.7)
+### KS, FU, SK, MO board, bank and intro cards (KSA…MOC)
+Same shape as SUA, SUB and SUC. Board owns `app/…/games/<package>/**`; reuse the Mini Sudoku digit pad (KS, FU, SK) or the Nonogram Fill/Cross tools (MO). Bank: 4×150 + 365 daily, report `docs/reports/bank-<package>.md`. Intro card: guided first level, register in `GameRegistry` and `engine.Registry`, `levelsPerInterstitial` from plan 12 (KS 1, FU 2, SK 2, MO 2), new string keys only. User-visible names: "Killer Sudoku", "Futoshiki", "Skyscrapers", "Mosaic". No game count in any string.
+**Done when:** the same commands as SUA, SUB and SUC pass.
 
-Each later game (Killer, Futoshiki, Skyscrapers, Tents, Minesweeper, block puzzle) gets the same shape as Phase 7: engine lane → board → bank → intro/config. Family A uses SU/PA/CT. Family B (or a third family for piece-drag block puzzle) uses E3. Lives games add Continue mapping on the intro/config card. The lead writes the cards when that game is next.
+### H7 — Hand-test the launch catalog (Human)
+**Owns:** `docs/reports/catalog-hand-test.md`.
+**Do:** For each of the 10 new games, solve 5 puzzles in each of the 4 packs (200 solves), plus 2 daily puzzles each. Record puzzle ID, time, whether a guess was needed (Family A) or the level was winnable (Family B), and any issue. Give issue details to the lead.
+**Done when:** The report has 20 records for every new game, and the lead has a bug card for each issue. H6 waits for H7.
+
+## Template for later games (plan 12.11)
+
+Each later game (Tents, Minesweeper, block puzzle) gets the same shape as Phase 7: engine lane → board → bank → intro/config. Family A uses SU/PA/CT. Family B (or a third family for piece-drag block puzzle) uses E3. Lives games add Continue mapping on the intro/config card. The lead writes the cards when that game is next.

@@ -99,3 +99,7 @@ Plan 8.4 still holds.
 - A 40-game Simon Tatham museum as the launch pitch
 
 Chess.com-plus-Royal-Match-plus-the-current-four is not one app. This six-game add is.
+
+## Update, 21 Nov 2026: launch with 14 games
+
+Owner decision: do not launch with 4 games and add 1 or 2 at a time. Launch with 14 games (minimum 12) to get more store search terms and a stronger first impression. The 10 new games are the six above plus Killer Sudoku, Futoshiki, Skyscrapers and Mosaic (cheap Family A games that reuse the existing input). The closed test starts with the current build and gets each new game as it is done. Production release waits for the full set. Details: `DEVELOPMENT_PLAN.md` sections 5 and 12, `docs/TASKS.md` Phase 7.

@@ -1,6 +1,6 @@
 # Witgrid: Offline Logic Puzzles — Development Plan
 
-Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`.
+Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14).
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
 
@@ -17,8 +17,8 @@ Labels used in this plan:
 | Title | Witgrid: Offline Logic Puzzles (30 characters, the Play limit) |
 | Platform | Android, Google Play. No iOS at launch. |
 | Product | A growing puzzle hub. All games work with no connection. |
-| Closed-test games | Crowns, Binary, Nonogram, Mini Sudoku 6x6 |
-| Hub catalog (next) | Sudoku 9x9, Colour Sort, Path, Arrows, Klondike, Chess tactics (section 12) |
+| Built games | Crowns, Binary, Nonogram, Mini Sudoku 6x6 |
+| Production launch set | The 4 built games plus 10 from section 12: Sudoku 9x9, Killer Sudoku, Futoshiki, Skyscrapers, Mosaic, Colour Sort, Path, Arrows, Klondike, Chess tactics. Target 14, minimum 12. |
 | USP | Clean UI, low distraction, no ad during a puzzle, hints that explain the logic |
 | Income | Interstitial ad at level finish, rewarded ads for hints / checks / lives, one-time Premium at $7.99 |
 | Income goal | About $100 each month |
@@ -29,7 +29,7 @@ Labels used in this plan:
 | Topic | GDD | This plan |
 |---|---|---|
 | Name | Gridwise / Fivefold / Daily Five (all collide with other apps) | Witgrid: Offline Logic Puzzles |
-| Launch modes | 5 | 4 for the closed test. Path, Sudoku 9x9, Colour Sort, Arrows, Klondike and Chess tactics are the hub catalog (section 12). |
+| Launch modes | 5 | 14 at the production launch (minimum 12). A full hub at launch gives more store search terms and a stronger first impression than 4 games with frequent small updates. The closed test can start with fewer games; new games go to the closed track as they are done. Owner decision, 21 Nov 2026. |
 | Puzzle source | Generated on the device from a date seed | Pre-generated, solver-validated puzzle bank in the app |
 | Core loop | One daily set of five puzzles | Level packs for each game, plus one daily puzzle for each game |
 | Connection | Not stated | Offline first. No backend. |
@@ -110,8 +110,8 @@ The owner approved the mockups in `docs/design/` (light and dark PNGs for Welcom
 
 ## 5. Launch scope
 
-**In the closed test (launch of the first APK)**
-- 4 games, each with 4 difficulty packs and one daily puzzle.
+**In the production launch**
+- The launch set of 14 games (section 12; minimum 12), each with 4 difficulty packs and one daily puzzle.
 - First-run welcome (3 pages) and the Android 12+ splash.
 - Home screen with the game list, the next level of each game, and the streak.
 - Play screen with undo, redo, mark mode, hint, check, and timer.
@@ -121,10 +121,10 @@ The owner approved the mockups in `docs/design/` (light and dark PNGs for Welcom
 - Ads, consent, Premium purchase, analytics, crash reports, Remote Config.
 - Analytics and Crashlytics collection start only after explicit opt-in in Settings and stop when the player opts out.
 
-**Not in the closed-test APK**
-- Hub catalog games (section 12), widget, leaderboards, share card, cloud save, accounts, subscription, banner ads, app-open ads, on-device puzzle generation, iOS, web.
+**Not in the production launch**
+- Section 12.11 later options, widget, leaderboards, share card, cloud save, accounts, subscription, banner ads, app-open ads, on-device puzzle generation, iOS, web.
 
-Hub catalog work (Phase 7) can run in parallel with closed test. It does not block H5.
+**Closed test and launch.** Start the closed test (H5) with the current build as soon as S3 is done. The closed track is private, so it does not use up the public launch. Upload each new game to the closed track during the 14 days. The production release (H6) waits for the launch set (Phase 7) and the launch hand test (H7).
 
 ## 6. The four launch games
 
@@ -440,19 +440,19 @@ Open-source references with the MIT licence: Simon Tatham's Portable Puzzle Coll
 ### Phase 5 — Closed test (weeks 8 to 10)
 - S1 store listing and policy form drafts · S2 screenshot script · S3 release build configuration.
 - U0 to U8 UI cleanup (`docs/TASKS.md`, section "UI cleanup") before the closed test. U0, U1 and U2 are done.
-- H5 (you): art approval, upload keystore, closed test with 12 or more testers for 14 continuous days, policy forms, production access. Tester bugs become new cards.
+- H5 (you): art approval, upload keystore, closed test with 12 or more testers for 14 continuous days, policy forms, production access. Tester bugs become new cards. Start H5 with the current games; do not wait for Phase 7. Add new games to the closed track as they are done.
 
-**Exit:** Google approves production access.
+**Exit:** Google approves production access. Production release still waits for the Phase 7 launch set and H7.
 
 ### Phase 6 — Launch and first 30 days (week 10 onward)
 - H6 (you): replace test ad units with live ad units (Gradle properties outside the repo), check `app-ads.txt` status, staged rollout, posts in your app community and puzzle communities, weekly review of the section 10 measures, one Remote Config change at a time.
-- Hub catalog (Phase 7 in `docs/TASKS.md`) can start now. Sudoku 9x9 does not wait on E3. Colour Sort, Arrows and Klondike wait on E3. Closed test (H5) does not wait on Phase 7.
+- Launch catalog (Phase 7 in `docs/TASKS.md`) starts now and must finish before H6. Sudoku 9x9 does not wait on E3. Colour Sort, Arrows and Klondike wait on E3. Closed test (H5) does not wait on Phase 7.
 
-## 12. Hub catalog (owner, 18 Nov 2026)
+## 12. Launch catalog (owner, 18 and 21 Nov 2026)
 
-Keep adding modes. Development time is not a stop. Fit is. Closed test still ships the four Family A games. Phase 7 in `docs/TASKS.md` adds six more. Research: `docs/reports/extra-launch-games.md`. Decision: `docs/decisions/prototype-catalog.md`.
+The production launch ships 14 games: the 4 built games plus the 10 below. Minimum 12. If the build runs late, cut Chess tactics first, then Klondike. Do not cut a cheap Family A game to save time. After launch, keep adding games from 12.11. Phase 7 in `docs/TASKS.md` has the cards. Research: `docs/reports/extra-launch-games.md`. Decision: `docs/decisions/prototype-catalog.md`.
 
-Build order (dependencies, not calendar): Sudoku 9x9 → Colour Sort (needs E3) → Path → Arrows → Klondike → Chess tactics.
+Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Futoshiki, Skyscrapers and Mosaic in parallel; E3 → Colour Sort → Arrows → Klondike; then Path → Chess tactics. Killer Sudoku, Futoshiki, Skyscrapers and Mosaic reuse the existing Family A input (`SetDigit`, `SetMark`), so they are the cheapest.
 
 | Order | Game | Family | Content | Level time | Interstitial | Continue |
 |---|---|---|---|---|---|---|
@@ -462,6 +462,10 @@ Build order (dependencies, not calendar): Sudoku 9x9 → Colour Sort (needs E3) 
 | 4 | Arrows | B | Bank of layouts, at least one clear-all | 30 to 120 s | Each 2 levels | Revive / undo last slide |
 | 5 | Klondike | B | Winnable deals stored as seeds | 3 to 7 min | Each deal | Extra undo |
 | 6 | Chess tactics | A | Bank of unique mates | 30 to 180 s | Each 2 levels | Extra mistake |
+| 7 | Killer Sudoku | A | Bank, 4×150 + 365 daily | 8 to 20 min | Each level | Extra mistake |
+| 8 | Futoshiki | A | Bank, 4×150 + 365 daily | 2 to 6 min | Each 2 levels | Extra mistake |
+| 9 | Skyscrapers | A | Bank, 4×150 + 365 daily | 2 to 6 min | Each 2 levels | Extra mistake |
+| 10 | Mosaic | A | Bank, 4×150 + 365 daily | 2 to 8 min | Each 2 levels | Extra mistake |
 
 ### 12.1 Sudoku 9x9
 
@@ -536,9 +540,54 @@ Build order (dependencies, not calendar): Sudoku 9x9 → Colour Sort (needs E3) 
 | Solver techniques | Checks, forced captures, mating patterns named in the hint sentence. |
 | Name rule | Use "Tactics". Not a chess server, not ratings, not clocks, not online play. |
 
-### 12.7 Later options
+### 12.7 Killer Sudoku
 
-After the six hub games: Killer Sudoku, Futoshiki, Skyscrapers, Tents, no-guess Minesweeper, generic 8x8 block puzzle (third family: piece drag + revive; never use the name Block Blast).
+| Item | Spec |
+|---|---|
+| Package | `killersudoku` (copy the `sudoku` lane; do not edit it) |
+| Rule | Sudoku 9x9 rules. Dashed cages show a sum. Digits in a cage do not repeat and add up to the sum. Few or no given digits. |
+| Input | Same as Sudoku 9x9. `SetDigit` and `SetNotes`. |
+| Generator | Full valid grid. Grow random cages (size 1 to 5). Accept only if unique and the technique solver solves it. |
+| Solver techniques | Sudoku techniques plus cage combinations, the 45 rule (house sums) and innie/outie. |
+| Name rule | Use "Killer Sudoku". |
+
+### 12.8 Futoshiki
+
+| Item | Spec |
+|---|---|
+| Package | `futoshiki` |
+| Rule | Latin square: each digit 1 to n one time in each row and column. A < or > sign between two cells must hold. |
+| Sizes | Easy 5x5, Medium 6x6, Hard 7x7, Expert 7x7 with fewer signs. |
+| Input | Mini Sudoku digit pad and notes. Signs drawn on cell edges. |
+| Generator | Random Latin square. Add all signs, then remove signs and givens while unique and technique-solvable. |
+| Solver techniques | Singles, sign chains (min/max bounds), naked pair. |
+
+### 12.9 Skyscrapers
+
+| Item | Spec |
+|---|---|
+| Package | `skyscrapers` |
+| Rule | Latin square of building heights 1 to n. A clue outside the grid gives how many buildings you see from that side. |
+| Sizes | Easy 4x4, Medium 5x5, Hard 6x6, Expert 7x7. |
+| Input | Digit pad and notes. Outside clues use the Nonogram clue band. |
+| Generator | Random Latin square. Compute all clues, then remove clues while unique and technique-solvable. |
+| Solver techniques | Edge clues 1 and n, height bounds from clues, singles. |
+
+### 12.10 Mosaic
+
+| Item | Spec |
+|---|---|
+| Package | `mosaic` |
+| Rule | Fill some cells. A number in a cell gives how many cells are filled in its 3x3 area (the cell and its neighbours). |
+| Sizes | Easy 8x8, Medium 10x10, Hard 12x12, Expert 15x15. |
+| Input | Fill and Cross, the same as Nonogram (`SetMark`). |
+| Generator | Random fill. Compute all clues, then remove clues while unique and technique-solvable. |
+| Solver techniques | Full and empty areas (0 and 9), overlap between two clues. |
+| Name rule | Use "Mosaic". |
+
+### 12.11 Later options
+
+After the launch: Tents, no-guess Minesweeper, generic 8x8 block puzzle (third family: piece drag + revive; never use the name Block Blast).
 
 **Do not add:** match-3, mahjong, tile match, full online chess, 50-variant solitaire, screw sort, hexa sort, jigsaw, five-letter word guess, sliding block escape, number merge, word search as a near-term game.
 
@@ -569,7 +618,8 @@ After the six hub games: Killer Sudoku, Futoshiki, Skyscrapers, Tents, no-guess 
 | Offline players see no ads | Lower ad income | Premium offer when an ad cannot load; measure the offline share |
 | AdMob account disabled for invalid traffic | Ad income stops permanently | Test ad units only; never tap live ads; no ad placement near tap targets |
 | A Family A puzzle with two solutions or a need to guess | 1-star reviews | Two solvers check each Family A puzzle; hand test of each pack |
-| Scope growth | Late closed test | Section 5 is fixed. Hub games go to section 12 / Phase 7 and do not block H5. |
+| Scope growth | Late launch | The launch set is fixed at 14 (section 12). Nothing from 12.11 enters before launch. Cut Chess tactics, then Klondike, if late. Closed test runs in parallel. |
+| 14 games are not checked well | 1-star reviews on a weak game | Same two-solver bank checks for every Family A game; H7 hand test of every new game; the U8 screenshot sheet covers every game |
 | Trademark complaint | Listing removed | The name rules in sections 6 and 12 |
 | Interstitial after each level harms reviews | Lower rating, lower search rank | Minimum gap, "each 2 levels" for short levels, Remote Config tuning |
 | $7.99 is higher than comparable apps | Fewer Premium sales | Premium includes unlimited hints and lives; price experiment |
