@@ -83,8 +83,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H6 | Live ad units, staged rollout, weekly review | Human | — | — | H5, Phase 7 (12+ games), H7 | todo |
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
-| E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | active |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 active |
+| E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | review |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done |
 | SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
@@ -663,6 +663,7 @@ Plan: 7.3, 8.4.
 **Owns:** `engine/src/main/kotlin/com/datathecodie/witgrid/engine/core/PlayEngine.kt` (and neighbouring core types it needs), `engine/src/test/kotlin/com/datathecodie/witgrid/engine/core/PlayEngineTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/PlayGameModule.kt`. Do not change existing `GameEngine` `when (move)` branches.
 **Do:** `PlayEngine<P, S, A>` with generate, apply action, `isWon`, `isLost`, hint action, encode/decode state. `PlayGameModule` wraps it for Home, Play, Result, Continue and saves. Register beside `GameRegistry` without listing a game count. Integer maths, `SplitMix64` only. Human reads this contract before merge (same bar as E1 and A3).
 **Done when:** `./gradlew :engine:test :app:testDebugUnitTest` pass with a tiny fake Family B engine. Existing four games still play in unit tests.
+**Lead review note (21 Nov 2026):** Agent review is merge (`44e32fb`). Waiting on human contract read. Follow-ups after merge: bankgen should use engine `PlayBankLine` + a `PlayEngine` adapter (`isWinnable`/`difficulty`); Home must iterate Family B (plan 7.3 one list — first Family B intro card or a small wiring card); document that Continue may be applied more than once. Each real lane must re-test `isLost` false at deal start.
 
 ### Hub Family A lanes (SU, PA, CT, KS, FU, SK, MO)
 
@@ -679,6 +680,7 @@ Same four engine cards as CR/BI/NO/MS. **Owns:** `engine/…/<game>/**` and its 
 | MO | `mosaic` | 12.10 | Fill/Cross grid 8 to 15. A clue counts filled cells in its 3x3 area. `SetMark`. Techniques: 0 and 9 areas, clue overlap. | M |
 
 **Done when (each engine card):** `./gradlew :engine:test` passes, plus the launch-lane x1–x4 checks (unique, technique-solvable, seed-stable). CT `countSolutions` counts distinct winning first moves (cap 2).
+**Lead completion note (21 Nov 2026):** SU1 squash-merged as `8abb543`. `:engine:test` passed. Full `check` hit a Windows DataStore file-lock flake in `RewardGrantPersistenceSpecTest`; that spec passed on retry. Sudoku is not in `Registry` yet (SUC).
 
 ### Hub Family B lanes (CS, AR, KL)
 
