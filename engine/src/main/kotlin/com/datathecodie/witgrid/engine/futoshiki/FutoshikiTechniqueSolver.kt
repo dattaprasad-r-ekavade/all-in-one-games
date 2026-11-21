@@ -6,7 +6,6 @@ import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Technique
 import java.util.ArrayList
-import java.util.Collections
 
 /** Deterministic, guess-free Futoshiki deductions and technique grading. */
 object FutoshikiTechniqueSolver {
@@ -362,6 +361,3 @@ object FutoshikiTechniqueSolver {
     private fun IntArray.anyIndexed(predicate: (index: Int, value: Int) -> Boolean): Boolean =
         indices.any { predicate(it, this[it]) }
 }
-
-private fun <T> immutableList(values: List<T>): List<T> =
-    Collections.unmodifiableList(ArrayList(values))
