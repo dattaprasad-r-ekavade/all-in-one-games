@@ -33,6 +33,8 @@ Your Codex default is `gpt-6-luna` at `xhigh`. That is a poor fit for most cards
 
 **Gemini (added 21 Nov 2026).** A third family through the Antigravity CLI (`agy`). It reads `AGENTS.md` by itself. Use it for L and M cards when Codex or Claude is busy: `.\scriptsgent-task.ps1 -Task FU1 -Agent gemini -Tier M`. Codex or Claude reviews its work (`review-task.ps1 -Reviewer codex`). `--mode auto` is not available on this account; the default mode runs edits and shell commands in print mode.
 
+**Batch gate for Gemini (21 Nov 2026).** Parallel Gradle runs slow the PC too much. Gemini runs do not run Gradle by default; they write code and tests, commit, and hand off. The lead then tests the finished branches together: `.\scripts\check-batch.ps1 -Tasks FU1,SK1,MO1`. It merges them into `..\witgrid-wt\_batch` and runs `gradlew check` one time. Errors go back to the builder with `-Extra`. Use `-RunGradle` to let one Gemini run test its own work.
+
 The **Build** column in `docs/TASKS.md` shows the default for each card. You can swap families when one quota is low. Keep the tier.
 
 ## 3. One-time setup

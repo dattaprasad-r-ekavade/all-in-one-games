@@ -20,7 +20,9 @@ param(
     [ValidateSet('codex', 'claude', 'gemini')][string]$Agent = 'codex',
     [ValidateSet('L', 'M', 'H')][string]$Tier = 'M',
     [string]$Base = 'main',
-    [string]$Extra = ''
+    [string]$Extra = '',
+    # Gemini runs skip Gradle by default; the lead tests finished branches together with check-batch.ps1.
+    [switch]$RunGradle
 )
 $ErrorActionPreference = 'Stop'
 
@@ -39,13 +41,25 @@ if (-not (Test-Path $wt)) {
 }
 
 $handoff = Join-Path $logDir "$Task.md"
+if ($Agent -eq 'gemini' -and -not $RunGradle) {
+    # Parallel Gradle runs block the PC; the lead runs one batch gate instead (scripts/check-batch.ps1).
+    $gateRules = @"
+Do NOT run Gradle, gradlew, or any build or test command. The lead runs all tests later in one batch.
+Write the code and the unit tests that the card asks for. Check your code carefully by reading it, because you cannot compile it.
+In the handoff, write each 'Done when' command as '<command> -> not run (lead batch gate)'.
+"@
+} else {
+    $gateRules = @"
+Run every 'Done when' command. Continue until all pass, or until you are blocked.
+Always add --no-daemon to Gradle commands (a daemon started in the sandbox breaks later builds outside it).
+"@
+}
 $prompt = @"
 You are a build agent on the Witgrid project.
 Do task $Task from docs/TASKS.md, and only that task.
 Read AGENTS.md first and obey it. Then read the plan sections that the task card names.
 Change only the files in the card's Owns line.
-Run every 'Done when' command. Continue until all pass, or until you are blocked.
-Always add --no-daemon to Gradle commands (a daemon started in the sandbox breaks later builds outside it).
+$gateRules
 Commit on the current branch with the message '${Task}: <summary>'.
 End with the handoff note from AGENTS.md section 7.
 $Extra
