@@ -50,6 +50,12 @@ class SkyscrapersTechniqueSolverTest {
         assertOneSentence(firstHbStep)
         assertTrue(stepsHb.any { it.technique == SkyscrapersTechniques.HEIGHT_BOUNDS })
         assertTrue(stepsHb.any { it.technique == SkyscrapersTechniques.HIDDEN_SINGLE })
+        assertTrue(stepsHb.any {
+            val explanation = it.explanation.lowercase()
+            "checking the " in explanation &&
+                Regex("""clue \d on (row|column) \d""").containsMatchIn(explanation) &&
+                Regex("""rules out \d(?: or \d)* at r\dc\d""").containsMatchIn(explanation)
+        }, "Permutation hints should name the clues and the heights eliminated at each cell")
 
         val gradeHb = SkyscrapersTechniqueSolver.grade(hbPuzzle)
         assertEquals(Pack.EASY, gradeHb.pack)
@@ -99,6 +105,7 @@ class SkyscrapersTechniqueSolverTest {
     fun rejectsAUniquePuzzleThatIsStuckWithTheSupportedTechniques() {
         val stuck = stuckPuzzle4()
 
+        assertTrue(SkyscrapersRules.isValidSolution(stuck))
         assertEquals(1, SkyscrapersRules.countSolutions(stuck))
         val initialState = SkyscrapersState.initial(stuck)
 
@@ -112,13 +119,14 @@ class SkyscrapersTechniqueSolverTest {
         assertNull(SkyscrapersTechniqueSolver.nextStep(stuck, state))
 
         // Grade must reject a unique puzzle that techniques cannot finish
-        assertThrows(IllegalArgumentException::class.java) {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
             SkyscrapersTechniqueSolver.grade(stuck)
         }
+        assertEquals("Skyscrapers puzzle is stuck with the supported techniques", exception.message)
     }
 
     @Test
-    fun gradeRequiresExactlyOneSolutionAndAMatchingTechniqueBand() {
+    fun gradeRequiresExactlyOneSolutionAndUsesSizeBasedBands() {
         // Zero solutions: contradictory clues
         val zeroSolutions = puzzle4(
             topClues = listOf(1, null, null, null),
@@ -141,20 +149,9 @@ class SkyscrapersTechniqueSolverTest {
             SkyscrapersTechniqueSolver.grade(unconstrained)
         }
 
-        // Mismatched pack
-        val mismatchedPack = SkyscrapersPuzzle(
-            id = "SK-MISMATCHED-PACK",
-            size = 4,
-            topClues = listOf(4, 3, 2, 1),
-            bottomClues = listOf(1, 2, 2, 2),
-            leftClues = listOf(4, 3, 2, 1),
-            rightClues = listOf(1, 2, 2, 2),
-            solution = solution4,
-            pack = Pack.EASY,
-            storedGrade = "pending",
-        )
-        assertTrue(SkyscrapersPackBands.isGradeInPackBand(Pack.EASY, Grade(SkyscrapersTechniques.NAKED_SINGLE, 1, Pack.EASY)))
-        assertFalse(SkyscrapersPackBands.isGradeInPackBand(Pack.MEDIUM, Grade(SkyscrapersTechniques.NAKED_SINGLE, 1, Pack.EASY)))
+        val easyGrade = SkyscrapersTechniqueSolver.grade(heightBoundsPuzzle4())
+        assertTrue(SkyscrapersPackBands.isGradeInPackBand(Pack.EASY, easyGrade))
+        assertFalse(SkyscrapersPackBands.isGradeInPackBand(Pack.MEDIUM, easyGrade))
 
         // Mismatched givens
         val badGivens = puzzle4(givens = List(16) { if (it == 0) 4 else null }) // solution4[0] is 1
@@ -265,7 +262,7 @@ class SkyscrapersTechniqueSolverTest {
                 else -> null
             }
         },
-        solution = solution4,
+        solution = listOf("1342", "2431", "3214", "4123").flatMap { row -> row.map(Char::digitToInt) },
         pack = Pack.EASY,
         storedGrade = "pending",
     )

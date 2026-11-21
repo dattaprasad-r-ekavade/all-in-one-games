@@ -111,210 +111,143 @@ object SkyscrapersRules {
         require(limit > 0) { "Solution limit must be positive" }
         val size = puzzle.size
 
-        // Quick clue impossibility checks
-        for (c in 0 until size) {
-            val t = puzzle.topClues[c]
-            val b = puzzle.bottomClues[c]
-            if (t != null && b != null && (t + b > size + 1 || (t == 1 && b == 1 && size > 1))) return 0
+        val permutations = linePermutations.getValue(size)
+        val lines = Array(2 * size) { line ->
+            if (line < size) {
+                permutations[clueIndex(puzzle.leftClues[line], puzzle.rightClues[line])]
+            } else {
+                val column = line - size
+                permutations[clueIndex(puzzle.topClues[column], puzzle.bottomClues[column])]
+            }
         }
-        for (r in 0 until size) {
-            val l = puzzle.leftClues[r]
-            val right = puzzle.rightClues[r]
-            if (l != null && right != null && (l + right > size + 1 || (l == 1 && right == 1 && size > 1))) return 0
+        if (lines.any { it.isEmpty() }) return 0
+
+        val allHeights = (1 shl size) - 1
+        val initialHeights = IntArray(puzzle.grid.cellCount) { cell ->
+            puzzle.givens[cell]?.let { 1 shl (it - 1) } ?: allHeights
         }
-
-        // Check given conflicts in rows and columns
-        val rowGivenMask = IntArray(size)
-        val colGivenMask = IntArray(size)
-        for (index in puzzle.givens.indices) {
-            val given = puzzle.givens[index] ?: continue
-            val r = index / size
-            val c = index % size
-            val bit = 1 shl (given - 1)
-            if (rowGivenMask[r] and bit != 0 || colGivenMask[c] and bit != 0) return 0
-            rowGivenMask[r] = rowGivenMask[r] or bit
-            colGivenMask[c] = colGivenMask[c] or bit
-        }
-
-        val allPerms = PERMUTATIONS_BY_SIZE.getValue(size)
-
-        // Filter valid permutations per row
-        val rowCandidates = Array(size) { row ->
-            val leftClue = puzzle.leftClues[row]
-            val rightClue = puzzle.rightClues[row]
-            allPerms.filter { perm ->
-                var matchesGivens = true
-                for (col in 0 until size) {
-                    val given = puzzle.givens[row * size + col]
-                    if (given != null && perm[col] != given) {
-                        matchesGivens = false
-                        break
-                    }
-                }
-                if (!matchesGivens) return@filter false
-
-                if (leftClue != null && countVisibleIntArray(perm) != leftClue) return@filter false
-                if (rightClue != null && countVisibleReversedIntArray(perm) != rightClue) return@filter false
-
-                true
+        val lineCells = Array(2 * size) { line ->
+            IntArray(size) { position ->
+                if (line < size) line * size + position else position * size + line - size
             }
         }
 
-        if (rowCandidates.any { it.isEmpty() }) return 0
+        // Each permutation and candidate set uses one byte of height bits per position.
+        // Propagating supports across perpendicular lines prunes both edge clues on partial boards.
+        fun propagate(heights: IntArray, changedLines: Int): Boolean {
+            var pendingLines = changedLines
+            while (pendingLines != 0) {
+                val line = Integer.numberOfTrailingZeros(pendingLines)
+                pendingLines = pendingLines and (pendingLines - 1)
+                val cells = lineCells[line]
+                var allowed = 0L
+                for (position in cells.indices) {
+                    allowed = allowed or (heights[cells[position]].toLong() shl (8 * position))
+                }
 
-        val colMask = IntArray(size)
-        val colMax = IntArray(size)
-        val colVisible = IntArray(size)
-        val grid = Array(size) { IntArray(size) }
+                var supported = 0L
+                for (permutation in lines[line]) {
+                    if (permutation and allowed == permutation) {
+                        supported = supported or permutation
+                        if (supported == allowed) break
+                    }
+                }
+                if (supported == 0L) return false
+                if (supported == allowed) continue
+
+                for (position in cells.indices) {
+                    val cell = cells[position]
+                    val narrowed = (supported ushr (8 * position)).toInt() and allHeights
+                    if (narrowed == heights[cell]) continue
+                    heights[cell] = narrowed
+                    val perpendicular = if (line < size) size + position else position
+                    pendingLines = pendingLines or (1 shl perpendicular)
+                }
+            }
+            return true
+        }
+
         var solutionCount = 0
+        fun search(heights: IntArray, changedLines: Int) {
+            if (!propagate(heights, changedLines)) return
 
-        fun search(row: Int) {
-            if (solutionCount >= limit) return
-            if (row == size) {
+            var branchCell = -1
+            var fewestHeights = size + 1
+            for (cell in heights.indices) {
+                val count = Integer.bitCount(heights[cell])
+                if (count in 2 until fewestHeights) {
+                    branchCell = cell
+                    fewestHeights = count
+                    if (count == 2) break
+                }
+            }
+            if (branchCell == -1) {
                 solutionCount++
                 return
             }
 
-            val candidates = rowCandidates[row]
-            for (perm in candidates) {
-                var collision = false
-                for (c in 0 until size) {
-                    val bit = 1 shl (perm[c] - 1)
-                    if (colMask[c] and bit != 0) {
-                        collision = true
-                        break
-                    }
-                }
-                if (collision) continue
-
-                // Verify top and bottom clues constraints along columns
-                var columnCompatible = true
-                val prevMax = IntArray(size)
-                val prevVis = IntArray(size)
-                for (c in 0 until size) {
-                    val height = perm[c]
-                    prevMax[c] = colMax[c]
-                    prevVis[c] = colVisible[c]
-                    val newMax = if (height > colMax[c]) height else colMax[c]
-                    val newVis = if (height > colMax[c]) colVisible[c] + 1 else colVisible[c]
-
-                    val topClue = puzzle.topClues[c]
-                    if (topClue != null) {
-                        if (newVis > topClue) {
-                            columnCompatible = false
-                            break
-                        }
-                        val remainingRows = size - 1 - row
-                        val maxPossibleAdd = if (size - newMax < remainingRows) size - newMax else remainingRows
-                        if (newVis + maxPossibleAdd < topClue) {
-                            columnCompatible = false
-                            break
-                        }
-                        if (row == size - 1 && newVis != topClue) {
-                            columnCompatible = false
-                            break
-                        }
-                    }
-
-                    if (row == size - 1) {
-                        val bottomClue = puzzle.bottomClues[c]
-                        if (bottomClue != null) {
-                            var bVis = 1
-                            var bMax = height
-                            for (r in size - 2 downTo 0) {
-                                val valAbove = grid[r][c]
-                                if (valAbove > bMax) {
-                                    bVis++
-                                    bMax = valAbove
-                                }
-                            }
-                            if (bVis != bottomClue) {
-                                columnCompatible = false
-                                break
-                            }
-                        }
-                    }
-                }
-                if (!columnCompatible) continue
-
-                // Apply row
-                for (c in 0 until size) {
-                    val height = perm[c]
-                    val bit = 1 shl (height - 1)
-                    colMask[c] = colMask[c] or bit
-                    colMax[c] = if (height > colMax[c]) height else colMax[c]
-                    colVisible[c] = if (height > prevMax[c]) prevVis[c] + 1 else prevVis[c]
-                    grid[row][c] = height
-                }
-
-                search(row + 1)
-
-                // Backtrack
-                for (c in 0 until size) {
-                    val height = perm[c]
-                    val bit = 1 shl (height - 1)
-                    colMask[c] = colMask[c] and bit.inv()
-                    colMax[c] = prevMax[c]
-                    colVisible[c] = prevVis[c]
-                }
-
-                if (solutionCount >= limit) return
+            val affectedLines = (1 shl (branchCell / size)) or (1 shl (size + branchCell % size))
+            var choices = heights[branchCell]
+            while (choices != 0 && solutionCount < limit) {
+                val branch = heights.copyOf()
+                branch[branchCell] = Integer.lowestOneBit(choices)
+                choices = choices and (choices - 1)
+                search(branch, affectedLines)
             }
         }
 
-        search(0)
+        search(initialHeights, (1 shl lines.size) - 1)
         return solutionCount
     }
 
-    private fun countVisibleIntArray(heights: IntArray): Int {
-        var visibleCount = 0
-        var maxHeight = 0
-        for (height in heights) {
-            if (height > maxHeight) {
-                visibleCount++
-                maxHeight = height
-            }
-        }
-        return visibleCount
+    private const val CLUE_SLOTS = 8
+
+    private fun clueIndex(front: Int?, back: Int?): Int =
+        (front ?: 0) * CLUE_SLOTS + (back ?: 0)
+
+    private val linePermutations: Map<Int, Array<LongArray>> by lazy {
+        SKYSCRAPERS_SUPPORTED_SIZES.associateWith(::buildLinePermutations)
     }
 
-    private fun countVisibleReversedIntArray(heights: IntArray): Int {
-        var visibleCount = 0
-        var maxHeight = 0
-        for (i in heights.indices.reversed()) {
-            val height = heights[i]
-            if (height > maxHeight) {
-                visibleCount++
-                maxHeight = height
-            }
-        }
-        return visibleCount
-    }
+    private fun buildLinePermutations(size: Int): Array<LongArray> {
+        val groups = Array(CLUE_SLOTS * CLUE_SLOTS) { ArrayList<Long>() }
+        val line = IntArray(size)
+        val allHeights = (1 shl size) - 1
 
-    private val PERMUTATIONS_BY_SIZE: Map<Int, List<IntArray>> =
-        SKYSCRAPERS_SUPPORTED_SIZES.associateWith { buildPermutations(it) }
-
-    private fun buildPermutations(n: Int): List<IntArray> {
-        val results = ArrayList<IntArray>()
-        val current = IntArray(n)
-        val used = BooleanArray(n + 1)
-
-        fun backtrack(index: Int) {
-            if (index == n) {
-                results.add(current.clone())
-                return
-            }
-            for (v in 1..n) {
-                if (!used[v]) {
-                    used[v] = true
-                    current[index] = v
-                    backtrack(index + 1)
-                    used[v] = false
+        fun visibleFrom(indices: IntProgression): Int {
+            var tallest = 0
+            var visible = 0
+            for (index in indices) {
+                val height = line[index]
+                if (height > tallest) {
+                    tallest = height
+                    visible++
                 }
             }
+            return visible
         }
 
-        backtrack(0)
-        return results
+        fun addPermutations(length: Int, used: Int, permutation: Long) {
+            if (length == size) {
+                val front = visibleFrom(line.indices)
+                val back = visibleFrom(line.indices.reversed())
+                groups[clueIndex(front, back)].add(permutation)
+                groups[clueIndex(front, null)].add(permutation)
+                groups[clueIndex(null, back)].add(permutation)
+                groups[clueIndex(null, null)].add(permutation)
+                return
+            }
+
+            var remaining = allHeights and used.inv()
+            while (remaining != 0) {
+                val bit = Integer.lowestOneBit(remaining)
+                line[length] = Integer.numberOfTrailingZeros(bit) + 1
+                addPermutations(length + 1, used or bit, permutation or (bit.toLong() shl (8 * length)))
+                remaining = remaining and (remaining - 1)
+            }
+        }
+
+        addPermutations(0, 0, 0L)
+        return Array(groups.size) { groups[it].toLongArray() }
     }
 }

@@ -35,11 +35,11 @@ object SkyscrapersEngine : GameEngine<SkyscrapersPuzzle, SkyscrapersState> {
     override fun grade(puzzle: SkyscrapersPuzzle): Grade =
         SkyscrapersTechniqueSolver.grade(puzzle)
 
-    override fun generate(rng: SplitMix64, pack: Pack): SkyscrapersPuzzle = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): SkyscrapersPuzzle =
+        SkyscrapersGenerator.generate(rng, pack)
 
     override fun encodeState(state: SkyscrapersState): ByteArray = SkyscrapersStateCodec.encode(state)
 
     override fun decodeState(bytes: ByteArray): SkyscrapersState = SkyscrapersStateCodec.decode(bytes)
 
-    private fun unavailable(): Nothing = throw NotImplementedError("Skyscrapers x3")
 }

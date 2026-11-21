@@ -112,7 +112,7 @@ class SkyscrapersPuzzle(
 /** Board sizes supported by the four Skyscrapers packs (Easy 4x4, Medium 5x5, Hard 6x6, Expert 7x7). */
 internal val SKYSCRAPERS_SUPPORTED_SIZES: Set<Int> = setOf(4, 5, 6, 7)
 
-/** Maps the plan's Skyscrapers board sizes to their difficulty packs. */
+/** The plan defines bands by board size; every supported technique is allowed in each band. */
 object SkyscrapersPackBands {
     /** Returns the pack for a supported Skyscrapers board size. */
     fun packForSize(size: Int): Pack = when (size) {
@@ -131,7 +131,7 @@ object SkyscrapersPackBands {
         Pack.EXPERT -> 7
     }
 
-    /** Returns whether [grade] matches the difficulty pack band. */
+    /** Compares a grade's size-derived pack with the requested band. */
     fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean =
         grade.pack == pack
 }

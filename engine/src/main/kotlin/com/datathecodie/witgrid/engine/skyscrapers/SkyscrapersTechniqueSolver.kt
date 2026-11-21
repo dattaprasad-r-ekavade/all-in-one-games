@@ -98,11 +98,15 @@ object SkyscrapersTechniqueSolver {
 
     /** Solves from the givens and returns the hardest technique and number of hint steps. */
     fun grade(puzzle: SkyscrapersPuzzle): Grade {
-        val grade = gradeByTechniques(puzzle)
-        require(SkyscrapersPackBands.isGradeInPackBand(puzzle.pack, grade)) {
-            "Skyscrapers grade does not fit the ${puzzle.pack} technique band"
+        require(SkyscrapersRules.isValidSolution(puzzle)) {
+            "Skyscrapers grading requires a valid stored solution"
         }
-        return grade
+        require(SkyscrapersRules.countSolutions(puzzle, limit = 2) == 1) {
+            "Skyscrapers grading requires exactly one solution"
+        }
+        return requireNotNull(gradeUniquePuzzleOrNull(puzzle)) {
+            "Skyscrapers puzzle is stuck with the supported techniques"
+        }
     }
 
     /** Solves using hints until the puzzle is solved, returning the solved state and ordered steps. */
@@ -124,29 +128,14 @@ object SkyscrapersTechniqueSolver {
         return state to steps
     }
 
-    /** Computes a technique grade without enforcing the pack band, for generator filtering. */
-    internal fun gradeByTechniques(puzzle: SkyscrapersPuzzle): Grade {
-        require(SkyscrapersRules.isValidSolution(puzzle)) {
-            "Skyscrapers grading requires a valid stored solution"
-        }
-        require(puzzle.givens.indices.all { index ->
-            puzzle.givens[index] == null || puzzle.givens[index] == puzzle.solution[index]
-        }) { "Skyscrapers givens must agree with the stored solution" }
-        require(puzzle.pack == SkyscrapersPackBands.packForSize(puzzle.size)) {
-            "Skyscrapers pack must match its board size"
-        }
-        require(SkyscrapersRules.countSolutions(puzzle, limit = 2) == 1) {
-            "Skyscrapers grading requires exactly one solution"
-        }
-
+    /** Grades a puzzle whose stored solution and uniqueness have already been verified. */
+    internal fun gradeUniquePuzzleOrNull(puzzle: SkyscrapersPuzzle): Grade? {
         var state = SkyscrapersState.initial(puzzle)
         var stepCount = 0
         var hardestTechnique: Technique? = null
         val visited = hashSetOf(state)
         while (!SkyscrapersRules.isSolved(puzzle, state)) {
-            val step = requireNotNull(nextStep(puzzle, state)) {
-                "Skyscrapers puzzle is stuck with the supported techniques"
-            }
+            val step = nextStep(puzzle, state) ?: return null
             val nextState = step.moves.fold(state, SkyscrapersState::withMove)
             require(nextState != state && visited.add(nextState)) {
                 "Skyscrapers hint sequence did not make unique progress"
@@ -157,7 +146,7 @@ object SkyscrapersTechniqueSolver {
                 hardestTechnique = step.technique
             }
         }
-        return Grade(hardestTechnique, stepCount, puzzle.pack)
+        return Grade(hardestTechnique, stepCount, SkyscrapersPackBands.packForSize(puzzle.size))
     }
 
     private fun findEdgeClueStep(puzzle: SkyscrapersPuzzle, state: SkyscrapersState): HintStep? {
@@ -483,7 +472,9 @@ object SkyscrapersTechniqueSolver {
                 return CandidateElimination(
                     removals = removals,
                     evidence = (0 until size).map { r * size + it },
-                    reason = "outside clues on row ${r + 1} eliminate impossible building heights",
+                    reason = permutationReason(
+                        removals, size, "row ${r + 1}", "left", leftClue, "right", rightClue,
+                    ),
                 )
             }
         }
@@ -533,12 +524,34 @@ object SkyscrapersTechniqueSolver {
                 return CandidateElimination(
                     removals = removals,
                     evidence = (0 until size).map { it * size + c },
-                    reason = "outside clues on column ${c + 1} eliminate impossible building heights",
+                    reason = permutationReason(
+                        removals, size, "column ${c + 1}", "top", topClue, "bottom", bottomClue,
+                    ),
                 )
             }
         }
 
         return null
+    }
+
+    private fun permutationReason(
+        removals: Map<Int, Int>,
+        size: Int,
+        line: String,
+        firstEdge: String,
+        firstClue: Int?,
+        secondEdge: String,
+        secondClue: Int?,
+    ): String {
+        val clues = listOfNotNull(
+            firstClue?.let { "the $firstEdge clue $it" },
+            secondClue?.let { "the $secondEdge clue $it" },
+        ).joinToString(" and ")
+        val ruledOut = removals.entries.joinToString(", ") { (cell, mask) ->
+            val heights = (1..size).filter { mask and (1 shl (it - 1)) != 0 }
+            "${heights.joinToString(" or ")} at ${cellName(cell, size)}"
+        }
+        return "checking $clues on $line against the remaining candidates rules out $ruledOut"
     }
 
     private fun units(size: Int): List<SkyscrapersUnit> = buildList(2 * size) {

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import java.util.Collections
 
 class SkyscrapersRulesTest {
@@ -133,6 +134,25 @@ class SkyscrapersRulesTest {
 
         val unique7 = puzzle7()
         assertEquals(1, SkyscrapersRules.countSolutions(unique7, limit = 2))
+    }
+
+    @Test
+    @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    fun countSolutionsPrunesPartialColumnsWithOnlyABottomClue() {
+        val puzzle = SkyscrapersPuzzle(
+            id = "SK-BOTTOM-ONLY",
+            size = 7,
+            topClues = List(7) { null },
+            bottomClues = listOf(7, null, null, null, null, null, null),
+            leftClues = List(7) { null },
+            rightClues = List(7) { null },
+            solution = solution7.chunked(7).asReversed().flatten(),
+            pack = Pack.EXPERT,
+            storedGrade = "pending",
+        )
+
+        assertTrue(SkyscrapersRules.isValidSolution(puzzle))
+        assertEquals(2, SkyscrapersRules.countSolutions(puzzle, limit = 2))
     }
 
     @Test
@@ -275,9 +295,7 @@ class SkyscrapersRulesTest {
 
         assertEquals(SkyscrapersTechniqueSolver.nextStep(decoded, state), SkyscrapersEngine.nextStep(decoded, state))
         assertEquals(SkyscrapersTechniqueSolver.grade(decoded), SkyscrapersEngine.grade(decoded))
-        assertThrows(NotImplementedError::class.java) {
-            SkyscrapersEngine.generate(SplitMix64(1L), Pack.EASY)
-        }
+        assertEquals(Pack.EASY, SkyscrapersEngine.generate(SplitMix64(1L), Pack.EASY).pack)
     }
 
     private fun puzzle4(
