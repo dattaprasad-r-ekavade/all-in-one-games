@@ -44,10 +44,10 @@ foreach ($task in $Tasks) {
 
 Push-Location $wt
 try {
-    # One run, so the Gradle daemon is allowed here; it makes later batch runs faster.
+    # No daemon: a daemon keeps the caller's output pipe open, so a background caller never sees the end.
     # PowerShell 5.1 turns redirected stderr lines into errors, so 'Stop' would end the script on a warning.
     $ErrorActionPreference = 'Continue'
-    $output = & .\gradlew.bat check 2>&1
+    $output = & .\gradlew.bat check --no-daemon 2>&1
     $exit = $LASTEXITCODE
 } finally {
     Pop-Location
