@@ -1,6 +1,7 @@
 package com.datathecodie.witgrid.engine.futoshiki
 
 import com.datathecodie.witgrid.engine.core.Cell
+import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.Grid
 import com.datathecodie.witgrid.engine.core.Pack
 import java.util.ArrayList
@@ -152,6 +153,22 @@ object FutoshikiPackBands {
         Pack.EASY -> 5
         Pack.MEDIUM -> 6
         Pack.HARD, Pack.EXPERT -> 7
+    }
+
+    /**
+     * Returns whether [grade] uses the technique level assigned to [pack].
+     * Easy uses techniques up to sign bounds; Medium up to sign chains;
+     * Hard requires sign chains; Expert requires naked pairs.
+     */
+    fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean {
+        if (grade.pack != pack || grade.stepCount == 0) return false
+        val hardestRank = grade.hardestTechnique?.difficultyRank ?: return false
+        return when (pack) {
+            Pack.EASY -> hardestRank <= FutoshikiTechniques.SIGN_BOUNDS.difficultyRank
+            Pack.MEDIUM -> hardestRank <= FutoshikiTechniques.SIGN_CHAINS.difficultyRank
+            Pack.HARD -> hardestRank == FutoshikiTechniques.SIGN_CHAINS.difficultyRank
+            Pack.EXPERT -> hardestRank == FutoshikiTechniques.NAKED_PAIR.difficultyRank
+        }
     }
 }
 

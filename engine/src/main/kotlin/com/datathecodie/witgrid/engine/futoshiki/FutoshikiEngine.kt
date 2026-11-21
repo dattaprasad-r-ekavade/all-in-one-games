@@ -30,10 +30,10 @@ object FutoshikiEngine : GameEngine<FutoshikiPuzzle, FutoshikiState> {
         FutoshikiRules.countSolutions(puzzle, limit)
 
     override fun nextStep(puzzle: FutoshikiPuzzle, state: FutoshikiState): HintStep? =
-        throw NotImplementedError("futoshiki")
+        FutoshikiTechniqueSolver.nextStep(puzzle, state)
 
     override fun grade(puzzle: FutoshikiPuzzle): Grade =
-        throw NotImplementedError("futoshiki")
+        FutoshikiTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): FutoshikiPuzzle =
         throw NotImplementedError("futoshiki")
