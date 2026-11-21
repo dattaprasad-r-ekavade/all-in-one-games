@@ -104,7 +104,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
-| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 review, CT2 review, CT3 active (Gemini) |
+| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 review, CT2 review, CT3 review |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
@@ -112,7 +112,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
-| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 review, FU2 review, FU3 active (Gemini) |
+| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 review, FU2 review, FU3 review |
 | FUA | Futoshiki board | M | Codex | Claude | A4, FU2 | todo |
 | FUB | Futoshiki bank | L | Claude | Codex | FU3, B6 | todo |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
