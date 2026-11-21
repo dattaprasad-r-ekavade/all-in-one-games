@@ -182,14 +182,14 @@ object MosaicRules {
         val initialStep = ArrayList<Int>()
         for (clueCell in clueCells) {
             val target = targetSum[clueCell]
-            val rem = unassignedCount[clueCell]
+            val totalArea = areaByCell[clueCell].size
             if (target == 0) {
                 for (neighbour in areaByCell[clueCell]) {
                     if (values[neighbour] == -1) {
                         if (!assign(neighbour, 0, initialStep)) return 0
                     }
                 }
-            } else if (target == rem) {
+            } else if (target == totalArea) {
                 for (neighbour in areaByCell[clueCell]) {
                     if (values[neighbour] == -1) {
                         if (!assign(neighbour, 1, initialStep)) return 0
