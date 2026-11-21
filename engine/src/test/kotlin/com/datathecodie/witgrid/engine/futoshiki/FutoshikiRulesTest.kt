@@ -275,9 +275,6 @@ class FutoshikiRulesTest {
         assertEquals(listOf(Cell(0)), FutoshikiEngine.mistakes(decoded, state))
         assertFalse(FutoshikiEngine.isSolved(decoded, state))
 
-        // Unimplemented methods throw NotImplementedError
-        assertThrows(NotImplementedError::class.java) {
-            FutoshikiEngine.generate(SplitMix64(1L), Pack.EASY)
-        }
+        assertEquals(Pack.EASY, FutoshikiEngine.generate(SplitMix64(1L), Pack.EASY).pack)
     }
 }

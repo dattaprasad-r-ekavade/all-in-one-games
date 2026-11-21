@@ -36,7 +36,7 @@ object FutoshikiEngine : GameEngine<FutoshikiPuzzle, FutoshikiState> {
         FutoshikiTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): FutoshikiPuzzle =
-        throw NotImplementedError("futoshiki")
+        FutoshikiGenerator.generate(rng, pack)
 
     override fun encodeState(state: FutoshikiState): ByteArray = FutoshikiStateCodec.encode(state)
 
