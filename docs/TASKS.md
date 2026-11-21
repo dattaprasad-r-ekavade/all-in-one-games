@@ -120,7 +120,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SKA | Skyscrapers board | M | Codex | Claude | A4, SK2 | todo |
 | SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
-| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 review, MO2 review, MO3 active (Gemini) |
+| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 review, MO2 review, MO3 review |
 | MOA | Mosaic board | M | Codex | Claude | A4, MO2 | todo |
 | MOB | Mosaic bank | L | Claude | Codex | MO3, B6 | todo |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
