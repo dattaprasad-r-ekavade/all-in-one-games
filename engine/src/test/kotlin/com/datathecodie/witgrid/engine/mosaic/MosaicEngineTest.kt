@@ -78,7 +78,7 @@ class MosaicEngineTest {
     }
 
     @Test
-    fun generatorThrowsNotImplementedErrorAndSolverDelegates() {
+    fun generatorDelegatesAndSolverDelegates() {
         val state = MosaicEngine.initialState(puzzle)
         val rng = SplitMix64(42L)
 
@@ -88,9 +88,9 @@ class MosaicEngineTest {
             MosaicEngine.grade(puzzle)
         }
 
-        val generateError = assertThrows(NotImplementedError::class.java) {
-            MosaicEngine.generate(rng, Pack.EASY)
-        }
-        assertEquals("MO", generateError.message)
+        val generated = MosaicEngine.generate(rng, Pack.EASY)
+        assertEquals(8, generated.size)
+        assertEquals(Pack.EASY, generated.pack)
+        assertEquals(1, MosaicRules.countSolutions(generated, limit = 2))
     }
 }

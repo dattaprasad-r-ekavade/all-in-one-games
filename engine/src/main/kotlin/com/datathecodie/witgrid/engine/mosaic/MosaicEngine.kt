@@ -35,11 +35,10 @@ object MosaicEngine : GameEngine<MosaicPuzzle, MosaicState> {
     override fun grade(puzzle: MosaicPuzzle): Grade =
         MosaicTechniqueSolver.grade(puzzle)
 
-    override fun generate(rng: SplitMix64, pack: Pack): MosaicPuzzle = unavailable()
+    override fun generate(rng: SplitMix64, pack: Pack): MosaicPuzzle =
+        MosaicGenerator.generate(rng, pack)
 
     override fun encodeState(state: MosaicState): ByteArray = MosaicStateCodec.encode(state)
 
     override fun decodeState(bytes: ByteArray): MosaicState = MosaicStateCodec.decode(bytes)
-
-    private fun unavailable(): Nothing = throw NotImplementedError("MO")
 }
