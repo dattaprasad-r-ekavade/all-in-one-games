@@ -59,6 +59,66 @@ object FutoshikiGenerator {
                             }
                         }
                         is RemovableItem.HorizontalSign -> {
+                            if (pack == Pack.HARD && currentSignCount(mutableHorizontalSigns, mutableVerticalSigns) <= FutoshikiPackBands.MIN_HARD_SIGNS) {
+                                continue
+                            }
+                            val previous = mutableHorizontalSigns[item.index]
+                            mutableHorizontalSigns[item.index] = FutoshikiSign.NONE
+                            val grade = tryGrade(
+                                size = size,
+                                givens = givens,
+                                horizontalSigns = mutableHorizontalSigns,
+                                verticalSigns = mutableVerticalSigns,
+                                solution = solution,
+                                pack = pack,
+                            )
+                            if (grade == null || (grade.hardestTechnique?.difficultyRank ?: -1) > targetRank) {
+                                mutableHorizontalSigns[item.index] = previous
+                            } else {
+                                lastGrade = grade
+                            }
+                        }
+                        is RemovableItem.VerticalSign -> {
+                            if (pack == Pack.HARD && currentSignCount(mutableHorizontalSigns, mutableVerticalSigns) <= FutoshikiPackBands.MIN_HARD_SIGNS) {
+                                continue
+                            }
+                            val previous = mutableVerticalSigns[item.index]
+                            mutableVerticalSigns[item.index] = FutoshikiSign.NONE
+                            val grade = tryGrade(
+                                size = size,
+                                givens = givens,
+                                horizontalSigns = mutableHorizontalSigns,
+                                verticalSigns = mutableVerticalSigns,
+                                solution = solution,
+                                pack = pack,
+                            )
+                            if (grade == null || (grade.hardestTechnique?.difficultyRank ?: -1) > targetRank) {
+                                mutableVerticalSigns[item.index] = previous
+                            } else {
+                                lastGrade = grade
+                            }
+                        }
+                    }
+                }
+            }
+
+            // In Expert, perform a targeted pass to prune remaining signs down to fewer signs (plan §12.8)
+            if (pack == Pack.EXPERT) {
+                val remainingSigns = mutableListOf<RemovableItem>()
+                for (index in mutableHorizontalSigns.indices) {
+                    if (mutableHorizontalSigns[index] != FutoshikiSign.NONE) {
+                        remainingSigns.add(RemovableItem.HorizontalSign(index))
+                    }
+                }
+                for (index in mutableVerticalSigns.indices) {
+                    if (mutableVerticalSigns[index] != FutoshikiSign.NONE) {
+                        remainingSigns.add(RemovableItem.VerticalSign(index))
+                    }
+                }
+                shuffle(remainingSigns, rng)
+                for (item in remainingSigns) {
+                    when (item) {
+                        is RemovableItem.HorizontalSign -> {
                             val previous = mutableHorizontalSigns[item.index]
                             mutableHorizontalSigns[item.index] = FutoshikiSign.NONE
                             val grade = tryGrade(
@@ -92,12 +152,17 @@ object FutoshikiGenerator {
                                 lastGrade = grade
                             }
                         }
+                        is RemovableItem.Given -> {}
                     }
                 }
             }
 
             val grade = lastGrade ?: return@repeat
             if (!FutoshikiPackBands.isGradeInPackBand(pack, grade)) {
+                return@repeat
+            }
+            val signCount = currentSignCount(mutableHorizontalSigns, mutableVerticalSigns)
+            if (!FutoshikiPackBands.isSignCountInPackBand(pack, signCount)) {
                 return@repeat
             }
 
@@ -227,6 +292,12 @@ object FutoshikiGenerator {
             values[other] = value
         }
     }
+
+    private fun currentSignCount(
+        horizontalSigns: List<FutoshikiSign>,
+        verticalSigns: List<FutoshikiSign>,
+    ): Int = horizontalSigns.count { it != FutoshikiSign.NONE } +
+        verticalSigns.count { it != FutoshikiSign.NONE }
 
     private sealed class RemovableItem {
         data class Given(val index: Int) : RemovableItem()

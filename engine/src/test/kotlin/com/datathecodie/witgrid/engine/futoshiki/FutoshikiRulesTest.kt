@@ -35,7 +35,7 @@ class FutoshikiRulesTest {
         vSigns: List<FutoshikiSign> = verticalSigns,
         sol: List<Int> = solution,
         pack: Pack = Pack.EASY,
-        grade: String = "GRADE_A",
+        grade: String = "sign-bounds:1",
     ): FutoshikiPuzzle = FutoshikiPuzzle(
         id = id,
         size = size,
@@ -257,6 +257,41 @@ class FutoshikiRulesTest {
             it[2] = ("5" + parts[0].drop(1)) + "/" + parts[1] + "/" + parts[2]
         }.joinToString("|")
         assertThrows(IllegalArgumentException::class.java) { FutoshikiCodec.decode(mismatchedGiven) }
+
+        // Malformed grade metadata
+        val invalidGrade = fields.toMutableList().also { it[5] = "outside:1" }.joinToString("|")
+        assertThrows(IllegalArgumentException::class.java) { FutoshikiCodec.decode(invalidGrade) }
+    }
+
+    @Test
+    fun encoderRejectsMismatchedPackSizeAndMalformedGrade() {
+        val puzzle5x5Medium = FutoshikiPuzzle(
+            id = "FU-MISMATCH",
+            size = 5,
+            givens = solution.mapIndexed { index, digit -> if (index % 4 == 0) digit else null },
+            horizontalSigns = List(20) { FutoshikiSign.NONE },
+            verticalSigns = List(20) { FutoshikiSign.NONE },
+            solution = solution,
+            pack = Pack.MEDIUM,
+            storedGrade = "naked-single:1",
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            FutoshikiCodec.encode(puzzle5x5Medium)
+        }
+
+        val puzzleBadGrade = FutoshikiPuzzle(
+            id = "FU-BAD-GRADE",
+            size = 5,
+            givens = solution.mapIndexed { index, digit -> if (index % 4 == 0) digit else null },
+            horizontalSigns = List(20) { FutoshikiSign.NONE },
+            verticalSigns = List(20) { FutoshikiSign.NONE },
+            solution = solution,
+            pack = Pack.EASY,
+            storedGrade = "outside:1",
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            FutoshikiCodec.encode(puzzleBadGrade)
+        }
     }
 
     @Test

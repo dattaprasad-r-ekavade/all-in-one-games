@@ -1,5 +1,6 @@
 package com.datathecodie.witgrid.engine.futoshiki
 
+import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Move
@@ -57,9 +58,10 @@ class FutoshikiTechniqueSolverTest {
         val puzzle = stuckPuzzle()
 
         assertEquals(1, FutoshikiRules.countSolutions(puzzle))
-        assertThrows(IllegalArgumentException::class.java) {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
             FutoshikiTechniqueSolver.grade(puzzle)
         }
+        assertEquals("Futoshiki puzzle is stuck with the supported techniques", exception.message)
     }
 
     @Test
@@ -184,20 +186,26 @@ class FutoshikiTechniqueSolverTest {
         assertEquals(FutoshikiTechniques.NAKED_SINGLE, nakedStep!!.technique)
         assertOneSentence(nakedStep)
 
-        // Hidden single: digit only fits in one cell in a row
-        // In easySolution: row 0 is [1, 5, 2, 3, 4], row 1 is [5, 1, 3, 4, 2].
-        // Empty row 0 except 1, empty (1, 1). Digit 5 in row 0 can only go in (0, 1).
+        // Hidden single: digit only fits in one cell in a row, with no naked single anywhere
         val hiddenGivens = easySolution.toMutableList<Int?>().also {
-            it[1] = null // (0, 1) sol 5
-            it[2] = null // (0, 2) sol 2
-            it[3] = null // (0, 3) sol 3
-            it[4] = null // (0, 4) sol 4
+            it[1] = null // (0, 1) sol 5, candidates {2, 5}
+            it[2] = null // (0, 2) sol 2, candidates {2, 5}
+            it[3] = null // (0, 3) sol 3, candidates {2, 3, 5} -> hidden single for digit 3 in row 1
+            it[17] = null // (3, 2) sol 5, candidates {2, 5}
+            it[18] = null // (3, 3) sol 2, candidates {2, 5}
+            it[21] = null // (4, 1) sol 2, candidates {2, 5}
+            it[23] = null // (4, 3) sol 5, candidates {2, 5}
+        }
+        val hSigns = MutableList(20) { FutoshikiSign.NONE }.also {
+            it[1] = FutoshikiSign.GREATER // (0, 1) > (0, 2)
+            it[14] = FutoshikiSign.GREATER // (3, 2) > (3, 3)
+            it[18] = FutoshikiSign.LESS // (4, 2) < (4, 3)
         }
         val hiddenPuzzle = FutoshikiPuzzle(
             id = "FU-HIDDEN-TEST",
             size = 5,
             givens = hiddenGivens,
-            horizontalSigns = List(20) { FutoshikiSign.NONE },
+            horizontalSigns = hSigns,
             verticalSigns = List(20) { FutoshikiSign.NONE },
             solution = easySolution,
             pack = Pack.EASY,
@@ -206,7 +214,10 @@ class FutoshikiTechniqueSolverTest {
         val hiddenState = FutoshikiState.initial(hiddenPuzzle)
         val hiddenStep = FutoshikiTechniqueSolver.nextStep(hiddenPuzzle, hiddenState)
         assertTrue(hiddenStep != null)
-        assertOneSentence(hiddenStep!!)
+        assertEquals(FutoshikiTechniques.HIDDEN_SINGLE, hiddenStep!!.technique)
+        assertEquals(Cell(3), hiddenStep.moves.single().cell)
+        assertEquals(3, (hiddenStep.moves.single() as Move.SetDigit).digit)
+        assertOneSentence(hiddenStep)
     }
 
     private fun solveWithHints(puzzle: FutoshikiPuzzle): Pair<FutoshikiState, List<HintStep>> {

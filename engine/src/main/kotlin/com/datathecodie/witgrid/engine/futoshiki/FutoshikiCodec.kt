@@ -11,6 +11,7 @@ object FutoshikiCodec {
      */
     fun decode(line: String): FutoshikiPuzzle {
         val bankLine = BankLine.decode(line)
+        FutoshikiGradeCodec.validate(bankLine.grade)
         val size = bankLine.size
         require(size in FutoshikiPackBands.supportedSizes) { "Unsupported Futoshiki board size: $size" }
         require(FutoshikiPackBands.sizeForPack(bankLine.pack) == size) {
@@ -80,6 +81,13 @@ object FutoshikiCodec {
 
     /** Encodes a validated puzzle as a canonical shared bank line. */
     fun encode(puzzle: FutoshikiPuzzle): String {
+        require(puzzle.size in FutoshikiPackBands.supportedSizes) {
+            "Unsupported Futoshiki board size: ${puzzle.size}"
+        }
+        require(FutoshikiPackBands.sizeForPack(puzzle.pack) == puzzle.size) {
+            "Futoshiki pack must match its board size"
+        }
+        FutoshikiGradeCodec.validate(puzzle.storedGrade)
         require(FutoshikiRules.isValidSolution(puzzle)) {
             "Futoshiki stored solution violates the Latin square or inequality rules"
         }

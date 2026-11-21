@@ -39,10 +39,29 @@ class FutoshikiGeneratorTest {
 
                 val grade = FutoshikiTechniqueSolver.grade(puzzle)
                 assertTrue(FutoshikiPackBands.isGradeInPackBand(pack, grade))
+                val signCount = puzzle.horizontalSigns.count { it != FutoshikiSign.NONE } +
+                    puzzle.verticalSigns.count { it != FutoshikiSign.NONE }
+                assertTrue(
+                    FutoshikiPackBands.isSignCountInPackBand(pack, signCount),
+                    "$pack puzzle ${puzzle.id} has invalid sign count: $signCount",
+                )
                 assertEquals(FutoshikiGradeCodec.encode(grade), puzzle.storedGrade)
                 assertTrue(solveWithHints(puzzle))
             }
         }
+
+        val expertTotalSigns = requireNotNull(firstRun[Pack.EXPERT]).sumOf {
+            it.horizontalSigns.count { s -> s != FutoshikiSign.NONE } +
+                it.verticalSigns.count { s -> s != FutoshikiSign.NONE }
+        }
+        val hardTotalSigns = requireNotNull(firstRun[Pack.HARD]).sumOf {
+            it.horizontalSigns.count { s -> s != FutoshikiSign.NONE } +
+                it.verticalSigns.count { s -> s != FutoshikiSign.NONE }
+        }
+        assertTrue(
+            expertTotalSigns < hardTotalSigns,
+            "Expert generation must produce fewer signs than Hard (Expert: $expertTotalSigns, Hard: $hardTotalSigns)",
+        )
     }
 
     @Test

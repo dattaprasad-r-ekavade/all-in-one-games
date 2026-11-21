@@ -30,7 +30,7 @@ class FutoshikiStateCodecTest {
         verticalSigns = verticalSigns,
         solution = solution,
         pack = Pack.EASY,
-        storedGrade = "GRADE_A",
+        storedGrade = "sign-bounds:1",
     )
 
     @Test

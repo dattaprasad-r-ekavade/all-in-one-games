@@ -147,6 +147,9 @@ class FutoshikiPuzzle(
 
 /** Supported launch board sizes and pack mappings for Futoshiki. */
 object FutoshikiPackBands {
+    const val MIN_HARD_SIGNS = 10
+    const val MAX_EXPERT_SIGNS = 8
+
     val supportedSizes: Set<Int> = setOf(5, 6, 7)
 
     fun sizeForPack(pack: Pack): Int = when (pack) {
@@ -169,6 +172,16 @@ object FutoshikiPackBands {
             Pack.HARD -> hardestRank == FutoshikiTechniques.SIGN_CHAINS.difficultyRank
             Pack.EXPERT -> hardestRank == FutoshikiTechniques.NAKED_PAIR.difficultyRank
         }
+    }
+
+    /**
+     * Returns whether [signCount] satisfies the pack sign constraints.
+     * Plan §12.8 specifies "Hard 7x7, Expert 7x7 with fewer signs".
+     */
+    fun isSignCountInPackBand(pack: Pack, signCount: Int): Boolean = when (pack) {
+        Pack.EXPERT -> signCount <= MAX_EXPERT_SIGNS
+        Pack.HARD -> signCount >= MIN_HARD_SIGNS
+        else -> true
     }
 }
 
