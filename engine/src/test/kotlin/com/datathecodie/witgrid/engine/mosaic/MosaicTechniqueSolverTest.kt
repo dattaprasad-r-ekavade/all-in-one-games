@@ -37,7 +37,7 @@ class MosaicTechniqueSolverTest {
     fun emptyAreaTechniqueCrossesAllCellsInArea() {
         // 3x3 with clue 0 at center cell 4 (row 1, col 1); entire 3x3 must be crossed
         val clues = List(9) { if (it == 4) 0 else null }
-        val puzzle = MosaicPuzzle("MO-ZERO", 3, clues, List(9) { 0 }, Pack.EASY, "none:1")
+        val puzzle = MosaicPuzzle("MO-ZERO", 3, clues, List(9) { 0 }, Pack.EASY, "none:0")
         val state = MosaicState.initial(puzzle)
 
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
@@ -53,7 +53,7 @@ class MosaicTechniqueSolverTest {
         // 3x3 corner cell 0 has area size 4 (cells 0, 1, 3, 4) with clue 4
         val clues = List(9) { if (it == 0) 4 else null }
         val solution = listOf(1, 1, 0, 1, 1, 0, 0, 0, 0)
-        val puzzle = MosaicPuzzle("MO-FULL", 3, clues, solution, Pack.EASY, "none:1")
+        val puzzle = MosaicPuzzle("MO-FULL", 3, clues, solution, Pack.EASY, "none:0")
         val state = MosaicState.initial(puzzle)
 
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
@@ -70,7 +70,7 @@ class MosaicTechniqueSolverTest {
         // 3x3 corner cell 0 has area size 4 with clue 2. Cells 0 and 1 are already filled.
         val clues = List(9) { if (it == 0) 2 else null }
         val solution = listOf(1, 1, 0, 0, 0, 0, 0, 0, 0)
-        val puzzle = MosaicPuzzle("MO-REM-CROSS", 3, clues, solution, Pack.EASY, "none:1")
+        val puzzle = MosaicPuzzle("MO-REM-CROSS", 3, clues, solution, Pack.EASY, "none:0")
         val state = MosaicState.initial(puzzle)
             .withMove(Move.SetMark(Cell(0), Mark.FILLED))
             .withMove(Move.SetMark(Cell(1), Mark.FILLED))
@@ -88,7 +88,7 @@ class MosaicTechniqueSolverTest {
         // 3x3 corner cell 0 has area size 4 with clue 2. Cells 0 and 1 are already crossed.
         val clues = List(9) { if (it == 0) 2 else null }
         val solution = listOf(0, 0, 0, 1, 1, 0, 0, 0, 0)
-        val puzzle = MosaicPuzzle("MO-REM-FILL", 3, clues, solution, Pack.EASY, "none:1")
+        val puzzle = MosaicPuzzle("MO-REM-FILL", 3, clues, solution, Pack.EASY, "none:0")
         val state = MosaicState.initial(puzzle)
             .withMove(Move.SetMark(Cell(0), Mark.CROSSED))
             .withMove(Move.SetMark(Cell(1), Mark.CROSSED))
@@ -117,7 +117,7 @@ class MosaicTechniqueSolverTest {
             0, 0, 0,
             0, 0, 0,
         )
-        val puzzle = MosaicPuzzle("MO-SUB-CROSS", 3, clues, solution, Pack.EASY, "none:1")
+        val puzzle = MosaicPuzzle("MO-SUB-CROSS", 3, clues, solution, Pack.EASY, "none:0")
         val state = MosaicState.initial(puzzle)
 
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
@@ -125,6 +125,8 @@ class MosaicTechniqueSolverTest {
         assertEquals(listOf(Cell(2), Cell(5)), step.moves.map { it.cell })
         assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.CROSSED })
         assertValidOneSentenceExplanation(step.explanation)
+        assertTrue(step.explanation.contains("both need 2 more filled cells"))
+        assertTrue(step.explanation.contains("other cells for 2 must be crossed"))
     }
 
     @Test
@@ -143,7 +145,7 @@ class MosaicTechniqueSolverTest {
             0, 0, 1,
             0, 0, 0,
         )
-        val puzzle = MosaicPuzzle("MO-SUB-FILL", 3, clues, solution, Pack.EASY, "none:1")
+        val puzzle = MosaicPuzzle("MO-SUB-FILL", 3, clues, solution, Pack.EASY, "none:0")
         val state = MosaicState.initial(puzzle)
 
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
@@ -151,6 +153,8 @@ class MosaicTechniqueSolverTest {
         assertEquals(listOf(Cell(2), Cell(5)), step.moves.map { it.cell })
         assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.FILLED })
         assertValidOneSentenceExplanation(step.explanation)
+        assertTrue(step.explanation.contains("needs 2 more filled cells than clue 2"))
+        assertTrue(step.explanation.contains("must all be filled"))
     }
 
     @Test
@@ -248,7 +252,7 @@ class MosaicTechniqueSolverTest {
             clues = List(64) { null },
             solution = List(64) { 0 },
             pack = Pack.EASY,
-            storedGrade = "none:1",
+            storedGrade = "none:0",
         )
         assertThrows(IllegalArgumentException::class.java) {
             MosaicEngine.grade(multiSolution)

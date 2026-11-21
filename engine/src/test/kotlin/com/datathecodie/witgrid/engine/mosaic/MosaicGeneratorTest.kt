@@ -30,18 +30,18 @@ class MosaicGeneratorTest {
     }
 
     @Test
-    fun expertPackGeneratesSolvablePuzzles() {
-        // 15x15 takes ~50s per puzzle due to N^2 clue overlap combinations.
-        // Generating 1 puzzle keeps the test suite fast as permitted by the task instructions.
-        val puzzles = generatePuzzles(Pack.EXPERT, 1, seed = 1L)
-        assertBatchValid(puzzles, Pack.EXPERT, 1)
+    fun expertPackGeneratesTenUniqueSolvablePuzzles() {
+        val puzzles = generatePuzzles(Pack.EXPERT, 10, seed = 1L)
+        assertBatchValid(puzzles, Pack.EXPERT, 10)
     }
 
     @Test
     fun sameSeedGivesIdenticalPuzzlesOnSecondRun() {
-        val firstRun = generatePuzzles(Pack.EASY, 3, seed = 42L).map(MosaicEngine::encodePuzzle)
-        val secondRun = generatePuzzles(Pack.EASY, 3, seed = 42L).map(MosaicEngine::encodePuzzle)
-        assertEquals(firstRun, secondRun)
+        for (pack in listOf(Pack.EASY, Pack.MEDIUM, Pack.HARD, Pack.EXPERT)) {
+            val firstRun = generatePuzzles(pack, 10, seed = 1L).map(MosaicEngine::encodePuzzle)
+            val secondRun = generatePuzzles(pack, 10, seed = 1L).map(MosaicEngine::encodePuzzle)
+            assertEquals(firstRun, secondRun, "Pack $pack must produce identical output on replay")
+        }
     }
 
     @Test
@@ -56,7 +56,7 @@ class MosaicGeneratorTest {
 
     @Test
     fun generatedIdsMatchPattern() {
-        for (pack in listOf(Pack.EASY, Pack.MEDIUM, Pack.HARD)) {
+        for (pack in listOf(Pack.EASY, Pack.MEDIUM, Pack.HARD, Pack.EXPERT)) {
             val puzzle = MosaicEngine.generate(SplitMix64(123L), pack)
             assertTrue(idPattern.matches(puzzle.id), "Unexpected ID format: ${puzzle.id}")
             assertEquals("MO-${pack.name}", puzzle.id.substringBeforeLast('-'))

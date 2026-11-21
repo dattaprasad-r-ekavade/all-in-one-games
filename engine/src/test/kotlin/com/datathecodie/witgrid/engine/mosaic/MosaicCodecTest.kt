@@ -29,7 +29,7 @@ class MosaicCodecTest {
             clues = clues8x8,
             solution = solution8x8,
             pack = Pack.EASY,
-            storedGrade = "none:1",
+            storedGrade = "none:0",
         )
 
         val encoded = MosaicCodec.encode(puzzle)
@@ -51,7 +51,7 @@ class MosaicCodecTest {
             clues = partialClues,
             solution = solution8x8,
             pack = Pack.EASY,
-            storedGrade = "none:1",
+            storedGrade = "none:0",
         )
 
         val encoded = MosaicCodec.encode(puzzle)
@@ -64,7 +64,7 @@ class MosaicCodecTest {
     @Test
     fun decodeRejectsInvalidSizesAndMismatchedPacks() {
         val validLine = MosaicCodec.encode(
-            MosaicPuzzle("MO-1", 8, clues8x8, solution8x8, Pack.EASY, "none:1")
+            MosaicPuzzle("MO-1", 8, clues8x8, solution8x8, Pack.EASY, "none:0")
         )
 
         // Wrong size (7 is not a launch size)
@@ -85,7 +85,7 @@ class MosaicCodecTest {
     @Test
     fun decodeRejectsCorruptedPayloadAndSolution() {
         val validLine = MosaicCodec.encode(
-            MosaicPuzzle("MO-1", 8, clues8x8, solution8x8, Pack.EASY, "none:1")
+            MosaicPuzzle("MO-1", 8, clues8x8, solution8x8, Pack.EASY, "none:0")
         )
 
         // Invalid character in payload (e.g. 'x')
@@ -102,6 +102,52 @@ class MosaicCodecTest {
         val violatingLine = parts.joinToString("|")
         assertThrows(IllegalArgumentException::class.java) {
             MosaicCodec.decode(violatingLine)
+        }
+    }
+
+    @Test
+    fun decodeAndEncodeRejectInvalidGradeFormats() {
+        val validPayload = clues8x8.joinToString("") { it?.toString() ?: "." }
+        val validSolution = solution8x8.joinToString("") { it.toString() }
+
+        // none:1 is rejected because none requires 0 steps
+        val none1Line = "MO-INVALID-1|8|$validPayload|$validSolution|EASY|none:1"
+        assertThrows(IllegalArgumentException::class.java) {
+            MosaicCodec.decode(none1Line)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            MosaicEngine.decodePuzzle(none1Line)
+        }
+
+        // unknown technique is rejected
+        val unknownTechLine = "MO-INVALID-2|8|$validPayload|$validSolution|EASY|unknown-tech:5"
+        assertThrows(IllegalArgumentException::class.java) {
+            MosaicCodec.decode(unknownTechLine)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            MosaicEngine.decodePuzzle(unknownTechLine)
+        }
+
+        // negative step count is rejected
+        val negativeStepLine = "MO-INVALID-3|8|$validPayload|$validSolution|EASY|clue-overlap:-1"
+        assertThrows(IllegalArgumentException::class.java) {
+            MosaicCodec.decode(negativeStepLine)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            MosaicEngine.decodePuzzle(negativeStepLine)
+        }
+
+        // encode also validates storedGrade
+        val badGradePuzzle = MosaicPuzzle(
+            id = "MO-BAD",
+            size = 8,
+            clues = clues8x8,
+            solution = solution8x8,
+            pack = Pack.EASY,
+            storedGrade = "none:1",
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            MosaicCodec.encode(badGradePuzzle)
         }
     }
 }

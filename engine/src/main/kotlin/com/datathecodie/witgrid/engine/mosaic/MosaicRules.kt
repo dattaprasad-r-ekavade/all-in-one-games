@@ -3,12 +3,25 @@ package com.datathecodie.witgrid.engine.mosaic
 import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Grid
 import com.datathecodie.witgrid.engine.core.Mark
+import java.util.concurrent.ConcurrentHashMap
 
 /** Clue validation, player feedback and capped Mosaic solution counting. */
 object MosaicRules {
+    private val areaCache = ConcurrentHashMap<Int, Array<List<Cell>>>()
+
     /** Returns the 3x3 neighbourhood cells (self and 8-way adjacent neighbours) for [cell]. */
-    fun areaCells(grid: Grid, cell: Cell): List<Cell> =
-        listOf(cell) + grid.neighbours(cell)
+    fun areaCells(grid: Grid, cell: Cell): List<Cell> {
+        val cached = areaCache[grid.size]
+        if (cached != null) {
+            return cached[cell.index]
+        }
+        val computed = Array(grid.cellCount) { idx ->
+            val c = Cell(idx)
+            listOf(c) + grid.neighbours(c)
+        }
+        areaCache[grid.size] = computed
+        return computed[cell.index]
+    }
 
     /** Returns the clue count (number of filled cells in 3x3 area) for [cell] given a complete [solution]. */
     fun clueAt(grid: Grid, solution: List<Int>, cell: Cell): Int =
@@ -59,9 +72,11 @@ object MosaicRules {
         val values = IntArray(cellCount) { -1 }
         val currentSum = IntArray(cellCount)
         val unassignedCount = IntArray(cellCount) { i -> areaByCell[i].size }
+        val trail = IntArray(cellCount)
+        var trailTop = 0
         var solutionCount = 0
 
-        fun assign(cell: Int, value: Int, stepAssignments: ArrayList<Int>): Boolean {
+        fun assign(cell: Int, value: Int): Boolean {
             val current = values[cell]
             if (current != -1) {
                 return current == value
@@ -75,7 +90,7 @@ object MosaicRules {
                 }
             }
             values[cell] = value
-            stepAssignments.add(cell)
+            trail[trailTop++] = cell
             for (clueCell in cluesForCell[cell]) {
                 unassignedCount[clueCell]--
                 if (value == 1) {
@@ -85,10 +100,10 @@ object MosaicRules {
             return true
         }
 
-        fun propagate(stepAssignments: ArrayList<Int>): Boolean {
-            var checkIndex = 0
-            while (checkIndex < stepAssignments.size) {
-                val cell = stepAssignments[checkIndex++]
+        fun propagate(fromIndex: Int): Boolean {
+            var checkIndex = fromIndex
+            while (checkIndex < trailTop) {
+                val cell = trail[checkIndex++]
                 for (clueCell in cluesForCell[cell]) {
                     val sum = currentSum[clueCell]
                     val target = targetSum[clueCell]
@@ -97,13 +112,13 @@ object MosaicRules {
                         if (sum == target) {
                             for (neighbour in areaByCell[clueCell]) {
                                 if (values[neighbour] == -1) {
-                                    if (!assign(neighbour, 0, stepAssignments)) return false
+                                    if (!assign(neighbour, 0)) return false
                                 }
                             }
                         } else if (sum + rem == target) {
                             for (neighbour in areaByCell[clueCell]) {
                                 if (values[neighbour] == -1) {
-                                    if (!assign(neighbour, 1, stepAssignments)) return false
+                                    if (!assign(neighbour, 1)) return false
                                 }
                             }
                         }
@@ -113,9 +128,9 @@ object MosaicRules {
             return true
         }
 
-        fun undo(stepAssignments: ArrayList<Int>) {
-            for (i in stepAssignments.size - 1 downTo 0) {
-                val cell = stepAssignments[i]
+        fun undoTo(targetTop: Int) {
+            while (trailTop > targetTop) {
+                val cell = trail[--trailTop]
                 val v = values[cell]
                 for (clueCell in cluesForCell[cell]) {
                     unassignedCount[clueCell]++
@@ -141,14 +156,18 @@ object MosaicRules {
             }
 
             val branchCell = if (bestClue != -1) {
-                var found = -1
+                var bestNeighbour = -1
+                var maxClues = -1
                 for (neighbour in areaByCell[bestClue]) {
                     if (values[neighbour] == -1) {
-                        found = neighbour
-                        break
+                        val count = cluesForCell[neighbour].size
+                        if (count > maxClues) {
+                            maxClues = count
+                            bestNeighbour = neighbour
+                        }
                     }
                 }
-                found
+                bestNeighbour
             } else {
                 var found = -1
                 for (i in 0 until cellCount) {
@@ -165,39 +184,48 @@ object MosaicRules {
                 return
             }
 
-            val step1 = ArrayList<Int>()
-            if (assign(branchCell, 1, step1) && propagate(step1)) {
+            var neededOnes = 0
+            var neededZeros = 0
+            for (clueCell in cluesForCell[branchCell]) {
+                val ones = targetSum[clueCell] - currentSum[clueCell]
+                neededOnes += ones
+                neededZeros += (unassignedCount[clueCell] - ones)
+            }
+            val firstVal = if (neededOnes < neededZeros) 0 else 1
+            val secondVal = 1 - firstVal
+
+            val savedTop1 = trailTop
+            if (assign(branchCell, firstVal) && propagate(savedTop1)) {
                 search()
             }
-            undo(step1)
+            undoTo(savedTop1)
             if (solutionCount >= limit) return
 
-            val step0 = ArrayList<Int>()
-            if (assign(branchCell, 0, step0) && propagate(step0)) {
+            val savedTop0 = trailTop
+            if (assign(branchCell, secondVal) && propagate(savedTop0)) {
                 search()
             }
-            undo(step0)
+            undoTo(savedTop0)
         }
 
-        val initialStep = ArrayList<Int>()
         for (clueCell in clueCells) {
             val target = targetSum[clueCell]
             val totalArea = areaByCell[clueCell].size
             if (target == 0) {
                 for (neighbour in areaByCell[clueCell]) {
                     if (values[neighbour] == -1) {
-                        if (!assign(neighbour, 0, initialStep)) return 0
+                        if (!assign(neighbour, 0)) return 0
                     }
                 }
             } else if (target == totalArea) {
                 for (neighbour in areaByCell[clueCell]) {
                     if (values[neighbour] == -1) {
-                        if (!assign(neighbour, 1, initialStep)) return 0
+                        if (!assign(neighbour, 1)) return 0
                     }
                 }
             }
         }
-        if (!propagate(initialStep)) {
+        if (!propagate(0)) {
             return 0
         }
 

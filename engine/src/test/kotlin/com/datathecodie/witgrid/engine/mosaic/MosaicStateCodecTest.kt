@@ -22,7 +22,7 @@ class MosaicStateCodecTest {
     )
     private val grid8 = Grid(8)
     private val clues8x8 = (0 until 64).map { MosaicRules.clueAt(grid8, solution8x8, Cell(it)) }
-    private val puzzle = MosaicPuzzle("MO-SAVE-1", 8, clues8x8, solution8x8, Pack.EASY, "none:1")
+    private val puzzle = MosaicPuzzle("MO-SAVE-1", 8, clues8x8, solution8x8, Pack.EASY, "none:0")
 
     @Test
     fun roundtripPreservesPlayerMarks() {

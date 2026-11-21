@@ -22,6 +22,7 @@ object MosaicCodec {
         require(bankLine.solution.length == cellCount) {
             "Mosaic solution must have exactly one bit per cell"
         }
+        MosaicGradeCodec.validate(bankLine.grade)
 
         val clues = bankLine.payload.map { char ->
             when (char) {
@@ -56,6 +57,7 @@ object MosaicCodec {
             "Mosaic pack must match its board size"
         }
         require(MosaicRules.isValidSolution(puzzle)) { "Mosaic stored solution does not match its clues" }
+        MosaicGradeCodec.validate(puzzle.storedGrade)
         val payload = puzzle.clues.joinToString(separator = "") { it?.toString() ?: "." }
         val solution = puzzle.solution.joinToString(separator = "") { it.toString() }
         return BankLine(

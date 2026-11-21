@@ -162,10 +162,15 @@ object MosaicTechniqueSolver {
             val remA = clueA - filledA
             if (remA < 0 || remA > unknownsA.size) continue
 
-            val setA = unknownsA.toSet()
+            val rowA = puzzle.grid.row(cellA)
+            val colA = puzzle.grid.column(cellA)
 
             for (j in clueIndices) {
                 if (i == j) continue
+                val rowB = j / puzzle.size
+                val colB = j % puzzle.size
+                if (kotlin.math.abs(rowA - rowB) > 2 || kotlin.math.abs(colA - colB) > 2) continue
+
                 val clueB = puzzle.clues[j]!!
                 val cellB = Cell(j)
                 val areaB = MosaicRules.areaCells(puzzle.grid, cellB)
@@ -175,21 +180,21 @@ object MosaicTechniqueSolver {
                 val remB = clueB - filledB
                 if (remB < 0 || remB > unknownsB.size) continue
 
-                val setB = unknownsB.toSet()
-                val intersection = setA.intersect(setB)
+                val intersection = unknownsA.filter { cell -> unknownsB.any { it.index == cell.index } }
                 if (intersection.isEmpty()) continue
 
-                val onlyA = setA - intersection
-                val onlyB = setB - intersection
+                val onlyA = unknownsA.filter { cell -> unknownsB.none { it.index == cell.index } }
+                val onlyB = unknownsB.filter { cell -> unknownsA.none { it.index == cell.index } }
 
-                // Subset rule cross: setA is a subset of setB, and both need the same remaining fills
+                // Subset rule cross: unknownsA is a subset of unknownsB, and both need the same remaining fills
                 if (onlyA.isEmpty() && onlyB.isNotEmpty() && remB == remA) {
                     val moves = onlyB.sortedBy { it.index }.map { Move.SetMark(it, Mark.CROSSED) }
                     val cells = (areaA + areaB).distinct().sortedBy { it.index }
+                    val explanation = "Because the clue of $clueA and the clue of $clueB both need $remA more filled cells and the remaining cells of $clueA are contained in the area of $clueB, the other cells for $clueB must be crossed."
                     return HintStep(
                         technique = MosaicTechniques.CLUE_OVERLAP,
                         cells = immutableList(cells),
-                        explanation = "The remaining unknown cells for the clue of $clueA are contained in the area of the clue of $clueB, so the other cells in that area must be crossed.",
+                        explanation = explanation,
                         moves = immutableList(moves),
                     )
                 }
@@ -200,7 +205,12 @@ object MosaicTechniqueSolver {
                     val crossMoves = onlyA.sortedBy { it.index }.map { Move.SetMark(it, Mark.CROSSED) }
                     val moves = fillMoves + crossMoves
                     val cells = (areaA + areaB).distinct().sortedBy { it.index }
-                    val explanation = "The overlap between the clues of $clueA and $clueB forces the remaining unassigned cells outside their shared area."
+                    val diff = remB - remA
+                    val explanation = if (onlyA.isEmpty()) {
+                        "Because clue $clueB needs $diff more filled cells than clue $clueA, matching its ${onlyB.size} unshared cells, those unshared cells must all be filled."
+                    } else {
+                        "Because clue $clueB needs $diff more filled cells than clue $clueA, matching its ${onlyB.size} unshared cells, those unshared cells must be filled and the unshared cells for clue $clueA must be crossed."
+                    }
                     return HintStep(
                         technique = MosaicTechniques.CLUE_OVERLAP,
                         cells = immutableList(cells),

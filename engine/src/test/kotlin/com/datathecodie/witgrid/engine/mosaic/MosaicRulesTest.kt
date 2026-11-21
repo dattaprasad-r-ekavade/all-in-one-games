@@ -89,7 +89,7 @@ class MosaicRulesTest {
             clues = clues,
             solution = solution,
             pack = Pack.EASY,
-            storedGrade = "none:1",
+            storedGrade = "none:0",
         )
 
         assertTrue(MosaicRules.isValidSolution(puzzle))
@@ -178,5 +178,24 @@ class MosaicRulesTest {
         assertThrows(IllegalArgumentException::class.java) {
             MosaicPuzzle("MO-INV", 3, invalidClues, List(9) { 0 }, Pack.EASY, "pending")
         }
+    }
+
+    @Test
+    fun initialStepRegressionClues02DotDot22() {
+        // On a 3x3 board with clue rows '02.', '.22', '...',
+        // the initialStep unit deduction must not prematurely force non-empty areas.
+        val clues = listOf(
+            0, 2, null,
+            null, 2, 2,
+            null, null, null,
+        )
+        val solution = listOf(
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 0,
+        )
+        val puzzle = MosaicPuzzle("MO-REG-INIT", 3, clues, solution, Pack.EASY, "none:0")
+        assertTrue(MosaicRules.isValidSolution(puzzle))
+        assertEquals(1, MosaicRules.countSolutions(puzzle, limit = 2))
     }
 }
