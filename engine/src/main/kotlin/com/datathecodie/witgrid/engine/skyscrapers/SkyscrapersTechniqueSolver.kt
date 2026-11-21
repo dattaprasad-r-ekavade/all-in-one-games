@@ -6,7 +6,6 @@ import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Technique
 import java.util.ArrayList
-import java.util.Collections
 
 /**
  * Deterministic, guess-free Skyscrapers deductions, hint selection and technique grading.
@@ -632,6 +631,3 @@ object SkyscrapersTechniqueSolver {
 
     private data class SkyscrapersUnit(val label: String, val cells: List<Int>)
 }
-
-private fun <T> immutableList(values: List<T>): List<T> =
-    Collections.unmodifiableList(ArrayList(values))
