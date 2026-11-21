@@ -200,12 +200,16 @@ object MosaicTechniqueSolver {
                     val crossMoves = onlyA.sortedBy { it.index }.map { Move.SetMark(it, Mark.CROSSED) }
                     val moves = fillMoves + crossMoves
                     val cells = (areaA + areaB).distinct().sortedBy { it.index }
-                    val explanation = "The overlap between the clues of $clueA and $clueB forces the remaining unassigned cells outside their shared area.",
-                    moves = immutableList(moves),
-                )
+                    val explanation = "The overlap between the clues of $clueA and $clueB forces the remaining unassigned cells outside their shared area."
+                    return HintStep(
+                        technique = MosaicTechniques.CLUE_OVERLAP,
+                        cells = immutableList(cells),
+                        explanation = explanation,
+                        moves = immutableList(moves),
+                    )
+                }
             }
         }
-    }
         return null
     }
 }
