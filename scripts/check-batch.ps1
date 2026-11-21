@@ -48,7 +48,8 @@ try {
     # PowerShell 5.1 turns redirected stderr lines into errors, so 'Stop' would end the script on a warning.
     $ErrorActionPreference = 'Continue'
     # Through cmd, stderr arrives as plain text, so PowerShell does not wrap or cut long error lines.
-    $output = & cmd /c 'gradlew.bat check --no-daemon 2>&1'
+    # Push-Location does not change the folder of child processes, so cmd moves there itself.
+    $output = & cmd /c "cd /d `"$wt`" && gradlew.bat check --no-daemon 2>&1"
     $exit = $LASTEXITCODE
 } finally {
     Pop-Location
