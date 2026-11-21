@@ -43,7 +43,7 @@ class MosaicTechniqueSolverTest {
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
         assertEquals("empty-area", step.technique.id)
         assertEquals(9, step.moves.size)
-        assertTrue(step.moves.all { it.mark == Mark.CROSSED })
+        assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.CROSSED })
         assertEquals((0 until 9).map(::Cell), step.cells)
         assertValidOneSentenceExplanation(step.explanation)
     }
@@ -59,7 +59,7 @@ class MosaicTechniqueSolverTest {
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
         assertEquals("full-area", step.technique.id)
         assertEquals(4, step.moves.size)
-        assertTrue(step.moves.all { it.mark == Mark.FILLED })
+        assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.FILLED })
         assertEquals(listOf(0, 1, 3, 4).map(::Cell), step.cells)
         assertEquals(listOf(0, 1, 3, 4).map(::Cell), step.moves.map { it.cell })
         assertValidOneSentenceExplanation(step.explanation)
@@ -78,7 +78,7 @@ class MosaicTechniqueSolverTest {
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
         assertEquals("remaining-count", step.technique.id)
         assertEquals(2, step.moves.size)
-        assertTrue(step.moves.all { it.mark == Mark.CROSSED })
+        assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.CROSSED })
         assertEquals(listOf(Cell(3), Cell(4)), step.moves.map { it.cell })
         assertValidOneSentenceExplanation(step.explanation)
     }
@@ -96,7 +96,7 @@ class MosaicTechniqueSolverTest {
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
         assertEquals("remaining-count", step.technique.id)
         assertEquals(2, step.moves.size)
-        assertTrue(step.moves.all { it.mark == Mark.FILLED })
+        assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.FILLED })
         assertEquals(listOf(Cell(3), Cell(4)), step.moves.map { it.cell })
         assertValidOneSentenceExplanation(step.explanation)
     }
@@ -123,7 +123,7 @@ class MosaicTechniqueSolverTest {
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
         assertEquals("clue-overlap", step.technique.id)
         assertEquals(listOf(Cell(2), Cell(5)), step.moves.map { it.cell })
-        assertTrue(step.moves.all { it.mark == Mark.CROSSED })
+        assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.CROSSED })
         assertValidOneSentenceExplanation(step.explanation)
     }
 
@@ -149,7 +149,7 @@ class MosaicTechniqueSolverTest {
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
         assertEquals("clue-overlap", step.technique.id)
         assertEquals(listOf(Cell(2), Cell(5)), step.moves.map { it.cell })
-        assertTrue(step.moves.all { it.mark == Mark.FILLED })
+        assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.FILLED })
         assertValidOneSentenceExplanation(step.explanation)
     }
 
