@@ -53,6 +53,7 @@ Before you commit, run ONLY the tests of the package you changed (this also comp
 - app:     .\gradlew.bat :app:testDebugUnitTest --tests 'com.datathecodie.witgrid.games.<package>.*' --no-daemon -q
 Replace <package> with your game package, for example 'mosaic'.
 Fix every compile error and test failure, then run the command again until it passes. Never weaken a test to make it pass: fix the code or build a correct fixture. Then commit.
+Run every command in the foreground and wait for it to finish. Never start a command in the background, and never end your turn while a command is running or while work is not committed; this is a one-shot run, so nothing continues after your turn ends.
 In the handoff, write your package test command as '<command> -> pass', and each 'Done when' command as '<command> -> not run (lead batch gate)'.
 "@
 } else {
