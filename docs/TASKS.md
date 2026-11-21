@@ -82,9 +82,9 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 6 — Launch** |||||||
 | H6 | Live ad units, staged rollout, weekly review | Human | — | — | H5, Phase 7 (12+ games), H7 | todo |
 | **Phase 7 — Launch catalog** |||||||
-| B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | ready |
-| E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | ready |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | ready |
+| B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
+| E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | active |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 active |
 | SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
@@ -655,6 +655,7 @@ Plan: 7.3, 7.4, 12.
 **Owns:** `bankgen/src/main/**`, `bankgen/src/test/**`. Do not hardcode the four launch game ids.
 **Do:** Discover engines from `Registry` (Family A) and the Family B registry once E3 exists. `validate --all` for Family A stays: unique, technique-solvable, grade band, no duplicate, stable ids. For Family B: winnable (or `isLost` only after a wrong action), no uniqueness check. A fifth Family A id must not throw.
 **Done when:** `./gradlew :bankgen:test` passes. A fake fifth Family A engine validates. A fake Family B engine with two solutions still passes validate. A broken Family B layout fails validate.
+**Lead completion note (21 Nov 2026):** Squash-merged as `117caa1`. `check` passed (3,864 puzzles). Family B CLI registry stays empty until E3; first Family B bank card must register the real engine. `isLost`-after-wrong-action is an E3 adapter test, not a B6 check.
 
 ### E3 — Family B `PlayEngine` contract
 Tier H · Build Codex (`gpt-6.1-sol` high) · Review Claude + human
