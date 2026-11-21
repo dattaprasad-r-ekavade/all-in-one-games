@@ -75,8 +75,10 @@ if ($Agent -eq 'codex') {
     Set-Content -Path $promptFile -Value $prompt -Encoding UTF8
     Push-Location $wt
     try {
+        # Tee-Object in PowerShell 5.1 writes UTF-16, so write the handoff as UTF-8 separately.
         agy --model $model "-p=Read the file $promptFile and do exactly what it says. The current folder is the worktree for the task." |
-            Tee-Object -FilePath $handoff
+            Tee-Object -Variable agentOutput
+        $agentOutput | Out-File -FilePath $handoff -Encoding utf8
     } finally {
         Pop-Location
     }

@@ -39,8 +39,10 @@ Report only real problems.
         # Windows PowerShell 5.1 breaks quotes inside long native arguments, so the prompt goes in a file.
         $promptFile = Join-Path (Join-Path $wtRoot '_logs') "$Task.review-prompt.md"
         Set-Content -Path $promptFile -Value $instructions -Encoding UTF8
+        # Tee-Object in PowerShell 5.1 writes UTF-16, so write the review as UTF-8 separately.
         agy --model gemini-3.8-flash-high "-p=Read the file $promptFile and do exactly what it says. Do not edit any file." |
-            Tee-Object -FilePath $review
+            Tee-Object -Variable agentOutput
+        $agentOutput | Out-File -FilePath $review -Encoding utf8
     } else {
         "Use the reviewer agent to review task $Task on this branch against $Base." |
             claude -p --model sonnet | Tee-Object -FilePath $review
