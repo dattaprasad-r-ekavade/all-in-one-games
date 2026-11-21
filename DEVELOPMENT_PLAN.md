@@ -1,5 +1,7 @@
 # Witgrid: Offline Logic Puzzles — Development Plan
 
+> **Keep the progress bars current.** The "Progress" section below is generated from the Status column in `docs/TASKS.md`. Do not edit the bars by hand. After you change any status in `docs/TASKS.md`, run `python scripts/progress.py` from the repo root, and commit `DEVELOPMENT_PLAN.md` together with `docs/TASKS.md`.
+
 Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14).
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
