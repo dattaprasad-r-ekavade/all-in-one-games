@@ -42,11 +42,17 @@ if (-not (Test-Path $wt)) {
 
 $handoff = Join-Path $logDir "$Task.md"
 if ($Agent -eq 'gemini' -and -not $RunGradle) {
-    # Parallel Gradle runs block the PC; the lead runs one batch gate instead (scripts/check-batch.ps1).
+    # Parallel test runs block the PC; the lead runs one batch gate instead (scripts/check-batch.ps1).
+    # A compile-only step is short and catches syntax and type errors before the batch.
     $gateRules = @"
-Do NOT run Gradle, gradlew, or any build or test command. The lead runs all tests later in one batch.
-Write the code and the unit tests that the card asks for. Check your code carefully by reading it, because you cannot compile it.
-In the handoff, write each 'Done when' command as '<command> -> not run (lead batch gate)'.
+Do NOT run tests, 'check', or any other build task. The lead runs all tests later in one batch.
+Write the code and the unit tests that the card asks for.
+Before you commit, run ONLY the compile step for each module you changed. It compiles the main code and the tests:
+- engine:  .\gradlew.bat :engine:compileTestKotlin --no-daemon -q
+- bankgen: .\gradlew.bat :bankgen:compileTestKotlin --no-daemon -q
+- app:     .\gradlew.bat :app:compileDebugUnitTestKotlin --no-daemon -q
+Fix every compile error and run the compile step again until it passes. Then commit.
+In the handoff, write the compile step as '<command> -> pass', and each 'Done when' command as '<command> -> not run (lead batch gate)'.
 "@
 } else {
     $gateRules = @"
