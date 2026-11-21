@@ -5,16 +5,19 @@
 .EXAMPLE
   .\scripts\agent-task.ps1 -Task CR2 -Agent codex -Tier H
   .\scripts\agent-task.ps1 -Task CR4 -Agent claude -Tier L
+  .\scripts\agent-task.ps1 -Task FU1 -Agent gemini -Tier M
 
 .NOTES
   Worktrees go to ..\witgrid-wt\<Task>. Handoff notes go to ..\witgrid-wt\_logs\<Task>.md.
   Tier -> model:
     codex : L = gpt-6-luna (medium), M = gpt-6.1-sol (medium), H = gpt-6.1-sol (high)
     claude: L = haiku,               M = sonnet,               H = sonnet
+    gemini: L = gemini-3.8-flash-medium, M = gemini-3.8-flash-high, H = gemini-3.8-flash-high
+            (Antigravity CLI 'agy'. Flash only; prefer codex for H cards.)
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Task,
-    [ValidateSet('codex', 'claude')][string]$Agent = 'codex',
+    [ValidateSet('codex', 'claude', 'gemini')][string]$Agent = 'codex',
     [ValidateSet('L', 'M', 'H')][string]$Tier = 'M',
     [string]$Base = 'main',
     [string]$Extra = ''
@@ -65,6 +68,18 @@ if ($Agent -eq 'codex') {
         --add-dir $env:ANDROID_HOME `
         -o $handoff `
         -
+} elseif ($Agent -eq 'gemini') {
+    $model = @{ L = 'gemini-3.8-flash-medium'; M = 'gemini-3.8-flash-high'; H = 'gemini-3.8-flash-high' }[$Tier]
+    # Windows PowerShell 5.1 breaks quotes inside long native arguments, so the prompt goes in a file.
+    $promptFile = Join-Path $logDir "$Task.prompt.md"
+    Set-Content -Path $promptFile -Value $prompt -Encoding UTF8
+    Push-Location $wt
+    try {
+        agy --model $model "-p=Read the file $promptFile and do exactly what it says. The current folder is the worktree for the task." |
+            Tee-Object -FilePath $handoff
+    } finally {
+        Pop-Location
+    }
 } else {
     $model = @{ L = 'haiku'; M = 'sonnet'; H = 'sonnet' }[$Tier]
     Push-Location $wt

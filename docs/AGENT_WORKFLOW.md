@@ -16,12 +16,12 @@ This file tells the lead (you, with the main Claude Code session) how to run the
 
 Each task card has a tier. The tier selects the model.
 
-| Tier | Work type | Claude | Codex |
-|---|---|---|---|
-| **L** light | Tests from spec, CI YAML, strings, wiring, running `bankgen`, reports, drafts | Haiku 5.5 (`chore`, `test-writer`) | `gpt-6-luna`, effort medium |
-| **M** standard | Screens, storage, boards, normal features | Sonnet 5.5 (`builder`) | `gpt-6.1-sol`, effort medium |
-| **H** hard | Contracts, solvers, generators, gestures, consent, billing | Sonnet 5.5 (`builder`) | `gpt-6.1-sol`, effort high |
-| Escalation | A task that failed its gate two times | Opus 5.5 | `gpt-6-astra` or `gpt-6.1-sol` effort xhigh |
+| Tier | Work type | Claude | Codex | Gemini (`agy`) |
+|---|---|---|---|---|
+| **L** light | Tests from spec, CI YAML, strings, wiring, running `bankgen`, reports, drafts | Haiku 5.5 (`chore`, `test-writer`) | `gpt-6-luna`, effort medium | `gemini-3.8-flash-medium` |
+| **M** standard | Screens, storage, boards, normal features | Sonnet 5.5 (`builder`) | `gpt-6.1-sol`, effort medium | `gemini-3.8-flash-high` |
+| **H** hard | Contracts, solvers, generators, gestures, consent, billing | Sonnet 5.5 (`builder`) | `gpt-6.1-sol`, effort high | Not recommended (Flash only) |
+| Escalation | A task that failed its gate two times | Opus 5.5 | `gpt-6-astra` or `gpt-6.1-sol` effort xhigh | — |
 
 Your Codex default is `gpt-6-luna` at `xhigh`. That is a poor fit for most cards. The scripts always set the model and effort explicitly.
 
@@ -30,6 +30,8 @@ Your Codex default is `gpt-6-luna` at `xhigh`. That is a poor fit for most cards
 - Claude builds most of `app/` (Compose, Android APIs, UX details).
 - The test cards for each engine lane go to the other family. Then the tests and the code come from two independent readings of the spec.
 - The reviewer is always from the family that did not build the task.
+
+**Gemini (added 21 Nov 2026).** A third family through the Antigravity CLI (`agy`). It reads `AGENTS.md` by itself. Use it for L and M cards when Codex or Claude is busy: `.\scriptsgent-task.ps1 -Task FU1 -Agent gemini -Tier M`. Codex or Claude reviews its work (`review-task.ps1 -Reviewer codex`). `--mode auto` is not available on this account; the default mode runs edits and shell commands in print mode.
 
 The **Build** column in `docs/TASKS.md` shows the default for each card. You can swap families when one quota is low. Keep the tier.
 
