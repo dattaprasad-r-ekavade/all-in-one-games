@@ -104,7 +104,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
-| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 active (Codex), CT2 active (Codex), CT3 active (Codex) |
+| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 review, CT2 review, CT3 review (Claude lead loop; do not start) |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
@@ -112,15 +112,15 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
-| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 active, FU2 active, FU3 active (batch) |
+| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 review, FU2 review, FU3 review (Claude lead loop; do not start) |
 | FUA | Futoshiki board | M | Codex | Claude | A4, FU2 | todo |
 | FUB | Futoshiki bank | L | Claude | Codex | FU3, B6 | todo |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
-| SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 active (Codex), SK2 active (Codex), SK3 active (Codex) |
+| SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 review, SK2 review, SK3 review (Claude lead loop; do not start) |
 | SKA | Skyscrapers board | M | Codex | Claude | A4, SK2 | todo |
 | SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
-| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 active, MO2 active, MO3 active (batch) |
+| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 review, MO2 review, MO3 review (Claude lead loop; do not start) |
 | MOA | Mosaic board | M | Codex | Claude | A4, MO2 | todo |
 | MOB | Mosaic bank | L | Claude | Codex | MO3, B6 | todo |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
@@ -644,6 +644,8 @@ Plan: 11 phase 6, 3.
 ## Phase 7 — Launch catalog
 
 Owner decision 21 Nov 2026: the production launch ships 14 games (minimum 12), not 4. This phase must finish before H6. Closed test (H5) does not wait on this phase: start it with the current games and add each new game to the closed track when it is done. If the build is late, cut Chess tactics (CT) first, then Klondike (KL). Plan: 12, 7.3, 8.4. Decision: `docs/decisions/prototype-catalog.md`.
+
+**Lane ownership (22 Nov 2026):** the FU, SK, MO and CT engine lanes (x1 to x3) are on branches `task/FU3`, `task/SK3`, `task/MO3` and `task/CT3`. The Claude lead runs a review-fix loop on them (Codex `gpt-6-luna` review, Gemini or Codex fix, batch gate) and merges each one when the review says merge. Other agents must not start, rebuild or merge these lanes until their rows say done. x4 cards and the app cards (xA, xB, xC) of these games start after the merge.
 
 Build order: B6, E3, SU, FU, SK and MO can start now (they do not overlap). KS after SU3. Colour Sort, Arrows and Klondike after E3. Then Path and Chess tactics.
 
