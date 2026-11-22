@@ -119,7 +119,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
-| SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | active (Gemini fix: Expert duplicates) |
+| SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | review (batch and Codex review) |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | review (batch and Codex review) |
