@@ -135,14 +135,20 @@ object SkyscrapersGenerator {
         check(fill(placed)) { "Could not create a Latin square of size $size" }
         if (orderedLines == 0) return grid.toList()
 
-        val reverseRows = rng.nextInt(2) == 1
+        val rowPerm = (0 until size).toMutableList()
+        shuffle(rowPerm, rng)
+        val colShift = rng.nextInt(size)
         val reverseColumns = rng.nextInt(2) == 1
+        val transpose = rng.nextInt(2) == 1
+        val invertSymbols = rng.nextInt(2) == 1
         return List(grid.size) { cell ->
             val row = cell / size
             val column = cell % size
-            val sourceRow = if (reverseRows) size - 1 - row else row
-            val sourceColumn = if (reverseColumns) size - 1 - column else column
-            grid[sourceRow * size + sourceColumn]
+            val r = if (transpose) column else row
+            val c = if (transpose) row else column
+            val actualC = if (reverseColumns) size - 1 - c else c
+            val value = grid[rowPerm[r] * size + (actualC + colShift) % size]
+            if (invertSymbols) size + 1 - value else value
         }
     }
 
