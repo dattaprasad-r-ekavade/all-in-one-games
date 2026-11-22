@@ -74,6 +74,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | done |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | done |
 | U9 | Endless level numbers and looping | H | Codex | Claude | U2 | done |
+| U10 | Play screen landscape layout | M | Codex | Claude | U4 | todo |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
@@ -599,6 +600,13 @@ Plan: 2 ("Level count"), 4 (principle 7), 7.5 ("Endless levels").
 **Done when:** `./gradlew check` passes. Unit tests cover the level-to-bank mapping, wrap from the last puzzle to the first, level numbers above the pack size, fresh state for repeated bank puzzles, and existing progress.
 **Lead scope clarification (17 Nov 2026):** Added the play controller, Home/Game composables and preview, and level strings because attempt identity and the replacement level labels cross those files. The Home/Game screens must show the next "Level N · Pack" and remove level totals; U6 can then restyle those screens on top of the new level model. A repeated bank puzzle must start as a new attempt while the best time remains keyed to the bank puzzle.
 **Lead completion note (17 Nov 2026):** Integrated locally as `450af76`. `check` passed, including 199 app unit tests, lint, and validation of 3,864 puzzles across 24 bank files. GPT-6.1-Sol reviewed the complete diff and approved with no blockers. The guided Easy intro stays unnumbered and outside regular bank progression; its Next action opens regular Level 1.
+
+### U10 — Play screen landscape layout
+Tier M · Build Codex · Review Claude
+Plan: 4.1, 9. Found in the SKA review (22 Nov 2026), D:/cash-grabs/witgrid-wt/_logs/SKA.review.r2.md blocker 1.
+**Owns:** `ui/screens/play/**` (PlayScreen.kt, PlayScreenLayout.kt) and their tests.
+**Do:** The app is not locked to portrait (plan 7: orientation locks are ignored on screens 600 dp or wider). On a short landscape screen (for example 840 x 360 dp at font scale 1.3) the Play header, tool bar and board padding leave less than 100 dp for a board with a keypad, so the board or its controls get no height. In landscape, place the board on one side and the game controls (keypad, mode row, tool bar) on the other. Every board (Crowns, Binary, Nonogram, Mini Sudoku, Path, Skyscrapers, Futoshiki, Mosaic and later games) must keep a usable board and controls. Keep the portrait layout unchanged.
+**Done when:** `./gradlew check` passes. An Android UI test or screenshot covers each board in landscape at 840 x 360 dp and font scale 1.3, with no clipped board or controls.
 
 ## Phase 5 — Closed test
 

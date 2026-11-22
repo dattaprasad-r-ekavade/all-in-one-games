@@ -14,14 +14,14 @@ Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ████████████░░░░░░░░  58 %  (84 of 144 done, 6 in progress)
+All tasks                         ████████████░░░░░░░░  58 %  (84 of 145 done, 6 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
 Phase 2 — Core app                ████████████████████ 100 %  (14 of 14 done)
 Phase 3 — Retention               ████████████████████ 100 %  (6 of 6 done)
 Phase 4 — Monetisation and data   ████████████░░░░░░░░  62 %  (5 of 8 done)
-UI cleanup                        ████████████████████ 100 %  (10 of 10 done)
+UI cleanup                        ██████████████████░░  91 %  (10 of 11 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
 Phase 7 — Launch catalog          █████▒▒░░░░░░░░░░░░░  26 %  (18 of 70 done, 6 in progress)
