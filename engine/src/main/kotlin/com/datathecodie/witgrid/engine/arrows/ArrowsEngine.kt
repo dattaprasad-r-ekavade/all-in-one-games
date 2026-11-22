@@ -15,24 +15,40 @@ object ArrowsEngine : PlayEngine<ArrowsPuzzle, ArrowsState, ArrowsAction> {
         ArrowsState(
             puzzle = puzzle,
             arrows = puzzle.initialArrows.toList(),
+            mistakes = 0,
             slideCount = 0,
             history = emptyList(),
         )
 
     override fun applyAction(state: ArrowsState, action: ArrowsAction): ArrowsState {
-        val nextArrows = ArrowsRules.applySlide(state.puzzle.size, state.arrows, action.cell)
-        return state.copy(
-            arrows = nextArrows,
-            slideCount = state.slideCount + 1,
-            history = state.history + listOf(state.arrows),
-        )
+        require(!isWon(state.puzzle, state)) { "Cannot apply action: level is already won" }
+        require(!isLost(state.puzzle, state)) { "Cannot apply action: level is already lost" }
+        val cellIndex = action.cell.index
+        require(cellIndex in state.arrows.indices) { "Cell index out of range: $cellIndex" }
+        val direction = state.arrows[cellIndex]
+            ?: throw IllegalArgumentException("No arrow at cell $cellIndex")
+
+        return if (ArrowsRules.canSlide(state.puzzle.size, state.arrows, cellIndex)) {
+            val nextArrows = ArrowsRules.applySlide(state.puzzle.size, state.arrows, action.cell)
+            state.copy(
+                arrows = nextArrows,
+                slideCount = state.slideCount + 1,
+                history = state.history + listOf(state.arrows),
+            )
+        } else {
+            // A tap on an arrow that cannot slide is a mistake:
+            // The arrow stays, the board does not change, mistakes goes up by 1.
+            state.copy(
+                mistakes = state.mistakes + 1,
+            )
+        }
     }
 
     override fun isWon(puzzle: ArrowsPuzzle, state: ArrowsState): Boolean =
         ArrowsRules.isWon(state.arrows)
 
     override fun isLost(puzzle: ArrowsPuzzle, state: ArrowsState): Boolean =
-        ArrowsRules.isLost(puzzle.size, state.arrows, state.slideCount)
+        !isWon(puzzle, state) && ArrowsRules.isLost(state.mistakes)
 
     override fun hintAction(puzzle: ArrowsPuzzle, state: ArrowsState): ArrowsAction? =
         throw NotImplementedError("arrows")
@@ -44,14 +60,15 @@ object ArrowsEngine : PlayEngine<ArrowsPuzzle, ArrowsState, ArrowsAction> {
 
     override fun decodeState(bytes: ByteArray): ArrowsState = ArrowsStateCodec.decode(bytes)
 
+    /**
+     * Applies one rewarded Continue after failure.
+     * Continue gives one extra life by decrementing [ArrowsState.mistakes] by one (from 3 to 2).
+     * The board stays as it is (no arrows or slides are undone).
+     */
     override fun applyContinue(state: ArrowsState): ArrowsState {
         require(isLost(state.puzzle, state)) { "Continue only applies after failure" }
-        val restoredArrows = state.history.lastOrNull() ?: state.puzzle.initialArrows
-        val newHistory = if (state.history.isNotEmpty()) state.history.dropLast(1) else emptyList()
         return state.copy(
-            arrows = restoredArrows,
-            slideCount = 0,
-            history = newHistory,
+            mistakes = state.mistakes - 1,
         )
     }
 }

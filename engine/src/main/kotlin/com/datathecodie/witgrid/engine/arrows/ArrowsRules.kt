@@ -3,6 +3,9 @@ package com.datathecodie.witgrid.engine.arrows
 import com.datathecodie.witgrid.engine.core.Cell
 
 object ArrowsRules {
+    /** Maximum allowed mistakes before level fails. */
+    const val MAX_MISTAKES = 3
+
     /**
      * Sequence of cells on the path from [cell] to the board edge in [direction],
      * excluding [cell] itself.
@@ -72,9 +75,41 @@ object ArrowsRules {
     fun isWon(arrows: List<ArrowsDirection?>): Boolean = arrows.all { it == null }
 
     /**
-     * Level is lost when arrows remain on the board, none can slide, and at least one
-     * action has been taken since deal.
+     * Level is lost when mistakes reach the limit of 3.
      */
-    fun isLost(size: Int, arrows: List<ArrowsDirection?>, slideCount: Int): Boolean =
-        slideCount > 0 && !isWon(arrows) && legalSlides(size, arrows).isEmpty()
+    fun isLost(mistakes: Int): Boolean = mistakes >= MAX_MISTAKES
+
+    /**
+     * Verifies that the layout contains at least one arrow and is completely clearable.
+     * A layout is clearable if all arrows can slide off the board without getting deadlocked
+     * in a cycle.
+     */
+    fun isClearable(size: Int, arrows: List<ArrowsDirection?>): Boolean {
+        if (arrows.none { it != null }) return false
+        val current = arrows.toMutableList()
+        while (true) {
+            val slideableIndex = current.indices.firstOrNull { index ->
+                current[index] != null && canSlide(size, current, index)
+            } ?: break
+            current[slideableIndex] = null
+        }
+        return current.all { it == null }
+    }
+
+    /**
+     * Checks if [next] is the result of exactly one legal slide on [previous].
+     */
+    fun isValidSlideTransition(size: Int, previous: List<ArrowsDirection?>, next: List<ArrowsDirection?>): Boolean {
+        if (previous.size != next.size) return false
+        var diffIndex = -1
+        for (i in previous.indices) {
+            if (previous[i] != next[i]) {
+                if (diffIndex != -1) return false
+                if (previous[i] == null || next[i] != null) return false
+                diffIndex = i
+            }
+        }
+        if (diffIndex == -1) return false
+        return canSlide(size, previous, diffIndex)
+    }
 }

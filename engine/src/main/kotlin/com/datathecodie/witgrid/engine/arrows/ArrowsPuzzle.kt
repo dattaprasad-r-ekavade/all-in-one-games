@@ -32,6 +32,9 @@ data class ArrowsPuzzle(
         require(difficulty.isNotBlank() && difficulty.none { it == '|' || it == '\n' || it == '\r' }) {
             "Invalid difficulty: $difficulty"
         }
+        require(ArrowsRules.isClearable(size, initialArrows)) {
+            "Arrows layout is not clearable (deadlocked or cannot clear board)"
+        }
     }
 
     fun arrowAt(cell: Cell): ArrowsDirection? {

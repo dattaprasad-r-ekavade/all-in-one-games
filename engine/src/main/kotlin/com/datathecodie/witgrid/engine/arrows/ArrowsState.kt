@@ -9,14 +9,19 @@ data class ArrowsState(
     val puzzle: ArrowsPuzzle,
     /** Row-major cell list; null represents an empty cell. */
     val arrows: List<ArrowsDirection?>,
+    /** Number of mistakes made so far; reaches 3 on failure. */
+    val mistakes: Int = 0,
     /** Number of slides executed so far; 0 at initial deal. */
-    val slideCount: Int,
-    /** Stack of prior arrow layouts before each slide; drives Continue revival. */
+    val slideCount: Int = 0,
+    /** Stack of prior arrow layouts before each slide; retains play history. */
     val history: List<List<ArrowsDirection?>> = emptyList(),
 ) {
     init {
         require(arrows.size == puzzle.cellCount) {
             "Arrows size ${arrows.size} does not match puzzle cell count ${puzzle.cellCount}"
+        }
+        require(mistakes in 0..ArrowsRules.MAX_MISTAKES) {
+            "Mistakes must be between 0 and ${ArrowsRules.MAX_MISTAKES}: $mistakes"
         }
         require(slideCount >= 0) { "Slide count must not be negative: $slideCount" }
     }
