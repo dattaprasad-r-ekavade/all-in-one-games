@@ -26,7 +26,7 @@ class TacticsRulesTest {
     }
 
     @Test
-    fun mateSequenceUniquenessCatchesAmbiguityOnLaterTurns() {
+    fun countSolutionsCountsDistinctWinningFirstMoves() {
         val puzzle = mate2FirstMoveUniqueSecondMoveDoublePuzzle()
         val opener = puzzle.solutionLine[0]
         val reply = puzzle.solutionLine[1]
@@ -34,7 +34,15 @@ class TacticsRulesTest {
         val afterOpener = puzzle.initialBoard.applyMove(opener)
         assertEquals(listOf(reply), afterOpener.legalMoves())
         assertEquals(3, TacticsRules.winningMoves(afterOpener.applyMove(reply), 1).size)
+        // Distinct winning first moves is 1, even though later positions have multiple mates.
+        assertEquals(1, TacticsRules.countSolutions(puzzle))
+    }
+
+    @Test
+    fun countSolutionsReturnsTwoWhenMultipleWinningFirstMovesExist() {
+        val puzzle = mate2DoubleOpenerPuzzle()
         assertEquals(2, TacticsRules.countSolutions(puzzle))
+        assertEquals(1, TacticsRules.countSolutions(puzzle, limit = 1))
     }
 
     @Test
@@ -228,6 +236,46 @@ class TacticsRulesTest {
         assertThrows(IllegalArgumentException::class.java) {
             TacticsBoard.fromFen("P6k/8/8/8/8/8/8/7K w - - 0 1")
         }
+
+        // En passant claimed double push is illegal when king was already in check prior to the push
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("r6k/8/8/3pP3/8/8/8/K7 w - d6")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("k7/8/8/8/3Pp3/8/8/R6K b - d3")
+        }
+        // Inactive player's king cannot be in check
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsBoard.fromFen("R6k/8/8/8/8/8/8/4K3 w - -")
+        }
+        val legalCheckPush = "8/8/8/3pP3/2k5/8/8/K7 w - d6"
+        assertEquals(legalCheckPush, TacticsBoard.fromFen(legalCheckPush).toFen())
+    }
+
+    @Test
+    fun uciMoveValidation() {
+        // Valid 4-character move
+        assertEquals(ChessMove(squareToCell("e2"), squareToCell("e4")), ChessMove.fromUci("e2e4"))
+
+        // Valid queen promotion move to rank 8
+        assertEquals(ChessMove(squareToCell("e7"), squareToCell("e8")), ChessMove.fromUci("e7e8q"))
+        assertEquals(ChessMove(squareToCell("e7"), squareToCell("e8")), ChessMove.fromUci("e7e8Q"))
+
+        // Valid queen promotion move to rank 1
+        assertEquals(ChessMove(squareToCell("e2"), squareToCell("e1")), ChessMove.fromUci("e2e1q"))
+
+        // Underpromotions are rejected
+        assertThrows(IllegalArgumentException::class.java) { ChessMove.fromUci("e7e8r") }
+        assertThrows(IllegalArgumentException::class.java) { ChessMove.fromUci("e7e8b") }
+        assertThrows(IllegalArgumentException::class.java) { ChessMove.fromUci("e7e8n") }
+
+        // Garbage fifth character is rejected
+        assertThrows(IllegalArgumentException::class.java) { ChessMove.fromUci("e7e8x") }
+        assertThrows(IllegalArgumentException::class.java) { ChessMove.fromUci("e7e81") }
+
+        // Promotion suffix on non-promotion square is rejected
+        assertThrows(IllegalArgumentException::class.java) { ChessMove.fromUci("e2e4q") }
+        assertThrows(IllegalArgumentException::class.java) { ChessMove.fromUci("e7d6q") }
     }
 
     @Test
@@ -331,6 +379,20 @@ class TacticsRulesTest {
             ),
             pack = Pack.MEDIUM,
             storedGrade = "checkmate:2",
+        )
+
+        fun mate2DoubleOpenerPuzzle(): TacticsPuzzle = TacticsPuzzle(
+            id = "mate2-double-opener",
+            initialBoard = TacticsBoard.fromFen("3r2k1/5ppp/2n5/Q7/8/8/8/3Q2K1 w - - 0 1"),
+            sideToMove = PieceColor.WHITE,
+            mateIn = 2,
+            solutionLine = listOf(
+                ChessMove(squareToCell("d1"), squareToCell("d8")),
+                ChessMove(squareToCell("c6"), squareToCell("d8")),
+                ChessMove(squareToCell("a5"), squareToCell("d8")),
+            ),
+            pack = Pack.MEDIUM,
+            storedGrade = "back-rank-mate:2",
         )
     }
 }

@@ -65,4 +65,14 @@ class TacticsCodecTest {
             TacticsCodec.decode("no-mate|8|7k/3Q4/5K2/8/8/8/8/8 w - - 1|d7d8|EASY|MATE_1")
         }
     }
+
+    @Test
+    fun rejectsUnderpromotionAndGarbageUciSuffixes() {
+        val puzzle = TacticsRulesTest.mate1UniquePuzzle()
+        val line = TacticsCodec.encode(puzzle)
+        for (badSuffix in listOf("d7g7r", "d7g7b", "d7g7n", "d7g7x", "d7g71", "d7g7q")) {
+            val invalid = line.replace("|d7g7|", "|$badSuffix|")
+            assertThrows(IllegalArgumentException::class.java) { TacticsCodec.decode(invalid) }
+        }
+    }
 }

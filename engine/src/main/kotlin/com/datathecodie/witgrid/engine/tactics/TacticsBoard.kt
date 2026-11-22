@@ -66,6 +66,11 @@ class TacticsBoard private constructor(
             }
         }
 
+        val opponent = sideToMove.opponent()
+        require(!isSquareAttacked(kingCell(opponent), sideToMove)) {
+            "Opponent king cannot be in check"
+        }
+
         // FEN records the last double push even if no opposing pawn can capture it.
         if (enPassant != null) {
             val epIndex = enPassant.index
@@ -73,22 +78,34 @@ class TacticsBoard private constructor(
             require(pieces[epIndex] == null) { "En passant target square must be empty" }
             val epRow = epIndex / 8
             val epCol = epIndex % 8
+            val pawnStart: Cell
+            val pawnEnd: Cell
             if (sideToMove == PieceColor.WHITE) {
                 require(epRow == 2) { "En passant target square for White must be on rank 6" }
-                require(pieces[3 * 8 + epCol] == Piece(PieceColor.BLACK, PieceType.PAWN)) {
+                pawnStart = Cell(1 * 8 + epCol)
+                pawnEnd = Cell(3 * 8 + epCol)
+                require(pieces[pawnEnd.index] == Piece(PieceColor.BLACK, PieceType.PAWN)) {
                     "En passant target requires enemy pawn on rank 5"
                 }
-                require(pieces[1 * 8 + epCol] == null) {
+                require(pieces[pawnStart.index] == null) {
                     "En passant origin square on rank 7 must be empty"
                 }
             } else {
                 require(epRow == 5) { "En passant target square for Black must be on rank 3" }
-                require(pieces[4 * 8 + epCol] == Piece(PieceColor.WHITE, PieceType.PAWN)) {
+                pawnStart = Cell(6 * 8 + epCol)
+                pawnEnd = Cell(4 * 8 + epCol)
+                require(pieces[pawnEnd.index] == Piece(PieceColor.WHITE, PieceType.PAWN)) {
                     "En passant target requires enemy pawn on rank 4"
                 }
-                require(pieces[6 * 8 + epCol] == null) {
+                require(pieces[pawnStart.index] == null) {
                     "En passant origin square on rank 2 must be empty"
                 }
+            }
+            val priorPieces = ArrayList(pieces)
+            priorPieces[pawnEnd.index] = null
+            priorPieces[pawnStart.index] = Piece(opponent, PieceType.PAWN)
+            require(!isSquareAttacked(priorPieces, kingCell(sideToMove), opponent)) {
+                "En passant double push is illegal because $sideToMove king was already in check"
             }
         }
     }
@@ -104,7 +121,10 @@ class TacticsBoard private constructor(
     }
 
     /** Returns true if [target] is attacked by any piece of [attackerColor]. */
-    fun isSquareAttacked(target: Cell, attackerColor: PieceColor): Boolean {
+    fun isSquareAttacked(target: Cell, attackerColor: PieceColor): Boolean =
+        isSquareAttacked(this.pieces, target, attackerColor)
+
+    private fun isSquareAttacked(pieceList: List<Piece?>, target: Cell, attackerColor: PieceColor): Boolean {
         val targetRow = target.index / 8
         val targetCol = target.index % 8
 
@@ -114,7 +134,7 @@ class TacticsBoard private constructor(
             for (dc in pawnCaptureFiles) {
                 val pawnCol = targetCol + dc
                 if (pawnCol in 0..7) {
-                    val piece = pieceAt(pawnRow, pawnCol)
+                    val piece = pieceList[pawnRow * 8 + pawnCol]
                     if (piece?.color == attackerColor && piece.type == PieceType.PAWN) {
                         return true
                     }
@@ -127,7 +147,7 @@ class TacticsBoard private constructor(
             val r = targetRow + dr
             val c = targetCol + dc
             if (r in 0..7 && c in 0..7) {
-                val piece = pieceAt(r, c)
+                val piece = pieceList[r * 8 + c]
                 if (piece?.color == attackerColor && piece.type == PieceType.KNIGHT) {
                     return true
                 }
@@ -141,7 +161,7 @@ class TacticsBoard private constructor(
                 val r = targetRow + dr
                 val c = targetCol + dc
                 if (r in 0..7 && c in 0..7) {
-                    val piece = pieceAt(r, c)
+                    val piece = pieceList[r * 8 + c]
                     if (piece?.color == attackerColor && piece.type == PieceType.KING) {
                         return true
                     }
@@ -154,7 +174,7 @@ class TacticsBoard private constructor(
             var r = targetRow + dr
             var c = targetCol + dc
             while (r in 0..7 && c in 0..7) {
-                val piece = pieceAt(r, c)
+                val piece = pieceList[r * 8 + c]
                 if (piece != null) {
                     if (piece.color == attackerColor && (piece.type == PieceType.BISHOP || piece.type == PieceType.QUEEN)) {
                         return true
@@ -171,7 +191,7 @@ class TacticsBoard private constructor(
             var r = targetRow + dr
             var c = targetCol + dc
             while (r in 0..7 && c in 0..7) {
-                val piece = pieceAt(r, c)
+                val piece = pieceList[r * 8 + c]
                 if (piece != null) {
                     if (piece.color == attackerColor && (piece.type == PieceType.ROOK || piece.type == PieceType.QUEEN)) {
                         return true

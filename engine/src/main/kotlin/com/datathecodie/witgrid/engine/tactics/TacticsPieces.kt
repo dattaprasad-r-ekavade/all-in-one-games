@@ -64,11 +64,21 @@ data class ChessMove(val from: Cell, val to: Cell) {
     fun toUci(): String = "${cellToSquare(from)}${cellToSquare(to)}"
 
     companion object {
-        /** Parses a 4- or 5-character UCI move, ignoring trailing promotion suffix since promotion is Queen-only. */
+        /** Parses a 4- or 5-character UCI move. Queen promotion is the only supported promotion. */
         fun fromUci(uci: String): ChessMove {
             require(uci.length in 4..5) { "Invalid UCI move: $uci" }
             val from = squareToCell(uci.substring(0, 2))
             val to = squareToCell(uci.substring(2, 4))
+            if (uci.length == 5) {
+                val promotionChar = uci[4]
+                require(promotionChar == 'q' || promotionChar == 'Q') {
+                    "Only queen promotion is supported in UCI move: $uci"
+                }
+                val toRow = to.index / 8
+                require(toRow == 0 || toRow == 7) {
+                    "Promotion suffix on non-promotion square in UCI move: $uci"
+                }
+            }
             return ChessMove(from, to)
         }
     }
