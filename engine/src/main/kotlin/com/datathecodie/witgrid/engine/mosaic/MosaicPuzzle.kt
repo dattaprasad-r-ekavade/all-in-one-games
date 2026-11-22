@@ -6,6 +6,7 @@ import com.datathecodie.witgrid.engine.core.Grid
 import com.datathecodie.witgrid.engine.core.Pack
 import java.util.ArrayList
 import java.util.Collections
+import java.util.LinkedHashSet
 
 /**
  * Immutable Mosaic puzzle clues and row-major binary solution (1 = filled, 0 = crossed).
@@ -69,7 +70,7 @@ class MosaicPuzzle(
 /** Pack sizes and bands for Mosaic. */
 object MosaicPackBands {
     /** Supported launch board sizes: Easy 8x8, Medium 10x10, Hard 12x12, Expert 15x15. */
-    val launchSizes: Set<Int> = setOf(8, 10, 12, 15)
+    val launchSizes: Set<Int> = immutableSet(setOf(8, 10, 12, 15))
 
     /** Returns the plan-defined board size for [pack]. */
     fun sizeForPack(pack: Pack): Int = when (pack) {
@@ -94,3 +95,6 @@ object MosaicPackBands {
 
 internal fun <T> immutableList(values: List<T>): List<T> =
     Collections.unmodifiableList(ArrayList(values))
+
+internal fun <T> immutableSet(values: Set<T>): Set<T> =
+    Collections.unmodifiableSet(LinkedHashSet(values))

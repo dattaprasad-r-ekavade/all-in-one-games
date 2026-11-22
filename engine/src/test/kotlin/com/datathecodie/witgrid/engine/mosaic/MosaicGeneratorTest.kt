@@ -41,15 +41,6 @@ class MosaicGeneratorTest {
         }
     }
 
-    @Test
-    fun generatedIdsMatchPattern() {
-        for (pack in listOf(Pack.EASY, Pack.MEDIUM, Pack.HARD, Pack.EXPERT)) {
-            val puzzle = MosaicEngine.generate(SplitMix64(123L), pack)
-            assertTrue(idPattern.matches(puzzle.id), "Unexpected ID format: ${puzzle.id}")
-            assertEquals("MO-${pack.name}", puzzle.id.substringBeforeLast('-'))
-        }
-    }
-
     private fun assertSeedOneBatchValidAndDeterministic(pack: Pack) {
         val puzzles = generatePuzzles(pack, 10, seed = 1L)
         assertBatchValid(puzzles, pack, 10)
@@ -74,6 +65,7 @@ class MosaicGeneratorTest {
             assertEquals(pack, puzzle.pack)
             assertEquals(MosaicPackBands.sizeForPack(pack), puzzle.size)
             assertTrue(idPattern.matches(puzzle.id), "ID must match pattern: ${puzzle.id}")
+            assertEquals("MO-${pack.name}", puzzle.id.substringBeforeLast('-'))
             assertTrue(MosaicRules.isValidSolution(puzzle))
             assertUnique(MosaicEngine, puzzle)
             assertTechniqueSolves(MosaicEngine, puzzle)

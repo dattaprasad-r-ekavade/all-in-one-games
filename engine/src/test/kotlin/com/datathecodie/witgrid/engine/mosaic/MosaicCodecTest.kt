@@ -150,4 +150,42 @@ class MosaicCodecTest {
             MosaicCodec.encode(badGradePuzzle)
         }
     }
+
+    @Test
+    fun launchSizesRejectsMutation() {
+        assertThrows(UnsupportedOperationException::class.java) {
+            (MosaicPackBands.launchSizes as MutableSet<Int>).remove(10)
+        }
+        assertThrows(UnsupportedOperationException::class.java) {
+            (MosaicPackBands.launchSizes as MutableSet<Int>).clear()
+        }
+        assertEquals(setOf(8, 10, 12, 15), MosaicPackBands.launchSizes)
+    }
+
+    @Test
+    fun techniquesAllRejectsMutation() {
+        assertThrows(UnsupportedOperationException::class.java) {
+            (MosaicTechniques.all as MutableList<com.datathecodie.witgrid.engine.core.Technique>).clear()
+        }
+        assertEquals(
+            listOf(
+                MosaicTechniques.EMPTY_AREA,
+                MosaicTechniques.FULL_AREA,
+                MosaicTechniques.REMAINING_COUNT,
+                MosaicTechniques.CLUE_OVERLAP,
+            ),
+            MosaicTechniques.all,
+        )
+    }
+
+    @Test
+    fun puzzleCollectionsRejectMutation() {
+        val puzzle = MosaicPuzzle("MO-1", 8, clues8x8, solution8x8, Pack.EASY, "none:0")
+        assertThrows(UnsupportedOperationException::class.java) {
+            (puzzle.clues as MutableList<Int?>).clear()
+        }
+        assertThrows(UnsupportedOperationException::class.java) {
+            (puzzle.solution as MutableList<Int>).clear()
+        }
+    }
 }

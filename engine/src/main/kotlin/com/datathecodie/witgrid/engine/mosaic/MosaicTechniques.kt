@@ -10,7 +10,7 @@ internal object MosaicTechniques {
     val REMAINING_COUNT = Technique("remaining-count", "Remaining count", 2)
     val CLUE_OVERLAP = Technique("clue-overlap", "Clue overlap", 3)
 
-    val all: List<Technique> = listOf(EMPTY_AREA, FULL_AREA, REMAINING_COUNT, CLUE_OVERLAP)
+    val all: List<Technique> = immutableList(listOf(EMPTY_AREA, FULL_AREA, REMAINING_COUNT, CLUE_OVERLAP))
 
     fun byId(id: String): Technique? = all.firstOrNull { it.id == id }
 }
