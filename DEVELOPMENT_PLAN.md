@@ -563,7 +563,8 @@ Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Fut
 | Item | Spec |
 |---|---|
 | Package | `arrows` |
-| Rule | Each cell holds one arrow or is empty. Tap an arrow. It slides off the board in its direction if every cell on that path is empty. Win when the board is empty. Fail when no arrow can slide and arrows remain. |
+| Rule | Each cell holds one arrow or is empty. Tap an arrow. It slides off the board in its direction if every cell on that path is empty. Win when the board is empty. A tap on an arrow that cannot slide is a mistake: the arrow bumps and the player loses one life. Three mistakes fail the level. |
+| Why the mistake rule (lead decision, 22 Nov 2026) | A slide only removes an arrow, so it can only open paths. On a clearable layout every legal slide still leads to a win, so "no arrow can slide" never happens and the level could never be lost. Lives come from blocked taps instead. Continue gives one extra life. Layouts that are already deadlocked are rejected by the bank. |
 | Sizes | Easy 5x5, Medium 6x6, Hard 8x8, Expert 10x10. |
 | Input | Tap an arrow. Family B action `Slide`. |
 | Generator | Place arrows so at least one sequence clears the board. Uniqueness of tap order is not required. |
