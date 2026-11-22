@@ -19,10 +19,14 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.datathecodie.witgrid.R
@@ -72,6 +76,32 @@ class SkyscrapersBoardLayoutTest {
                         results.forEach { assertFalse(it.layoutInput.text.text, it.hasVisualOverflow) }
                     }
                 }
+        }
+    }
+
+    @Test
+    fun sevenDigitPadShowsEveryRemainingCountAtDoubleFontScale() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        // Reproduce linear scaling even on Android versions that normally use nonlinear scaling.
+        val linearDensity = object : Density {
+            override val density = 1f
+            override val fontScale = 2f
+
+            override fun Dp.toSp(): TextUnit = (value / fontScale).sp
+            override fun TextUnit.toDp(): Dp = (value * fontScale).dp
+        }
+        composeRule.setContent { BoardSample(7, height = 480, width = 360, density = linearDensity) }
+
+        val countText = context.getString(R.string.play_digit_left, 7)
+        val labels = composeRule.onAllNodes(hasText(countText), useUnmergedTree = true)
+        assertEquals(7, labels.fetchSemanticsNodes().size)
+        for (index in 0 until 7) {
+            val label = labels[index].assertIsDisplayed()
+            val layouts = mutableListOf<TextLayoutResult>()
+            label.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            val layout = layouts.single()
+            assertFalse("Key ${index + 1} must show the full count", layout.hasVisualOverflow)
+            assertTrue(label.fetchSemanticsNode().boundsInRoot.height >= layout.size.height - 1f)
         }
     }
 
@@ -133,15 +163,21 @@ class SkyscrapersBoardLayoutTest {
     )
 
     @Composable
-    private fun BoardSample(size: Int, height: Int, direction: LayoutDirection = LayoutDirection.Ltr) {
+    private fun BoardSample(
+        size: Int,
+        height: Int,
+        direction: LayoutDirection = LayoutDirection.Ltr,
+        width: Int = 328,
+        density: Density = Density(1f, 1.3f),
+    ) {
         val state = remember(size) { SkyscrapersState.initial(fixture(size)) }
         WitgridTheme {
             CompositionLocalProvider(
-                LocalDensity provides Density(1f, 1.3f),
+                LocalDensity provides density,
                 LocalLayoutDirection provides direction,
                 LocalBoardViewportMode provides BoardViewportMode(embedded = true),
             ) {
-                Box(Modifier.requiredSize(328.dp, height.dp)) {
+                Box(Modifier.requiredSize(width.dp, height.dp)) {
                     SkyscrapersGameModule.Board(state, onMoves = {}, onUndo = {})
                 }
             }

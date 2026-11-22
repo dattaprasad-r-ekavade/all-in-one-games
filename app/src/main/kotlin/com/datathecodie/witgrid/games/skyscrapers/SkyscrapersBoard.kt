@@ -37,7 +37,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datathecodie.witgrid.R
@@ -222,9 +222,7 @@ fun SkyscrapersBoard(
                                 text = stringResource(R.string.play_digit_left, remaining),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                 color = colors.mutedInk,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Clip,
+                                textAlign = TextAlign.Center,
                             )
                         }
                     }
