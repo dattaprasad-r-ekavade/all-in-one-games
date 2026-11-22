@@ -14,7 +14,7 @@ Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ██████████▒▒░░░░░░░░  50 %  (72 of 144 done, 14 in progress)
+All tasks                         ██████████▒▒░░░░░░░░  50 %  (72 of 144 done, 15 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,10 +24,10 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ████████████████████ 100 %  (10 of 10 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          ██▒▒▒▒░░░░░░░░░░░░░░   9 %  (6 of 70 done, 14 in progress)
+Phase 7 — Launch catalog          ██▒▒▒▒░░░░░░░░░░░░░░   9 %  (6 of 70 done, 15 in progress)
 
 Launch catalog, by game
-  Sudoku 9x9                      ███░░░░░░░░░░░░░░░░░  14 %  (1 of 7 done)
+  Sudoku 9x9                      ███▒▒▒░░░░░░░░░░░░░░  14 %  (1 of 7 done, 1 in progress)
   Killer Sudoku                   ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done)
   Futoshiki                       ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
   Skyscrapers                     ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
@@ -497,7 +497,7 @@ The production launch ships 14 games: the 4 built games plus the 10 below. Minim
 
 | Game | x1 | x2 | x3 | State |
 |---|---|---|---|---|
-| Sudoku 9x9 | done | Codex | — | SU1 merged |
+| Sudoku 9x9 | done | Grok 4.6 | — | SU1 merged. SU2 (technique solver) active. |
 | Futoshiki | built | built | built | First Codex review: fix first. Fixes done; batch and second review next. |
 | Mosaic | built | built | built | First Codex review: fix first. Fixes done; batch and second review next. |
 | Path | done | done | done | PA1–PA3 merged as `4daab3c`. Board/bank/intro and PA4 next. |

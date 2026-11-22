@@ -84,7 +84,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 active |
 | SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
