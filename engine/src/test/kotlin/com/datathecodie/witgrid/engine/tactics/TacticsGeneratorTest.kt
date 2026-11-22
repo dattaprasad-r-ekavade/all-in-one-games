@@ -6,13 +6,14 @@ import com.datathecodie.witgrid.engine.testkit.assertTechniqueSolves
 import com.datathecodie.witgrid.engine.testkit.assertUnique
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class TacticsGeneratorTest {
 
     @Test
-    fun seedOneGeneratesTenUniqueSolvableDeterministicPuzzlesForEveryPack() {
+    fun seedOneGeneratesTenDeterministicPuzzlesForEveryPack() {
         for (pack in Pack.entries) {
             val firstRun = generateBatch(1L, pack, 10)
             val secondRun = generateBatch(1L, pack, 10)
@@ -22,15 +23,22 @@ class TacticsGeneratorTest {
 
             // Deterministic output on second run
             assertEquals(firstEncoded, secondEncoded, "Puzzles must be reproducible with the same seed for $pack")
-
-            // Exactly 10 puzzles
             assertEquals(10, firstRun.size)
+        }
+    }
+
+    @Test
+    fun seedOneSuppliesAtLeast241DistinctSolvablePositionsForEveryPack() {
+        for (pack in Pack.entries) {
+            val puzzles = TacticsEngine.generatePack(SplitMix64(1L), pack, 241)
+            assertEquals(241, puzzles.size, "Must generate exactly 241 puzzles for $pack")
 
             // Unique IDs and distinct board positions
-            assertEquals(10, firstRun.map { it.id }.toSet().size, "All puzzle IDs must be distinct for $pack")
-            assertEquals(10, firstRun.map { it.initialBoard.toFen() }.toSet().size, "All board positions must be distinct for $pack")
+            assertEquals(241, puzzles.map { it.id }.toSet().size, "All puzzle IDs must be distinct for $pack")
+            assertEquals(241, puzzles.map { it.initialBoard }.toSet().size, "All board positions must be distinct for $pack")
+            assertEquals(241, puzzles.map { it.initialBoard.toFen() }.toSet().size, "All FEN positions must be distinct for $pack")
 
-            firstRun.forEach { puzzle ->
+            puzzles.forEach { puzzle ->
                 // Unique solution under mate sequence rule
                 assertUnique(TacticsEngine, puzzle)
 
@@ -59,6 +67,25 @@ class TacticsGeneratorTest {
                     assertFalse(puzzle.initialBoard.pieceAt(7, col)?.type == PieceType.PAWN, "No pawn on rank 1")
                 }
             }
+        }
+    }
+
+    @Test
+    fun generatorRejectsSeenPositionsAndEnsuresNovelStartingPosition() {
+        for (pack in Pack.entries) {
+            val baseline = TacticsGenerator.generate(SplitMix64(42L), pack)
+            val filtered = TacticsGenerator.generate(
+                SplitMix64(42L),
+                pack,
+                seenPositions = setOf(baseline.initialBoard),
+            )
+            assertNotEquals(
+                baseline.initialBoard,
+                filtered.initialBoard,
+                "Generator must reject starting positions present in seenPositions for $pack",
+            )
+            assertUnique(TacticsEngine, filtered)
+            assertTechniqueSolves(TacticsEngine, filtered)
         }
     }
 

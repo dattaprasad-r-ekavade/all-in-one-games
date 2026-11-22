@@ -38,6 +38,10 @@ object TacticsEngine : GameEngine<TacticsPuzzle, TacticsState> {
     override fun generate(rng: SplitMix64, pack: Pack): TacticsPuzzle =
         TacticsGenerator.generate(rng, pack)
 
+    /** Generates a complete pack of [count] distinct puzzles in [pack], ensuring no repeated boards. */
+    fun generatePack(rng: SplitMix64, pack: Pack, count: Int = 241): List<TacticsPuzzle> =
+        TacticsGenerator.generatePack(rng, pack, count)
+
     override fun encodeState(state: TacticsState): ByteArray = TacticsStateCodec.encode(state)
 
     override fun decodeState(bytes: ByteArray): TacticsState = TacticsStateCodec.decode(bytes)

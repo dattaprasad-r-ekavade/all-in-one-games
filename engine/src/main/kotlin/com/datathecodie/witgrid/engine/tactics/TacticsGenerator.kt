@@ -68,8 +68,12 @@ object TacticsGenerator {
     private val upperPawnSquares = squares("a7 b7 c7 d7 e7 a6 b6 c6 d6 e6 a5 b5 c5 d5 a4 b4 c4")
     private val lowerPawnSquares = squares("a2 b2 c2 d2 e2 f2 g2 h2 a3 b3 c3 d3 e3 f3 g3 h3 a4 b4 c4")
 
-    /** Builds one puzzle in [pack], consuming randomness only from [rng]. */
-    fun generate(rng: SplitMix64, pack: Pack): TacticsPuzzle {
+    /** Builds one puzzle in [pack], rejecting any starting board present in [seenPositions]. */
+    fun generate(
+        rng: SplitMix64,
+        pack: Pack,
+        seenPositions: Set<TacticsBoard> = emptySet(),
+    ): TacticsPuzzle {
         val (mateIn, patterns) = when (pack) {
             Pack.EASY -> 1 to easyPatterns
             Pack.MEDIUM -> 2 to mediumPatterns
@@ -86,6 +90,7 @@ object TacticsGenerator {
                 }
             }
             val board = TacticsBoard(pieces, PieceColor.WHITE, CastlingRights(), null)
+            if (board in seenPositions) return@repeat
             if (board.isCheck(board.sideToMove.opponent())) return@repeat
             if (pack == Pack.HARD || pack == Pack.MEDIUM) {
                 val checks = board.legalMoves().count { board.applyMoveInternal(it).isCheck() }
@@ -99,6 +104,26 @@ object TacticsGenerator {
         }
 
         error("Could not generate a technique-solvable Tactics puzzle for $pack after $MAX_PUZZLE_ATTEMPTS attempts")
+    }
+
+    /**
+     * Builds a pack of [count] distinct technique-solvable puzzles for [pack], ensuring
+     * no repeated starting positions.
+     */
+    fun generatePack(
+        rng: SplitMix64,
+        pack: Pack,
+        count: Int = 241,
+    ): List<TacticsPuzzle> {
+        require(count > 0) { "Pack puzzle count must be positive" }
+        val seen = HashSet<TacticsBoard>(count)
+        val puzzles = ArrayList<TacticsPuzzle>(count)
+        repeat(count) {
+            val puzzle = generate(rng, pack, seen)
+            seen.add(puzzle.initialBoard)
+            puzzles.add(puzzle)
+        }
+        return puzzles
     }
 
     private fun varyMaterial(pieces: MutableList<Piece?>, pack: Pack, rng: SplitMix64) {
