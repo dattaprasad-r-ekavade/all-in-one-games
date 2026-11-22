@@ -84,7 +84,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 active |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done |
 | SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
@@ -682,6 +682,7 @@ Same four engine cards as CR/BI/NO/MS. **Owns:** `engine/…/<game>/**` and its 
 
 **Done when (each engine card):** `./gradlew :engine:test` passes, plus the launch-lane x1–x4 checks (unique, technique-solvable, seed-stable). CT `countSolutions` counts distinct winning first moves (cap 2).
 **Lead completion note (21 Nov 2026):** SU1 squash-merged as `8abb543`. `:engine:test` passed. Full `check` hit a Windows DataStore file-lock flake in `RewardGrantPersistenceSpecTest`; that spec passed on retry. Sudoku is not in `Registry` yet (SUC).
+**Lead completion note (22 Nov 2026):** SU2 squash-merged as `8441b22`. Guess-free solver through X-Wing; `generate` still throws (SU3). Review suggestion for SU3/SU4: assert `Grade(fixture.technique, …)` so the tagged technique is the hardest step.
 **Lead completion note (22 Nov 2026):** PA1–PA3 squash-merged as `4daab3c`. Second review merge after the forced-join / decode / stuck-grade / pack-size fixes. Path package tests and the lead batch `check` passed. Path is not in `Registry` yet (PAC). PA4, PAA and PAB are unblocked.
 **Lead completion note (22 Nov 2026):** PAA squash-merged as `8d9fa4b`. Drag paint colour is the start cell only. Not in `GameRegistry` yet (PAC). PAB and PAC unblocked once bank exists.
 
