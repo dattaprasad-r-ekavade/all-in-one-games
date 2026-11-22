@@ -14,7 +14,7 @@ Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ██████████▒▒░░░░░░░░  51 %  (73 of 144 done, 14 in progress)
+All tasks                         ██████████▒▒░░░░░░░░  51 %  (74 of 144 done, 13 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,7 +24,7 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ████████████████████ 100 %  (10 of 10 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          ██▒▒▒▒░░░░░░░░░░░░░░  10 %  (7 of 70 done, 14 in progress)
+Phase 7 — Launch catalog          ██▒▒▒▒░░░░░░░░░░░░░░  11 %  (8 of 70 done, 13 in progress)
 
 Launch catalog, by game
   Sudoku 9x9                      ███▒▒▒░░░░░░░░░░░░░░  14 %  (1 of 7 done, 1 in progress)
@@ -33,7 +33,7 @@ Launch catalog, by game
   Skyscrapers                     ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
   Mosaic                          ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
   Colour Sort                     ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
-  Path                            █████████▒▒░░░░░░░░░  43 %  (3 of 7 done, 1 in progress)
+  Path                            ███████████░░░░░░░░░  57 %  (4 of 7 done)
   Arrows                          ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
   Klondike                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
   Chess tactics                   ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
@@ -500,7 +500,7 @@ The production launch ships 14 games: the 4 built games plus the 10 below. Minim
 | Sudoku 9x9 | done | Grok 4.6 | — | SU1 merged. SU2 (technique solver) active. |
 | Futoshiki | built | built | built | First Codex review: fix first. Fixes done; batch and second review next. |
 | Mosaic | built | built | built | First Codex review: fix first. Fixes done; batch and second review next. |
-| Path | done | done | done | PA1–PA3 merged as `4daab3c`. Board/bank/intro and PA4 next. |
+| Path | done | done | done | Engine `4daab3c`. Board PAA merged as `8d9fa4b`. Bank (PAB), intro (PAC) and PA4 next. |
 | Skyscrapers | built | built | in progress | Review fixes and the generator in progress (Codex). |
 | Chess tactics | built | built | built | Review found 6 blockers, including generator volume. Fixes in progress (Codex). First game to cut. |
 | Killer Sudoku | — | — | — | Waits for SU3. |
