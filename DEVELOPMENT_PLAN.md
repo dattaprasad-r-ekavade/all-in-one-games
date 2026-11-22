@@ -14,7 +14,7 @@ Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ███████████▒░░░░░░░░  56 %  (81 of 144 done, 6 in progress)
+All tasks                         ████████████░░░░░░░░  58 %  (84 of 144 done, 3 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,14 +24,14 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ████████████████████ 100 %  (10 of 10 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          ████▒▒░░░░░░░░░░░░░░  21 %  (15 of 70 done, 6 in progress)
+Phase 7 — Launch catalog          █████▒░░░░░░░░░░░░░░  26 %  (18 of 70 done, 3 in progress)
 
 Launch catalog, by game
   Sudoku 9x9                      ██████░░░░░░░░░░░░░░  29 %  (2 of 7 done)
   Killer Sudoku                   ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done)
   Futoshiki                       █████████░░░░░░░░░░░  43 %  (3 of 7 done)
   Skyscrapers                     █████████░░░░░░░░░░░  43 %  (3 of 7 done)
-  Mosaic                          ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
+  Mosaic                          █████████░░░░░░░░░░░  43 %  (3 of 7 done)
   Colour Sort                     ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
   Path                            ███████████░░░░░░░░░  57 %  (4 of 7 done)
   Arrows                          ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
@@ -499,7 +499,7 @@ The production launch ships 14 games: the 4 built games plus the 10 below. Minim
 |---|---|---|---|---|
 | Sudoku 9x9 | done | done | — | SU1 + SU2 merged (`8441b22`). SU3 generator and SUA board unblocked. |
 | Futoshiki | done | done | done | Merged 22 Nov 2026 after the batch and gpt-6.2-sol reviews. Board, bank and intro next. |
-| Mosaic | built | built | built | First Codex review: fix first. Fixes done; batch and second review next. |
+| Mosaic | done | done | done | Merged 22 Nov 2026 after the batch and reviews. Pack bands need a minimum step count and technique (Expert: 70 steps and clue overlap). Board, bank and intro next. |
 | Path | done | done | done | Engine `4daab3c`. Board PAA merged as `8d9fa4b`. Bank (PAB), intro (PAC) and PA4 next. |
 | Skyscrapers | done | done | done | Merged 22 Nov 2026 (`144ed22`) after the batch and a gpt-6.2-sol review. Board, bank and intro next. |
 | Chess tactics | built | built | built | Review found 6 blockers, including generator volume. Fixes in progress (Codex). First game to cut. |
