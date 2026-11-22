@@ -34,6 +34,7 @@ object TacticsRules {
      */
     fun countSolutions(puzzle: TacticsPuzzle, limit: Int = 2): Int {
         require(limit > 0) { "Solution limit must be positive" }
+        if (puzzle.solutionLine.size != 2 * puzzle.mateIn - 1) return 0
         var board = puzzle.initialBoard
         if (canForceMate(board, puzzle.mateIn - 1)) return 0
 
@@ -89,11 +90,19 @@ object TacticsRules {
             .take(limit)
             .toList()
 
-    // The attacker has already proved mate in 'remaining' after every legal reply.
-    private fun bestReply(board: TacticsBoard, remaining: Int): ChessMove? =
-        board.legalMoves().singleOrNull { reply ->
-            !canForceMate(board.applyMoveInternal(reply), remaining - 1)
+    // A valid defence must allow mate at the declared depth and be either forced or the unique slowest defence.
+    internal fun bestReply(board: TacticsBoard, remaining: Int): ChessMove? {
+        val legalMoves = board.legalMoves()
+        if (legalMoves.size == 1) {
+            val only = legalMoves[0]
+            return only.takeIf { canForceMate(board.applyMoveInternal(it), remaining) }
         }
+        if (remaining <= 1) return null
+        return legalMoves.singleOrNull { reply ->
+            val after = board.applyMoveInternal(reply)
+            canForceMate(after, remaining) && !canForceMate(after, remaining - 1)
+        }
+    }
 
     // At a defender node every legal reply must still allow mate, and stalemate is a refutation.
     private fun forcesMate(defender: TacticsBoard, remaining: Int): Boolean {

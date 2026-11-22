@@ -179,6 +179,25 @@ class TacticsRulesTest {
     }
 
     @Test
+    fun bestReplyRejectsReplyWhenAttackerCannotForceMateAtDeclaredDepth() {
+        // Black has only one legal move (a8-b8), but White has no mating force.
+        // bestReply must verify that the defender reply still allows mate (canForceMate == true),
+        // returning null instead of selecting a reply where mate cannot be forced.
+        val board = TacticsBoard.fromFen("k7/8/K7/8/8/8/8/8 b - -")
+        assertEquals(listOf(ChessMove.fromUci("a8b8")), board.legalMoves())
+        assertNull(TacticsRules.bestReply(board, remaining = 1))
+    }
+
+    @Test
+    fun bestReplyAcceptsForcedReplyWhenMateIsPossible() {
+        val puzzle = mate2UniquePuzzle()
+        val afterOpener = puzzle.initialBoard.applyMove(puzzle.solutionLine[0])
+        val forcedReply = puzzle.solutionLine[1]
+        assertEquals(listOf(forcedReply), afterOpener.legalMoves())
+        assertEquals(forcedReply, TacticsRules.bestReply(afterOpener, remaining = 1))
+    }
+
+    @Test
     fun malformedFenMetadataIsRejected() {
         assertThrows(IllegalArgumentException::class.java) {
             TacticsBoard.fromFen("7k/8/8/4P3/8/8/8/K7 w - d6")
