@@ -36,6 +36,10 @@
     <string name="minisudoku_digit_button_accessibility">Enter digit %1$d</string>
     <string name="minisudoku_note_button_accessibility">Toggle note %1$d</string>
     <string name="minisudoku_clear_cell">Clear cell</string>
+    <string name="skyscrapers_clue_top">Clue %1$d, column %2$d, seen from the top</string>
+    <string name="skyscrapers_clue_bottom">Clue %1$d, column %2$d, seen from the bottom</string>
+    <string name="skyscrapers_clue_left">Clue %1$d, row %2$d, seen from the left</string>
+    <string name="skyscrapers_clue_right">Clue %1$d, row %2$d, seen from the right</string>
     <string name="board_cell_clear_action">Clear cell</string>
     <string name="board_undo_action">Undo last action</string>
     <string name="screen_home">Home</string>

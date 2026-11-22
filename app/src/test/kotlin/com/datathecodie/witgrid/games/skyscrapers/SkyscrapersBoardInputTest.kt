@@ -195,20 +195,13 @@ class SkyscrapersBoardInputTest {
     }
 
     @Test
-    fun clueSatisfactionIdentifiesSatisfiedAndUnsatisfiedClues() {
-        // Line with nulls and max building 4 at index 0 satisfies clue 1
-        assertTrue(isClueSatisfied(listOf(4, null, null, null), clue = 1, size = 4))
-        // Max building 4 at index 1 with prefix [2, 4] satisfies clue 2
-        assertTrue(isClueSatisfied(listOf(2, 4, null, null), clue = 2, size = 4))
-        // Clue 3 not satisfied by [2, 4]
-        assertFalse(isClueSatisfied(listOf(2, 4, null, null), clue = 3, size = 4))
-        // Null clue returns false
+    fun clueFadesOnlyWhenTheFullLineIsValidAndMatchesTheClue() {
+        assertFalse(isClueSatisfied(listOf(4, null, null, null), clue = 1, size = 4))
+        assertFalse(isClueSatisfied(listOf(2, 4, null, null), clue = 2, size = 4))
+        assertFalse(isClueSatisfied(listOf(4, 4, 2, 1), clue = 1, size = 4))
+        assertFalse(isClueSatisfied(listOf(4, 3, 2, 1), clue = 2, size = 4))
         assertFalse(isClueSatisfied(listOf(4, 3, 2, 1), clue = null, size = 4))
-        // Completely filled line [1, 2, 3, 4] satisfies clue 4
         assertTrue(isClueSatisfied(listOf(1, 2, 3, 4), clue = 4, size = 4))
-        // Completely filled line [4, 3, 2, 1] satisfies clue 1
         assertTrue(isClueSatisfied(listOf(4, 3, 2, 1), clue = 1, size = 4))
-        // Line with duplicates [4, 4, null, null] does not satisfy clue 1
-        assertFalse(isClueSatisfied(listOf(4, 4, null, null), clue = 1, size = 4))
     }
 }

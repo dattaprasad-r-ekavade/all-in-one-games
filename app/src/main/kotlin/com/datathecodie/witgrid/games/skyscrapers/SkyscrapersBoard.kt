@@ -1,10 +1,7 @@
 package com.datathecodie.witgrid.games.skyscrapers
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
@@ -29,24 +25,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datathecodie.witgrid.R
@@ -55,9 +46,6 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersRules
 import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 import com.datathecodie.witgrid.ui.board.BoardCanvas
-import com.datathecodie.witgrid.ui.board.LocalBoardViewportMode
-import com.datathecodie.witgrid.ui.board.MIN_BOARD_CELL_SIZE
-import com.datathecodie.witgrid.ui.board.PannableBoardViewport
 import com.datathecodie.witgrid.ui.board.SudokuPlayActions
 import com.datathecodie.witgrid.ui.theme.NumberStyles
 import com.datathecodie.witgrid.ui.theme.Spacing
@@ -84,213 +72,65 @@ fun SkyscrapersBoard(
     val givenStyle = NumberStyles.cell.copy(color = colors.ink)
     val noteStyle = NumberStyles.clue.copy(color = colors.mutedInk, fontSize = 11.sp)
 
-    val completedTopClues = remember(state) {
-        (0 until puzzle.size).map { col ->
-            val colDown = (0 until puzzle.size).map { row -> state.digits[row * puzzle.size + col] }
-            isClueSatisfied(colDown, puzzle.topClues[col], puzzle.size)
-        }
-    }
-    val completedBottomClues = remember(state) {
-        (0 until puzzle.size).map { col ->
-            val colUp = (puzzle.size - 1 downTo 0).map { row -> state.digits[row * puzzle.size + col] }
-            isClueSatisfied(colUp, puzzle.bottomClues[col], puzzle.size)
-        }
-    }
-    val completedLeftClues = remember(state) {
-        (0 until puzzle.size).map { row ->
-            val rowRight = (0 until puzzle.size).map { col -> state.digits[row * puzzle.size + col] }
-            isClueSatisfied(rowRight, puzzle.leftClues[row], puzzle.size)
-        }
-    }
-    val completedRightClues = remember(state) {
-        (0 until puzzle.size).map { row ->
-            val rowLeft = (puzzle.size - 1 downTo 0).map { col -> state.digits[row * puzzle.size + col] }
-            isClueSatisfied(rowLeft, puzzle.rightClues[row], puzzle.size)
-        }
-    }
-
     val boardContent: @Composable () -> Unit = {
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val viewportMode = LocalBoardViewportMode.current
-            val margin = if (viewportMode.embedded) 0.dp else Spacing.screenMargin
-            val availableSide = if (maxHeight == Dp.Infinity) maxWidth else minOf(maxWidth, maxHeight)
-            val totalCells = puzzle.size + 2
-            val fitCellSize = ((availableSide - margin * 2) / totalCells).coerceAtLeast(1.dp)
-            val cellSize = if (viewportMode.enlarged) {
-                maxOf(fitCellSize, MIN_BOARD_CELL_SIZE)
-            } else {
-                fitCellSize
-            }
-            val clueBandSize = cellSize
-            val boardSlotWidth = cellSize * puzzle.size + margin * 2
-            val contentWidth = cellSize * totalCells + margin * 2
-            val contentHeight = cellSize * totalCells
-            val viewportWidth = minOf(maxWidth, contentWidth)
-            val viewportHeight = if (maxHeight == Dp.Infinity) contentHeight else minOf(maxHeight, contentHeight)
-            val canPan = viewportMode.enlarged &&
-                (contentWidth > viewportWidth || contentHeight > viewportHeight)
-
-            val cluesAndGrid: @Composable () -> Unit = {
-                Column(modifier = Modifier.width(contentWidth).height(contentHeight)) {
-                    // Top clues row
-                    Row(modifier = Modifier.fillMaxWidth().height(clueBandSize)) {
-                        Spacer(Modifier.width(clueBandSize))
-                        Row(
-                            modifier = Modifier
-                                .width(boardSlotWidth)
-                                .height(clueBandSize)
-                                .padding(horizontal = margin),
-                        ) {
-                            (0 until puzzle.size).forEach { col ->
-                                val clue = puzzle.topClues[col]
-                                val isSatisfied = completedTopClues[col]
-                                val isActive = selectedCellIndex != null && selectedCellIndex!! % puzzle.size == col
-                                ClueLabel(
-                                    label = clue?.toString().orEmpty(),
-                                    cellSize = cellSize,
-                                    color = if (isSatisfied) colors.mutedInk.copy(alpha = 0.5f) else colors.ink,
-                                    modifier = Modifier.background(
-                                        if (isActive) colors.accentSoft else Color.Transparent,
-                                    ),
-                                )
-                            }
+        SkyscrapersClueGrid(state, selectedCellIndex) { canPan ->
+            BoardCanvas(
+                gridSize = puzzle.size,
+                cellDescription = { cell ->
+                    describeSkyscrapersCell(state, cell, selectedCellIndex == cell.index)
+                },
+                solved = SkyscrapersRules.isSolved(puzzle, state),
+                reduceMotion = options.reduceMotion,
+                hapticsEnabled = options.hapticsEnabled,
+                dragPaintEnabled = false,
+                panningEnabled = canPan,
+                drawCell = { cell, bounds ->
+                    val isGiven = puzzle.givens[cell.index] != null
+                    drawRect(colors.card, bounds.topLeft, bounds.size)
+                    val selected = selectedCellIndex
+                    if (selected != null) {
+                        val row = cell.index / puzzle.size
+                        val column = cell.index % puzzle.size
+                        val selectedRow = selected / puzzle.size
+                        val selectedColumn = selected % puzzle.size
+                        if (row == selectedRow || column == selectedColumn) {
+                            drawRect(colors.accentSoft, bounds.topLeft, bounds.size)
                         }
-                        Spacer(Modifier.width(clueBandSize))
                     }
-
-                    // Middle row (Left clues, Grid Canvas, Right clues)
-                    Row(modifier = Modifier.fillMaxWidth().height(cellSize * puzzle.size)) {
-                        Column(modifier = Modifier.width(clueBandSize).height(cellSize * puzzle.size)) {
-                            (0 until puzzle.size).forEach { row ->
-                                val clue = puzzle.leftClues[row]
-                                val isSatisfied = completedLeftClues[row]
-                                val isActive = selectedCellIndex != null && selectedCellIndex!! / puzzle.size == row
-                                ClueLabel(
-                                    label = clue?.toString().orEmpty(),
-                                    cellSize = cellSize,
-                                    color = if (isSatisfied) colors.mutedInk.copy(alpha = 0.5f) else colors.ink,
-                                    modifier = Modifier.background(
-                                        if (isActive) colors.accentSoft else Color.Transparent,
-                                    ),
-                                )
-                            }
-                        }
-
-                        BoardCanvas(
-                            gridSize = puzzle.size,
-                            cellDescription = { cell ->
-                                describeSkyscrapersCell(state, cell, selectedCellIndex == cell.index)
-                            },
-                            modifier = Modifier.width(boardSlotWidth),
-                            solved = SkyscrapersRules.isSolved(puzzle, state),
-                            reduceMotion = options.reduceMotion,
-                            hapticsEnabled = options.hapticsEnabled,
-                            dragPaintEnabled = false,
-                            panningEnabled = canPan,
-                            drawCell = { cell, bounds ->
-                                val isGiven = puzzle.givens[cell.index] != null
-                                drawRect(colors.card, bounds.topLeft, bounds.size)
-                                val selected = selectedCellIndex
-                                if (selected != null) {
-                                    val row = cell.index / puzzle.size
-                                    val column = cell.index % puzzle.size
-                                    val selectedRow = selected / puzzle.size
-                                    val selectedColumn = selected % puzzle.size
-                                    if (row == selectedRow || column == selectedColumn) {
-                                        drawRect(colors.accentSoft, bounds.topLeft, bounds.size)
-                                    }
-                                }
-                                if (selectedCellIndex == cell.index) {
-                                    drawRect(
-                                        colors.accent.copy(alpha = SELECTION_FILL_ALPHA),
-                                        bounds.topLeft,
-                                        bounds.size,
-                                    )
-                                }
-
-                                val digit = state.digits[cell.index]
-                                if (digit != null) {
-                                    val style = if (isGiven) givenStyle else digitStyle
-                                    val text = textMeasurer.measure(AnnotatedString(digit.toString()), style = style)
-                                    drawCenteredLabel(text, bounds, bounds.width, bounds.height)
-                                } else {
-                                    drawNotes(state.notes[cell.index], bounds, textMeasurer, noteStyle, puzzle.size)
-                                }
-
-                                if (selectedCellIndex == cell.index) {
-                                    drawRect(
-                                        color = colors.accent,
-                                        topLeft = bounds.topLeft,
-                                        size = bounds.size,
-                                        style = Stroke(width = SELECTION_BORDER_WIDTH_DP.dp.toPx()),
-                                    )
-                                }
-                            },
-                            onCellTap = { cell -> selectedCellIndex = cell.index },
-                            onDragPaint = {},
-                            onLongPress = { cell ->
-                                selectedCellIndex = cell.index
-                                SkyscrapersBoardInput.clearMoves(state, cell).takeIf { it.isNotEmpty() }?.let(onMoves)
-                            },
-                            onUndo = onUndo,
+                    if (selectedCellIndex == cell.index) {
+                        drawRect(
+                            colors.accent.copy(alpha = SELECTION_FILL_ALPHA),
+                            bounds.topLeft,
+                            bounds.size,
                         )
-
-                        Column(modifier = Modifier.width(clueBandSize).height(cellSize * puzzle.size)) {
-                            (0 until puzzle.size).forEach { row ->
-                                val clue = puzzle.rightClues[row]
-                                val isSatisfied = completedRightClues[row]
-                                val isActive = selectedCellIndex != null && selectedCellIndex!! / puzzle.size == row
-                                ClueLabel(
-                                    label = clue?.toString().orEmpty(),
-                                    cellSize = cellSize,
-                                    color = if (isSatisfied) colors.mutedInk.copy(alpha = 0.5f) else colors.ink,
-                                    modifier = Modifier.background(
-                                        if (isActive) colors.accentSoft else Color.Transparent,
-                                    ),
-                                )
-                            }
-                        }
                     }
 
-                    // Bottom clues row
-                    Row(modifier = Modifier.fillMaxWidth().height(clueBandSize)) {
-                        Spacer(Modifier.width(clueBandSize))
-                        Row(
-                            modifier = Modifier
-                                .width(boardSlotWidth)
-                                .height(clueBandSize)
-                                .padding(horizontal = margin),
-                        ) {
-                            (0 until puzzle.size).forEach { col ->
-                                val clue = puzzle.bottomClues[col]
-                                val isSatisfied = completedBottomClues[col]
-                                val isActive = selectedCellIndex != null && selectedCellIndex!! % puzzle.size == col
-                                ClueLabel(
-                                    label = clue?.toString().orEmpty(),
-                                    cellSize = cellSize,
-                                    color = if (isSatisfied) colors.mutedInk.copy(alpha = 0.5f) else colors.ink,
-                                    modifier = Modifier.background(
-                                        if (isActive) colors.accentSoft else Color.Transparent,
-                                    ),
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(clueBandSize))
+                    val digit = state.digits[cell.index]
+                    if (digit != null) {
+                        val style = if (isGiven) givenStyle else digitStyle
+                        val text = textMeasurer.measure(AnnotatedString(digit.toString()), style = style)
+                        drawCenteredLabel(text, bounds, bounds.width, bounds.height)
+                    } else {
+                        drawNotes(state.notes[cell.index], bounds, textMeasurer, noteStyle, puzzle.size)
                     }
-                }
-            }
 
-            if (canPan) {
-                PannableBoardViewport(
-                    modifier = Modifier.width(viewportWidth).height(viewportHeight),
-                    contentWidth = contentWidth,
-                    contentHeight = contentHeight,
-                    enabled = true,
-                    content = cluesAndGrid,
-                )
-            } else {
-                cluesAndGrid()
-            }
+                    if (selectedCellIndex == cell.index) {
+                        drawRect(
+                            color = colors.accent,
+                            topLeft = bounds.topLeft,
+                            size = bounds.size,
+                            style = Stroke(width = SELECTION_BORDER_WIDTH_DP.dp.toPx()),
+                        )
+                    }
+                },
+                onCellTap = { cell -> selectedCellIndex = cell.index },
+                onDragPaint = {},
+                onLongPress = { cell ->
+                    selectedCellIndex = cell.index
+                    SkyscrapersBoardInput.clearMoves(state, cell).takeIf { it.isNotEmpty() }?.let(onMoves)
+                },
+                onUndo = onUndo,
+            )
         }
     }
 
@@ -415,35 +255,10 @@ fun SkyscrapersBoard(
             },
         ))
     } else if (layout == null) {
-        Column(
-            modifier = modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            boardContent()
-            Spacer(Modifier.height(Spacing.sm))
-            controlsContent()
-        }
+        SkyscrapersBoardWithControls(modifier, boardContent, controlsContent)
     } else {
         layout(boardContent, controlsContent)
     }
-}
-
-internal fun isClueSatisfied(line: List<Int?>, clue: Int?, size: Int): Boolean {
-    if (clue == null) return false
-    val nonNull = line.filterNotNull()
-    if (nonNull.toSet().size != nonNull.size) return false
-
-    if (line.none { it == null }) {
-        return nonNull.toSet().size == size && SkyscrapersRules.countVisible(nonNull) == clue
-    }
-    val maxIndex = line.indexOf(size)
-    if (maxIndex != -1) {
-        val prefix = line.subList(0, maxIndex + 1)
-        if (prefix.none { it == null } && prefix.toSet().size == prefix.size) {
-            return SkyscrapersRules.countVisible(prefix.filterNotNull()) == clue
-        }
-    }
-    return false
 }
 
 @Composable
@@ -476,42 +291,6 @@ private fun describeSkyscrapersCell(state: SkyscrapersState, cell: Cell, selecte
         editability,
         selection,
     )
-}
-
-@Composable
-private fun clueStyle(cellSize: Dp, color: Color): TextStyle {
-    val maximumFontSize = with(LocalDensity.current) { (cellSize * CLUE_FONT_SIZE_FRACTION).toSp() }
-    val fontSize = minOf(NumberStyles.clue.fontSize.value, maximumFontSize.value).sp
-    return NumberStyles.clue.copy(
-        color = color,
-        fontSize = fontSize,
-        lineHeight = fontSize * CLUE_LINE_HEIGHT_FRACTION,
-        platformStyle = PlatformTextStyle(includeFontPadding = false),
-    )
-}
-
-@Composable
-private fun ClueLabel(
-    label: String,
-    cellSize: Dp,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier.size(cellSize),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (label.isNotEmpty()) {
-            Text(
-                text = label,
-                style = clueStyle(cellSize, color),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Clip,
-            )
-        }
-    }
 }
 
 private fun DrawScope.drawNotes(
@@ -564,5 +343,3 @@ private fun DrawScope.drawCenteredLabel(
 private const val SELECTION_BORDER_WIDTH_DP = 2
 private const val SELECTION_FILL_ALPHA = 0.12f
 private const val LABEL_SIZE_FRACTION = 0.78f
-private const val CLUE_FONT_SIZE_FRACTION = 0.65f
-private const val CLUE_LINE_HEIGHT_FRACTION = 1.1f
