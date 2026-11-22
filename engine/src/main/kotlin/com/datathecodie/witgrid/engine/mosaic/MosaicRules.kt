@@ -9,19 +9,14 @@ import java.util.concurrent.ConcurrentHashMap
 object MosaicRules {
     private val areaCache = ConcurrentHashMap<Int, Array<List<Cell>>>()
 
-    /** Returns the 3x3 neighbourhood cells (self and 8-way adjacent neighbours) for [cell]. */
-    fun areaCells(grid: Grid, cell: Cell): List<Cell> {
-        val cached = areaCache[grid.size]
-        if (cached != null) {
-            return cached[cell.index]
-        }
-        val computed = Array(grid.cellCount) { idx ->
-            val c = Cell(idx)
-            listOf(c) + grid.neighbours(c)
-        }
-        areaCache[grid.size] = computed
-        return computed[cell.index]
-    }
+    /** Returns the unmodifiable 3x3 neighbourhood (self and 8-way neighbours) for [cell]. */
+    fun areaCells(grid: Grid, cell: Cell): List<Cell> =
+        areaCache.computeIfAbsent(grid.size) {
+            Array(grid.cellCount) { index ->
+                val center = Cell(index)
+                immutableList(listOf(center) + grid.neighbours(center))
+            }
+        }[cell.index]
 
     /** Returns the clue count (number of filled cells in 3x3 area) for [cell] given a complete [solution]. */
     fun clueAt(grid: Grid, solution: List<Int>, cell: Cell): Int =

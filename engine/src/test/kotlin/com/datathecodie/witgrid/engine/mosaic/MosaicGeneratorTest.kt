@@ -12,36 +12,23 @@ class MosaicGeneratorTest {
     private val idPattern = Regex("^[A-Z]{2}-[A-Z]+-[0-9a-f]{16}$")
 
     @Test
-    fun easyPackGeneratesTenUniqueSolvablePuzzles() {
-        val puzzles = generatePuzzles(Pack.EASY, 10, seed = 1L)
-        assertBatchValid(puzzles, Pack.EASY, 10)
+    fun easyPackGeneratesAndReplaysTenUniqueSolvablePuzzles() {
+        assertSeedOneBatchValidAndDeterministic(Pack.EASY)
     }
 
     @Test
-    fun mediumPackGeneratesTenUniqueSolvablePuzzles() {
-        val puzzles = generatePuzzles(Pack.MEDIUM, 10, seed = 1L)
-        assertBatchValid(puzzles, Pack.MEDIUM, 10)
+    fun mediumPackGeneratesAndReplaysTenUniqueSolvablePuzzles() {
+        assertSeedOneBatchValidAndDeterministic(Pack.MEDIUM)
     }
 
     @Test
-    fun hardPackGeneratesTenUniqueSolvablePuzzles() {
-        val puzzles = generatePuzzles(Pack.HARD, 10, seed = 1L)
-        assertBatchValid(puzzles, Pack.HARD, 10)
+    fun hardPackGeneratesAndReplaysTenUniqueSolvablePuzzles() {
+        assertSeedOneBatchValidAndDeterministic(Pack.HARD)
     }
 
     @Test
-    fun expertPackGeneratesTenUniqueSolvablePuzzles() {
-        val puzzles = generatePuzzles(Pack.EXPERT, 10, seed = 1L)
-        assertBatchValid(puzzles, Pack.EXPERT, 10)
-    }
-
-    @Test
-    fun sameSeedGivesIdenticalPuzzlesOnSecondRun() {
-        for (pack in listOf(Pack.EASY, Pack.MEDIUM, Pack.HARD, Pack.EXPERT)) {
-            val firstRun = generatePuzzles(pack, 10, seed = 1L).map(MosaicEngine::encodePuzzle)
-            val secondRun = generatePuzzles(pack, 10, seed = 1L).map(MosaicEngine::encodePuzzle)
-            assertEquals(firstRun, secondRun, "Pack $pack must produce identical output on replay")
-        }
+    fun expertPackGeneratesAndReplaysTenUniqueSolvablePuzzles() {
+        assertSeedOneBatchValidAndDeterministic(Pack.EXPERT)
     }
 
     @Test
@@ -61,6 +48,18 @@ class MosaicGeneratorTest {
             assertTrue(idPattern.matches(puzzle.id), "Unexpected ID format: ${puzzle.id}")
             assertEquals("MO-${pack.name}", puzzle.id.substringBeforeLast('-'))
         }
+    }
+
+    private fun assertSeedOneBatchValidAndDeterministic(pack: Pack) {
+        val puzzles = generatePuzzles(pack, 10, seed = 1L)
+        assertBatchValid(puzzles, pack, 10)
+
+        val replay = generatePuzzles(pack, 10, seed = 1L)
+        assertEquals(
+            puzzles.map(MosaicEngine::encodePuzzle),
+            replay.map(MosaicEngine::encodePuzzle),
+            "Pack $pack must produce identical output on replay",
+        )
     }
 
     private fun generatePuzzles(pack: Pack, count: Int, seed: Long): List<MosaicPuzzle> {

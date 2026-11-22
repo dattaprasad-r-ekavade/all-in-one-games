@@ -125,8 +125,9 @@ class MosaicTechniqueSolverTest {
         assertEquals(listOf(Cell(2), Cell(5)), step.moves.map { it.cell })
         assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.CROSSED })
         assertValidOneSentenceExplanation(step.explanation)
-        assertTrue(step.explanation.contains("both need 2 more filled cells"))
-        assertTrue(step.explanation.contains("other cells for 2 must be crossed"))
+        assertTrue(step.explanation.contains("both have a remaining fill count of 2"))
+        assertTrue(step.explanation.contains("row 1, column 1 and row 1, column 2"))
+        assertTrue(step.explanation.contains("cross the unmarked cells exclusive to the second area"))
     }
 
     @Test
@@ -153,8 +154,42 @@ class MosaicTechniqueSolverTest {
         assertEquals(listOf(Cell(2), Cell(5)), step.moves.map { it.cell })
         assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.FILLED })
         assertValidOneSentenceExplanation(step.explanation)
-        assertTrue(step.explanation.contains("needs 2 more filled cells than clue 2"))
-        assertTrue(step.explanation.contains("must all be filled"))
+        assertTrue(step.explanation.contains("than the clue at row 1, column 1"))
+        assertTrue(step.explanation.contains("of unmarked cells exclusive to the first area, so fill those unmarked cells"))
+    }
+
+    @Test
+    fun overlapCrossHintExcludesAnAlreadyFilledCell() {
+        val clues = listOf(2, 3, null, null, null, null, null, null, null)
+        val solution = listOf(1, 1, 1, 0, 0, 0, 0, 0, 0)
+        val puzzle = MosaicPuzzle("MO-PARTIAL-CROSS", 3, clues, solution, Pack.EASY, "none:0")
+        val state = MosaicState.initial(puzzle).withMove(Move.SetMark(Cell(2), Mark.FILLED))
+
+        val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
+        assertEquals("clue-overlap", step.technique.id)
+        assertEquals(listOf(Move.SetMark(Cell(5), Mark.CROSSED)), step.moves)
+        assertTrue(step.explanation.contains("row 1, column 1 and row 1, column 2"))
+        assertTrue(step.explanation.contains("cross the unmarked cells exclusive to the second area"))
+        assertValidOneSentenceExplanation(step.explanation)
+    }
+
+    @Test
+    fun overlapFillHintExcludesAlreadyCrossedCellsInBothAreas() {
+        val clues = listOf(null, 1, null, 2, null, null, null, null, null)
+        val solution = listOf(1, 0, 0, 0, 0, 0, 1, 0, 0)
+        val puzzle = MosaicPuzzle("MO-PARTIAL-FILL", 3, clues, solution, Pack.EASY, "none:0")
+        val state = MosaicState.initial(puzzle)
+            .withMove(Move.SetMark(Cell(2), Mark.CROSSED))
+            .withMove(Move.SetMark(Cell(7), Mark.CROSSED))
+
+        val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
+        assertEquals("clue-overlap", step.technique.id)
+        assertEquals(listOf(Move.SetMark(Cell(6), Mark.FILLED), Move.SetMark(Cell(5), Mark.CROSSED)), step.moves)
+        assertTrue(step.explanation.contains("row 2, column 1 needs more fills"))
+        assertTrue(step.explanation.contains("than the clue at row 1, column 2"))
+        assertTrue(step.explanation.contains("of unmarked cells exclusive to the first area, so fill those unmarked cells"))
+        assertTrue(step.explanation.contains("cross all unmarked cells exclusive to the second area"))
+        assertValidOneSentenceExplanation(step.explanation)
     }
 
     @Test

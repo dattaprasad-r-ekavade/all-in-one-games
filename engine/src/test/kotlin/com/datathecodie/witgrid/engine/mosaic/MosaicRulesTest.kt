@@ -13,6 +13,17 @@ import org.junit.jupiter.api.Test
 
 class MosaicRulesTest {
     @Test
+    fun cachedAreaRejectsMutation() {
+        val corner = Cell(0)
+        val area = MosaicRules.areaCells(Grid(4), corner)
+
+        assertThrows(UnsupportedOperationException::class.java) {
+            (area as MutableList<Cell>).clear()
+        }
+        assertEquals(listOf(Cell(0), Cell(1), Cell(4), Cell(5)), MosaicRules.areaCells(Grid(4), corner))
+    }
+
+    @Test
     fun solutionCounterReturnsZeroOneAndTwoOnHandFixtures() {
         // Zero solutions: contradictory clues on overlapping area
         // (0,0) area size 4 has clue 0 (all 4 cells must be 0)

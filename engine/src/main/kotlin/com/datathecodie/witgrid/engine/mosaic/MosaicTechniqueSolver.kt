@@ -163,13 +163,13 @@ object MosaicTechniqueSolver {
             if (remA < 0 || remA > unknownsA.size) continue
 
             val rowA = puzzle.grid.row(cellA)
-            val colA = puzzle.grid.column(cellA)
+            val columnA = puzzle.grid.column(cellA)
 
             for (j in clueIndices) {
                 if (i == j) continue
                 val rowB = j / puzzle.size
-                val colB = j % puzzle.size
-                if (kotlin.math.abs(rowA - rowB) > 2 || kotlin.math.abs(colA - colB) > 2) continue
+                val columnB = j % puzzle.size
+                if (kotlin.math.abs(rowA - rowB) > 2 || kotlin.math.abs(columnA - columnB) > 2) continue
 
                 val clueB = puzzle.clues[j]!!
                 val cellB = Cell(j)
@@ -190,7 +190,10 @@ object MosaicTechniqueSolver {
                 if (onlyA.isEmpty() && onlyB.isNotEmpty() && remB == remA) {
                     val moves = onlyB.sortedBy { it.index }.map { Move.SetMark(it, Mark.CROSSED) }
                     val cells = (areaA + areaB).distinct().sortedBy { it.index }
-                    val explanation = "Because the clue of $clueA and the clue of $clueB both need $remA more filled cells and the remaining cells of $clueA are contained in the area of $clueB, the other cells for $clueB must be crossed."
+                    val explanation = "The clues at row ${rowA + 1}, column ${columnA + 1} and " +
+                        "row ${rowB + 1}, column ${columnB + 1} both have a remaining fill count of $remA, " +
+                        "and all unmarked cells in the first area are shared, " +
+                        "so cross the unmarked cells exclusive to the second area."
                     return HintStep(
                         technique = MosaicTechniques.CLUE_OVERLAP,
                         cells = immutableList(cells),
@@ -205,12 +208,10 @@ object MosaicTechniqueSolver {
                     val crossMoves = onlyA.sortedBy { it.index }.map { Move.SetMark(it, Mark.CROSSED) }
                     val moves = fillMoves + crossMoves
                     val cells = (areaA + areaB).distinct().sortedBy { it.index }
-                    val diff = remB - remA
-                    val explanation = if (onlyA.isEmpty()) {
-                        "Because clue $clueB needs $diff more filled cells than clue $clueA, matching its ${onlyB.size} unshared cells, those unshared cells must all be filled."
-                    } else {
-                        "Because clue $clueB needs $diff more filled cells than clue $clueA, matching its ${onlyB.size} unshared cells, those unshared cells must be filled and the unshared cells for clue $clueA must be crossed."
-                    }
+                    val explanation = "The clue at row ${rowB + 1}, column ${columnB + 1} needs more fills " +
+                        "than the clue at row ${rowA + 1}, column ${columnA + 1} by exactly the number " +
+                        "of unmarked cells exclusive to the first area, so fill those unmarked cells" +
+                        if (onlyA.isEmpty()) "." else " and cross all unmarked cells exclusive to the second area."
                     return HintStep(
                         technique = MosaicTechniques.CLUE_OVERLAP,
                         cells = immutableList(cells),
