@@ -92,7 +92,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
-| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 review, PA2 review, PA3 review |
+| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done |
 | PAA | Path board | M | Codex | Claude | A4, PA2 | todo |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
@@ -681,6 +681,7 @@ Same four engine cards as CR/BI/NO/MS. **Owns:** `engine/…/<game>/**` and its 
 
 **Done when (each engine card):** `./gradlew :engine:test` passes, plus the launch-lane x1–x4 checks (unique, technique-solvable, seed-stable). CT `countSolutions` counts distinct winning first moves (cap 2).
 **Lead completion note (21 Nov 2026):** SU1 squash-merged as `8abb543`. `:engine:test` passed. Full `check` hit a Windows DataStore file-lock flake in `RewardGrantPersistenceSpecTest`; that spec passed on retry. Sudoku is not in `Registry` yet (SUC).
+**Lead completion note (22 Nov 2026):** PA1–PA3 squash-merged as `4daab3c`. Second review merge after the forced-join / decode / stuck-grade / pack-size fixes. Path package tests and the lead batch `check` passed. Path is not in `Registry` yet (PAC). PA4, PAA and PAB are unblocked.
 
 ### Hub Family B lanes (CS, AR, KL)
 
