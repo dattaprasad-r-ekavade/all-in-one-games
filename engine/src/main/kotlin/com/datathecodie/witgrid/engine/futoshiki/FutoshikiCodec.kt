@@ -75,6 +75,9 @@ object FutoshikiCodec {
         require(puzzle.givens.indices.all { index ->
             puzzle.givens[index] == null || puzzle.givens[index] == puzzle.solution[index]
         }) { "Futoshiki givens must match the stored solution" }
+        require(FutoshikiPackBands.isSignCountInPackBand(puzzle.pack, puzzle.signCount)) {
+            "Futoshiki sign count (${puzzle.signCount}) does not fit the ${puzzle.pack} sign bounds"
+        }
 
         return puzzle
     }
@@ -86,6 +89,9 @@ object FutoshikiCodec {
         }
         require(FutoshikiPackBands.sizeForPack(puzzle.pack) == puzzle.size) {
             "Futoshiki pack must match its board size"
+        }
+        require(FutoshikiPackBands.isSignCountInPackBand(puzzle.pack, puzzle.signCount)) {
+            "Futoshiki sign count (${puzzle.signCount}) does not fit the ${puzzle.pack} sign bounds"
         }
         FutoshikiGradeCodec.validate(puzzle.storedGrade)
         require(FutoshikiRules.isValidSolution(puzzle)) {

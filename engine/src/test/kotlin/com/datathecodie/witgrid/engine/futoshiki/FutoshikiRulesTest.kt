@@ -295,6 +295,70 @@ class FutoshikiRulesTest {
     }
 
     @Test
+    fun codecRejectsSignCountViolatingPackBands() {
+        val sol7 = (0 until 49).map { (it / 7 + it % 7) % 7 + 1 }
+        val givens7 = sol7.mapIndexed { index, digit -> if (index % 4 == 0) digit else null }
+
+        // Hard with 9 signs (needs >= 10)
+        val hardWith9Signs = FutoshikiPuzzle(
+            id = "FU-HARD-9",
+            size = 7,
+            givens = givens7,
+            horizontalSigns = List(42) { FutoshikiSign.NONE },
+            verticalSigns = (List(9) { FutoshikiSign.LESS } + List(33) { FutoshikiSign.NONE }).mapIndexed { index, sign ->
+                val r = index / 7
+                val c = index % 7
+                if (index < 9 && sol7[r * 7 + c] > sol7[(r + 1) * 7 + c]) FutoshikiSign.GREATER else sign
+            },
+            solution = sol7,
+            pack = Pack.HARD,
+            storedGrade = "sign-chains:1",
+        )
+        assertEquals(9, hardWith9Signs.signCount)
+        assertThrows(IllegalArgumentException::class.java) {
+            FutoshikiCodec.encode(hardWith9Signs)
+        }
+
+        // Expert with 9 signs (needs <= 8)
+        val expertWith9Signs = FutoshikiPuzzle(
+            id = "FU-EXPERT-9",
+            size = 7,
+            givens = givens7,
+            horizontalSigns = List(42) { FutoshikiSign.NONE },
+            verticalSigns = (List(9) { FutoshikiSign.LESS } + List(33) { FutoshikiSign.NONE }).mapIndexed { index, sign ->
+                val r = index / 7
+                val c = index % 7
+                if (index < 9 && sol7[r * 7 + c] > sol7[(r + 1) * 7 + c]) FutoshikiSign.GREATER else sign
+            },
+            solution = sol7,
+            pack = Pack.EXPERT,
+            storedGrade = "naked-pair:1",
+        )
+        assertEquals(9, expertWith9Signs.signCount)
+        assertThrows(IllegalArgumentException::class.java) {
+            FutoshikiCodec.encode(expertWith9Signs)
+        }
+
+        val hardLineWith9Signs = "FU-HARD-9|7|" +
+            givens7.joinToString("") { it?.toString() ?: "." } + "/" +
+            "-".repeat(42) + "/" +
+            expertWith9Signs.verticalSigns.joinToString("") { it.verticalSymbol.toString() } + "|" +
+            sol7.joinToString("") + "|HARD|sign-chains:1"
+        assertThrows(IllegalArgumentException::class.java) {
+            FutoshikiCodec.decode(hardLineWith9Signs)
+        }
+
+        val expertLineWith9Signs = "FU-EXPERT-9|7|" +
+            givens7.joinToString("") { it?.toString() ?: "." } + "/" +
+            "-".repeat(42) + "/" +
+            expertWith9Signs.verticalSigns.joinToString("") { it.verticalSymbol.toString() } + "|" +
+            sol7.joinToString("") + "|EXPERT|naked-pair:1"
+        assertThrows(IllegalArgumentException::class.java) {
+            FutoshikiCodec.decode(expertLineWith9Signs)
+        }
+    }
+
+    @Test
     fun engineExposesFutoshikiRulesAndCounter() {
         val puzzle = puzzle()
         val line = FutoshikiEngine.encodePuzzle(puzzle)

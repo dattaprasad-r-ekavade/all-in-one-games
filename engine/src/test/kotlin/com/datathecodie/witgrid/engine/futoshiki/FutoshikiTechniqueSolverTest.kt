@@ -355,10 +355,10 @@ class FutoshikiTechniqueSolverTest {
                 6, 7, 2, 5, 3, 4, 1,
                 7, 6, 5, 1, 4, 3, 2,
             )
-            val hSigns = "-------->------<---<->--------->----->-->-".map {
+            val hSigns = "-------------------<----------------------".map {
                 FutoshikiSign.fromHorizontalChar(it)
             }
-            val vSigns = "^v-v-v--^---^---^--------^---^v----^v-----".map {
+            val vSigns = "^--v-v--^---^---^--------^----------------".map {
                 FutoshikiSign.fromVerticalChar(it)
             }
             return FutoshikiPuzzle(

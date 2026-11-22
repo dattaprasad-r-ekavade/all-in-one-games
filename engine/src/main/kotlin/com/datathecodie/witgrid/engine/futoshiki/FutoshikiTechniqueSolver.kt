@@ -65,10 +65,13 @@ object FutoshikiTechniqueSolver {
 
     /** Solves from the givens and returns the hardest technique and number of hint steps. */
     fun grade(puzzle: FutoshikiPuzzle): Grade {
-        val grade = gradeByTechniques(puzzle)
         require(FutoshikiPackBands.sizeForPack(puzzle.pack) == puzzle.size) {
             "Futoshiki board size does not match ${puzzle.pack}"
         }
+        require(FutoshikiPackBands.isSignCountInPackBand(puzzle.pack, puzzle.signCount)) {
+            "Futoshiki sign count (${puzzle.signCount}) does not fit the ${puzzle.pack} sign bounds"
+        }
+        val grade = gradeByTechniques(puzzle)
         require(FutoshikiPackBands.isGradeInPackBand(puzzle.pack, grade)) {
             "Futoshiki grade does not fit the ${puzzle.pack} technique band"
         }

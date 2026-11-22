@@ -65,6 +65,9 @@ class FutoshikiPuzzle(
     /** Derived list of all pairwise inequalities present in the puzzle. */
     val inequalities: List<FutoshikiInequality>
 
+    /** Total number of inequality signs present on the board. */
+    val signCount: Int get() = inequalities.size
+
     init {
         require(size in 2..9) { "Futoshiki puzzle size must be between 2 and 9" }
         require(this.givens.size == grid.cellCount) { "Futoshiki puzzle needs one given per cell" }
