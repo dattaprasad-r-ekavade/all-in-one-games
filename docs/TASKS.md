@@ -116,7 +116,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | FUA | Futoshiki board | M | Codex | Claude | A4, FU2 | todo |
 | FUB | Futoshiki bank | L | Claude | Codex | FU3, B6 | todo |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
-| SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 review, SK2 review, SK3 review (Claude lead loop; do not start) |
+| SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done |
 | SKA | Skyscrapers board | M | Codex | Claude | A4, SK2 | todo |
 | SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
