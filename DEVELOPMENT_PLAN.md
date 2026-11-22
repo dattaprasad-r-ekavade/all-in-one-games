@@ -14,7 +14,7 @@ Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ████████████▒░░░░░░░  59 %  (85 of 145 done, 7 in progress)
+All tasks                         ████████████▒░░░░░░░  59 %  (85 of 145 done, 9 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,13 +24,13 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ██████████████████░░  91 %  (10 of 11 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          █████▒▒░░░░░░░░░░░░░  27 %  (19 of 70 done, 7 in progress)
+Phase 7 — Launch catalog          █████▒▒▒░░░░░░░░░░░░  27 %  (19 of 70 done, 9 in progress)
 
 Launch catalog, by game
-  Sudoku 9x9                      ██████░░░░░░░░░░░░░░  29 %  (2 of 7 done)
+  Sudoku 9x9                      ██████▒▒▒░░░░░░░░░░░  29 %  (2 of 7 done, 1 in progress)
   Killer Sudoku                   ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done)
   Futoshiki                       █████████▒▒░░░░░░░░░  43 %  (3 of 7 done, 1 in progress)
-  Skyscrapers                     ███████████░░░░░░░░░  57 %  (4 of 7 done)
+  Skyscrapers                     ███████████▒▒▒░░░░░░  57 %  (4 of 7 done, 1 in progress)
   Mosaic                          █████████▒▒░░░░░░░░░  43 %  (3 of 7 done, 1 in progress)
   Colour Sort                     ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
   Path                            ███████████░░░░░░░░░  57 %  (4 of 7 done)

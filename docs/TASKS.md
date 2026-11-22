@@ -86,7 +86,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
 | SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done |
-| SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
+| SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | active (Gemini) |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
 | CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done |
@@ -119,7 +119,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
-| SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
+| SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | active (Codex luna) |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | review (batch and Codex review) |
