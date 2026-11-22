@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -51,7 +52,8 @@ fun MosaicBoard(
     var mode by remember(state.puzzle.id) { mutableStateOf(MosaicMarkMode.FILL) }
     val puzzle = state.puzzle
     val colors = WitgridTheme.colors
-    val errorColor = MaterialTheme.colorScheme.error
+    val errorBackground = MaterialTheme.colorScheme.error
+    val errorText = MaterialTheme.colorScheme.onError
     val textMeasurer = rememberTextMeasurer()
     val digitStyle = NumberStyles.cell
     val haptics = rememberBoardHaptics(options.hapticsEnabled)
@@ -90,43 +92,48 @@ fun MosaicBoard(
     val boardContent: @Composable () -> Unit = {
         BoardCanvas(
             gridSize = puzzle.size,
-            cellDescription = { cell -> describeMosaicCell(state, cell) },
+            cellDescription = { cell -> describeMosaicCell(state, cell, clueStatuses[cell.index]) },
             solved = MosaicRules.isSolved(puzzle, state),
             reduceMotion = options.reduceMotion,
             hapticsEnabled = options.hapticsEnabled,
             dragPaintEnabled = true,
             drawCell = { cell, bounds ->
-                drawRect(colors.card, topLeft = bounds.topLeft, size = bounds.size)
+                val mark = state.marks[cell.index]
+                val isFilled = mark == Mark.FILLED
+                val background = if (isFilled) colors.ink else colors.card
+                val foreground = if (isFilled) colors.card else colors.ink
+                drawRect(background, topLeft = bounds.topLeft, size = bounds.size)
 
-                when (state.marks[cell.index]) {
-                    Mark.EMPTY -> Unit
-                    Mark.FILLED -> drawRect(colors.ink, topLeft = bounds.topLeft, size = bounds.size)
-                    Mark.CROSSED -> drawCross(bounds, colors.mutedInk.copy(alpha = 0.45f))
+                if (mark == Mark.CROSSED) {
+                    drawCross(bounds, colors.mutedInk.copy(alpha = 0.45f))
                 }
 
                 val clue = puzzle.clues[cell.index]
                 if (clue != null) {
                     val status = clueStatuses[cell.index] ?: MosaicClueStatus.NORMAL
-                    val isFilled = state.marks[cell.index] == Mark.FILLED
                     val textColor = when (status) {
-                        MosaicClueStatus.ERROR -> errorColor
+                        MosaicClueStatus.ERROR -> errorText
                         MosaicClueStatus.SATISFIED -> {
                             if (isFilled) colors.card.copy(alpha = 0.5f)
                             else colors.mutedInk.copy(alpha = 0.45f)
                         }
-                        MosaicClueStatus.NORMAL -> {
-                            if (isFilled) colors.card
-                            else colors.ink
-                        }
+                        MosaicClueStatus.NORMAL -> foreground
                     }
                     val textLayout = textMeasurer.measure(
                         AnnotatedString(clue.toString()),
                         style = digitStyle.copy(color = textColor),
                     )
+                    if (status == MosaicClueStatus.ERROR) {
+                        drawCircle(
+                            color = errorBackground,
+                            radius = minOf(bounds.width, bounds.height) * ERROR_BADGE_RADIUS_FRACTION,
+                            center = bounds.center,
+                        )
+                    }
                     drawCenteredLabel(textLayout, bounds)
                 }
 
-                drawGuideLines(cell, puzzle.size, bounds, colors.ink)
+                drawGuideLines(cell, puzzle.size, bounds, foreground)
             },
             onCellTap = { cell ->
                 val moves = MosaicBoardInput.markMoves(state, listOf(cell), mode)
@@ -161,7 +168,7 @@ fun MosaicBoard(
 }
 
 @Composable
-private fun describeMosaicCell(state: MosaicState, cell: Cell): String {
+private fun describeMosaicCell(state: MosaicState, cell: Cell, status: MosaicClueStatus?): String {
     val row = cell.index / state.puzzle.size + 1
     val column = cell.index % state.puzzle.size + 1
     val markText = stringResource(
@@ -174,11 +181,15 @@ private fun describeMosaicCell(state: MosaicState, cell: Cell): String {
     val clue = state.puzzle.clues[cell.index]
     return if (clue != null) {
         stringResource(
-            R.string.binary_cell_accessibility_label,
+            when (status) {
+                MosaicClueStatus.SATISFIED -> R.string.mosaic_clue_satisfied_accessibility_label
+                MosaicClueStatus.ERROR -> R.string.mosaic_clue_error_accessibility_label
+                MosaicClueStatus.NORMAL, null -> R.string.mosaic_clue_accessibility_label
+            },
             row,
             column,
             markText,
-            clue.toString(),
+            clue,
         )
     } else {
         stringResource(
@@ -212,11 +223,18 @@ private fun DrawScope.drawCross(bounds: Rect, color: Color) {
 private fun DrawScope.drawGuideLines(cell: Cell, gridSize: Int, bounds: Rect, color: Color) {
     val row = cell.index / gridSize
     val column = cell.index % gridSize
-    val width = 2.dp.toPx()
-    if (column % 5 == 0) drawLine(color, bounds.topLeft, bounds.bottomLeft, width)
-    if (row % 5 == 0) drawLine(color, bounds.topLeft, bounds.topRight, width)
-    if (column == gridSize - 1) drawLine(color, bounds.topRight, bounds.bottomRight, width)
-    if (row == gridSize - 1) drawLine(color, bounds.bottomLeft, bounds.bottomRight, width)
+    val width = minOf(1.5.dp.toPx(), minOf(bounds.width, bounds.height) / 4f)
+    // Keep each half of a guide inside its cell so the next cell's background cannot cover it.
+    val vertical = Size(width, bounds.height)
+    val horizontal = Size(bounds.width, width)
+    if (column % 5 == 0) drawRect(color, bounds.topLeft, vertical)
+    if (row % 5 == 0) drawRect(color, bounds.topLeft, horizontal)
+    if (column % 5 == 4 || column == gridSize - 1) {
+        drawRect(color, Offset(bounds.right - width, bounds.top), vertical)
+    }
+    if (row % 5 == 4 || row == gridSize - 1) {
+        drawRect(color, Offset(bounds.left, bounds.bottom - width), horizontal)
+    }
 }
 
 private fun DrawScope.drawCenteredLabel(
@@ -241,4 +259,5 @@ private fun DrawScope.drawCenteredLabel(
 
 private const val CROSS_RADIUS_FRACTION = 0.24f
 private const val CROSS_STROKE_FRACTION = 0.075f
+private const val ERROR_BADGE_RADIUS_FRACTION = 0.40f
 private const val LABEL_SIZE_FRACTION = 0.70f

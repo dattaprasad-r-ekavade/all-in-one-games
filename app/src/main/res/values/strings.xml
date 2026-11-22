@@ -19,6 +19,9 @@
     <string name="nonogram_mark_crossed">crossed</string>
     <string name="nonogram_mode_fill">Fill</string>
     <string name="nonogram_mode_cross">X mode</string>
+    <string name="mosaic_clue_accessibility_label">Row %1$d, column %2$d, %3$s, clue %4$d</string>
+    <string name="mosaic_clue_satisfied_accessibility_label">Row %1$d, column %2$d, %3$s, clue %4$d, satisfied</string>
+    <string name="mosaic_clue_error_accessibility_label">Row %1$d, column %2$d, %3$s, clue %4$d, area in error</string>
     <string name="nonogram_row_clues_accessibility">Row %1$d clues: %2$s</string>
     <string name="nonogram_column_clues_accessibility">Column %1$d clues: %2$s</string>
     <string name="nonogram_no_run_clues">no filled runs</string>

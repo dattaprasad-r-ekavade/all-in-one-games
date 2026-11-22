@@ -8,7 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.constrainWidth
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
+import com.datathecodie.witgrid.ui.board.LocalBoardViewportMode
 import com.datathecodie.witgrid.ui.theme.Spacing
 
 /**
@@ -21,6 +23,7 @@ internal fun MosaicBoardWithControls(
     board: @Composable () -> Unit,
     controls: @Composable () -> Unit,
 ) {
+    val boardPadding = if (LocalBoardViewportMode.current.embedded) 0.dp else Spacing.screenMargin * 2
     Layout(
         modifier = modifier.fillMaxWidth(),
         content = {
@@ -31,12 +34,18 @@ internal fun MosaicBoardWithControls(
         val loose = constraints.copy(minWidth = 0, minHeight = 0)
         val measuredControls = measurables[1].measure(loose)
         val gap = Spacing.sm.roundToPx()
-        val measuredBoard = measurables[0].measure(loose.offset(vertical = -measuredControls.height - gap))
-        val controlsTop = if (measuredBoard.height == 0) 0 else measuredBoard.height + gap
-        val width = constraints.constrainWidth(maxOf(measuredBoard.width, measuredControls.width))
+        val boardSpace = loose.offset(vertical = -measuredControls.height - gap)
+        val boardSide = minOf(boardSpace.maxWidth, boardSpace.maxHeight)
+        val measuredBoard = if (boardSide > boardPadding.roundToPx()) {
+            measurables[0].measure(boardSpace.copy(maxWidth = boardSide, maxHeight = boardSide))
+        } else {
+            null
+        }
+        val controlsTop = if (measuredBoard == null) 0 else measuredBoard.height + gap
+        val width = constraints.constrainWidth(maxOf(measuredBoard?.width ?: 0, measuredControls.width))
         val height = constraints.constrainHeight(controlsTop + measuredControls.height)
         layout(width, height) {
-            measuredBoard.place((width - measuredBoard.width) / 2, 0)
+            measuredBoard?.place((width - measuredBoard.width) / 2, 0)
             measuredControls.place((width - measuredControls.width) / 2, controlsTop)
         }
     }
