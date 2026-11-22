@@ -113,7 +113,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done |
-| FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | active (Gemini, Claude lead) |
+| FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | review (batch and Codex review) |
 | FUB | Futoshiki bank | L | Claude | Codex | FU3, B6 | todo |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done |
@@ -121,7 +121,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done |
-| MOA | Mosaic board | M | Codex | Claude | A4, MO2 | todo |
+| MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | active (Gemini, Claude lead) |
 | MOB | Mosaic bank | L | Claude | Codex | MO3, B6 | todo |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
 | H7 | Hand-test the launch catalog | Human | — | — | All Phase 7 bank cards | todo |
