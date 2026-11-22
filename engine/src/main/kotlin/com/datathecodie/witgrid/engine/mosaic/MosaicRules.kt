@@ -251,12 +251,12 @@ object MosaicRules {
      */
     fun mistakes(puzzle: MosaicPuzzle, state: MosaicState): List<Cell> {
         require(state.puzzle == puzzle) { "Mosaic state belongs to a different puzzle" }
-        return state.marks.indices.filter { index ->
+        return immutableList(state.marks.indices.filter { index ->
             when (state.marks[index]) {
                 Mark.EMPTY -> false
                 Mark.FILLED -> puzzle.solution[index] != 1
                 Mark.CROSSED -> puzzle.solution[index] != 0
             }
-        }.map(::Cell)
+        }.map(::Cell))
     }
 }

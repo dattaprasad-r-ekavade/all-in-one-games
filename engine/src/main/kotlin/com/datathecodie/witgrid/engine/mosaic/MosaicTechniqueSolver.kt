@@ -208,10 +208,11 @@ object MosaicTechniqueSolver {
                     val crossMoves = onlyA.sortedBy { it.index }.map { Move.SetMark(it, Mark.CROSSED) }
                     val moves = fillMoves + crossMoves
                     val cells = (areaA + areaB).distinct().sortedBy { it.index }
-                    val explanation = "The clue at row ${rowB + 1}, column ${columnB + 1} needs more fills " +
-                        "than the clue at row ${rowA + 1}, column ${columnA + 1} by exactly the number " +
-                        "of unmarked cells exclusive to the first area, so fill those unmarked cells" +
-                        if (onlyA.isEmpty()) "." else " and cross all unmarked cells exclusive to the second area."
+                    val explanation = "The clues at row ${rowA + 1}, column ${columnA + 1} and " +
+                        "row ${rowB + 1}, column ${columnB + 1} overlap, and the second clue needs more fills " +
+                        "by exactly the number of unmarked cells exclusive to the second area, " +
+                        "so fill all unmarked cells exclusive to the second area" +
+                        if (onlyA.isEmpty()) "." else " and cross all unmarked cells exclusive to the first area."
                     return HintStep(
                         technique = MosaicTechniques.CLUE_OVERLAP,
                         cells = immutableList(cells),

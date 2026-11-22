@@ -10,6 +10,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.testkit.assertUnique
 import com.datathecodie.witgrid.engine.testkit.solveWithHints
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -154,8 +155,8 @@ class MosaicTechniqueSolverTest {
         assertEquals(listOf(Cell(2), Cell(5)), step.moves.map { it.cell })
         assertTrue(step.moves.all { (it as Move.SetMark).mark == Mark.FILLED })
         assertValidOneSentenceExplanation(step.explanation)
-        assertTrue(step.explanation.contains("than the clue at row 1, column 1"))
-        assertTrue(step.explanation.contains("of unmarked cells exclusive to the first area, so fill those unmarked cells"))
+        assertTrue(step.explanation.contains("row 1, column 1 and row 1, column 2"))
+        assertTrue(step.explanation.contains("fill all unmarked cells exclusive to the second area"))
     }
 
     @Test
@@ -185,11 +186,62 @@ class MosaicTechniqueSolverTest {
         val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
         assertEquals("clue-overlap", step.technique.id)
         assertEquals(listOf(Move.SetMark(Cell(6), Mark.FILLED), Move.SetMark(Cell(5), Mark.CROSSED)), step.moves)
-        assertTrue(step.explanation.contains("row 2, column 1 needs more fills"))
-        assertTrue(step.explanation.contains("than the clue at row 1, column 2"))
-        assertTrue(step.explanation.contains("of unmarked cells exclusive to the first area, so fill those unmarked cells"))
-        assertTrue(step.explanation.contains("cross all unmarked cells exclusive to the second area"))
+        assertTrue(step.explanation.contains("row 1, column 2 and row 2, column 1"))
+        assertTrue(step.explanation.contains("fill all unmarked cells exclusive to the second area"))
+        assertTrue(step.explanation.contains("cross all unmarked cells exclusive to the first area"))
         assertValidOneSentenceExplanation(step.explanation)
+    }
+
+    @Test
+    fun overlapFillExplanationMatchesMovesDirection() {
+        val clues = listOf(null, 1, null, 2, null, null, null, null, null)
+        val solution = listOf(1, 0, 0, 0, 0, 0, 1, 0, 0)
+        val puzzle = MosaicPuzzle("MO-DIR-TEST", 3, clues, solution, Pack.EASY, "none:0")
+        val state = MosaicState.initial(puzzle)
+            .withMove(Move.SetMark(Cell(2), Mark.CROSSED))
+            .withMove(Move.SetMark(Cell(7), Mark.CROSSED))
+
+        val step = requireNotNull(MosaicEngine.nextStep(puzzle, state))
+        assertEquals("clue-overlap", step.technique.id)
+        val fillMoves = step.moves.filter { (it as Move.SetMark).mark == Mark.FILLED }
+        val crossMoves = step.moves.filter { (it as Move.SetMark).mark == Mark.CROSSED }
+        assertEquals(listOf(Cell(6)), fillMoves.map { it.cell })
+        assertEquals(listOf(Cell(5)), crossMoves.map { it.cell })
+        assertTrue(
+            step.explanation.contains("fill all unmarked cells exclusive to the second area and cross all unmarked cells exclusive to the first area"),
+            "Explanation must not reverse filled and crossed areas: ${step.explanation}",
+        )
+    }
+
+    @Test
+    fun packBandDistinguishesDifficultyAndRejectsPuzzlesOutsideBand() {
+        // Zero-step grade is rejected by all packs
+        val zeroGrade = Grade(null, 0, Pack.EASY)
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.EASY, zeroGrade))
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.MEDIUM, Grade(null, 0, Pack.MEDIUM)))
+
+        // Puzzles below the minimum step count are rejected
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.EASY, Grade(MosaicTechniques.CLUE_OVERLAP, MosaicPackBands.MIN_EASY_STEPS - 1, Pack.EASY)))
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.MEDIUM, Grade(MosaicTechniques.CLUE_OVERLAP, MosaicPackBands.MIN_MEDIUM_STEPS - 1, Pack.MEDIUM)))
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.HARD, Grade(MosaicTechniques.CLUE_OVERLAP, MosaicPackBands.MIN_HARD_STEPS - 1, Pack.HARD)))
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.EXPERT, Grade(MosaicTechniques.CLUE_OVERLAP, MosaicPackBands.MIN_EXPERT_STEPS - 1, Pack.EXPERT)))
+
+        // Hard and Expert reject grades that do not use CLUE_OVERLAP
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.HARD, Grade(MosaicTechniques.REMAINING_COUNT, 50, Pack.HARD)))
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.EXPERT, Grade(MosaicTechniques.REMAINING_COUNT, 80, Pack.EXPERT)))
+
+        // Medium rejects grades below REMAINING_COUNT
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.MEDIUM, Grade(MosaicTechniques.FULL_AREA, 30, Pack.MEDIUM)))
+
+        // Pack mismatch is rejected
+        assertFalse(MosaicPackBands.isGradeInPackBand(Pack.EASY, Grade(MosaicTechniques.CLUE_OVERLAP, 42, Pack.MEDIUM)))
+
+        // Valid grades pass their pack bands
+        assertTrue(MosaicPackBands.isGradeInPackBand(Pack.EASY, Grade(MosaicTechniques.CLUE_OVERLAP, 10, Pack.EASY)))
+        assertTrue(MosaicPackBands.isGradeInPackBand(Pack.MEDIUM, Grade(MosaicTechniques.REMAINING_COUNT, 25, Pack.MEDIUM)))
+        assertTrue(MosaicPackBands.isGradeInPackBand(Pack.MEDIUM, Grade(MosaicTechniques.CLUE_OVERLAP, 40, Pack.MEDIUM)))
+        assertTrue(MosaicPackBands.isGradeInPackBand(Pack.HARD, Grade(MosaicTechniques.CLUE_OVERLAP, 45, Pack.HARD)))
+        assertTrue(MosaicPackBands.isGradeInPackBand(Pack.EXPERT, Grade(MosaicTechniques.CLUE_OVERLAP, 70, Pack.EXPERT)))
     }
 
     @Test

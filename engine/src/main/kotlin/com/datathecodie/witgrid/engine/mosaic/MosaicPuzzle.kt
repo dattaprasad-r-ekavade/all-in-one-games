@@ -89,8 +89,25 @@ object MosaicPackBands {
         else -> throw IllegalArgumentException("No launch pack for Mosaic size $size")
     }
 
+    const val MIN_EASY_STEPS: Int = 10
+    const val MIN_MEDIUM_STEPS: Int = 25
+    const val MIN_HARD_STEPS: Int = 45
+    const val MIN_EXPERT_STEPS: Int = 70
+
     /** Returns whether [grade] matches the pack band. */
-    fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean = grade.pack == pack
+    fun isGradeInPackBand(pack: Pack, grade: Grade): Boolean {
+        if (grade.pack != pack) return false
+        val hardest = grade.hardestTechnique ?: return false
+        return when (pack) {
+            Pack.EASY -> grade.stepCount >= MIN_EASY_STEPS
+            Pack.MEDIUM -> grade.stepCount >= MIN_MEDIUM_STEPS &&
+                hardest.difficultyRank >= MosaicTechniques.REMAINING_COUNT.difficultyRank
+            Pack.HARD -> grade.stepCount >= MIN_HARD_STEPS &&
+                hardest.difficultyRank >= MosaicTechniques.CLUE_OVERLAP.difficultyRank
+            Pack.EXPERT -> grade.stepCount >= MIN_EXPERT_STEPS &&
+                hardest.difficultyRank >= MosaicTechniques.CLUE_OVERLAP.difficultyRank
+        }
+    }
 }
 
 internal fun <T> immutableList(values: List<T>): List<T> =

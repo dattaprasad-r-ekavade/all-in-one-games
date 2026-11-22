@@ -209,4 +209,18 @@ class MosaicRulesTest {
         assertTrue(MosaicRules.isValidSolution(puzzle))
         assertEquals(1, MosaicRules.countSolutions(puzzle, limit = 2))
     }
+
+    @Test
+    fun mistakesReturnsUnmodifiableList() {
+        val solution = listOf(1, 0, 1, 0, 1, 0, 1, 0, 1)
+        val grid = Grid(3)
+        val clues = (0 until 9).map { MosaicRules.clueAt(grid, solution, Cell(it)) }
+        val puzzle = MosaicPuzzle("MO-MISTAKE-IMMUTABLE", 3, clues, solution, Pack.EASY, "pending")
+        val state = MosaicState.initial(puzzle).withMove(Move.SetMark(Cell(0), Mark.CROSSED))
+        val mistakes = MosaicRules.mistakes(puzzle, state)
+        assertEquals(1, mistakes.size)
+        assertThrows(UnsupportedOperationException::class.java) {
+            (mistakes as MutableList<Cell>).clear()
+        }
+    }
 }
