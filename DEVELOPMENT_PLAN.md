@@ -14,7 +14,7 @@ Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ████████████▒░░░░░░░  58 %  (84 of 145 done, 7 in progress)
+All tasks                         ████████████▒░░░░░░░  58 %  (84 of 145 done, 8 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,7 +24,7 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ██████████████████░░  91 %  (10 of 11 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          █████▒▒░░░░░░░░░░░░░  26 %  (18 of 70 done, 7 in progress)
+Phase 7 — Launch catalog          █████▒▒░░░░░░░░░░░░░  26 %  (18 of 70 done, 8 in progress)
 
 Launch catalog, by game
   Sudoku 9x9                      ██████░░░░░░░░░░░░░░  29 %  (2 of 7 done)
@@ -35,7 +35,7 @@ Launch catalog, by game
   Colour Sort                     ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
   Path                            ███████████░░░░░░░░░  57 %  (4 of 7 done)
   Arrows                          ▒▒▒░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done, 1 in progress)
-  Klondike                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Klondike                        ▒▒▒░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done, 1 in progress)
   Chess tactics                   ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
   Shared (B6, E3, H7)             █████████████░░░░░░░  67 %  (2 of 3 done)
 

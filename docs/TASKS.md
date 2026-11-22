@@ -97,11 +97,11 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
-| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 active (Gemini, Claude lead) |
+| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 review (Claude lead) |
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
-| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | todo |
+| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 active (Gemini, Claude lead) |
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
@@ -122,7 +122,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SKB | Skyscrapers bank | L | Claude | Codex | SK3, B6 | todo |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done |
-| MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | active (Gemini, Claude lead) |
+| MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | review (batch and Codex review) |
 | MOB | Mosaic bank | L | Claude | Codex | MO3, B6 | todo |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
 | H7 | Hand-test the launch catalog | Human | — | — | All Phase 7 bank cards | todo |
