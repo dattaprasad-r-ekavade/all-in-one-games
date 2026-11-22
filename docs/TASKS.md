@@ -97,7 +97,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
-| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | todo |
+| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 active (Gemini, Claude lead) |
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
