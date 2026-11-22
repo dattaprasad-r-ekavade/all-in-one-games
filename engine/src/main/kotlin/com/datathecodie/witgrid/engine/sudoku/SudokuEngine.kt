@@ -30,10 +30,9 @@ object SudokuEngine : GameEngine<SudokuPuzzle, SudokuState> {
         SudokuRules.countSolutions(puzzle, limit)
 
     override fun nextStep(puzzle: SudokuPuzzle, state: SudokuState): HintStep? =
-        throw NotImplementedError("sudoku")
+        SudokuTechniqueSolver.nextStep(puzzle, state)
 
-    override fun grade(puzzle: SudokuPuzzle): Grade =
-        throw NotImplementedError("sudoku")
+    override fun grade(puzzle: SudokuPuzzle): Grade = SudokuTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): SudokuPuzzle =
         throw NotImplementedError("sudoku")
