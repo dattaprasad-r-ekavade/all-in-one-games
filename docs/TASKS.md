@@ -88,12 +88,12 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
-| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 active |
+| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
 | PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done |
-| PAA | Path board | M | Codex | Claude | A4, PA2 | active |
+| PAA | Path board | M | Codex | Claude | A4, PA2 | review |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
 | AR1–AR3 | Arrows engine | see hub lane table | | | E3 | todo |
@@ -701,6 +701,7 @@ Three engine cards (no unique-technique x2). **Owns:** `engine/…/<game>/**` an
 | KL | `klondike` | 12.5 | `CardMove` | Draw-1 Klondike. Deal from `SplitMix64`, keep only solver-won seeds. Store the seed. Code-drawn cards later on the board card. |
 
 **Done when:** `./gradlew :engine:test` passes. x2: seed 1 gives 10 winnable levels per pack, same seed same output. x3: fixtures cover win, lose, illegal action, hint on a mid-game state.
+**Lead completion note (22 Nov 2026):** CS1 squash-merged as `d716a8d`. Capacity 4; pour moves the whole top run that fits; `isLost` false at deal start. `hintAction`/`generate` still throw (CS2). Review suggestions for CS2: reach deadlock through `applyAction` rather than a fake `pourCount`; test a top run that only partly fits.
 
 ### SUA — Sudoku 9x9 board
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
