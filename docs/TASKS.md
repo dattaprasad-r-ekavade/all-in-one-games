@@ -83,17 +83,17 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | H6 | Live ad units, staged rollout, weekly review | Human | — | — | H5, Phase 7 (12+ games), H7 | todo |
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
-| E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | review |
+| E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
 | SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done |
 | SUA | Sudoku 9x9 board | M | Codex | Claude | A4, SU2 | todo |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
-| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | todo |
+| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 active |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
 | PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done |
-| PAA | Path board | M | Codex | Claude | A4, PA2 | todo |
+| PAA | Path board | M | Codex | Claude | A4, PA2 | active |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | todo |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
 | AR1–AR3 | Arrows engine | see hub lane table | | | E3 | todo |
@@ -664,6 +664,7 @@ Plan: 7.3, 8.4.
 **Do:** `PlayEngine<P, S, A>` with generate, apply action, `isWon`, `isLost`, hint action, encode/decode state. `PlayGameModule` wraps it for Home, Play, Result, Continue and saves. Register beside `GameRegistry` without listing a game count. Integer maths, `SplitMix64` only. Human reads this contract before merge (same bar as E1 and A3).
 **Done when:** `./gradlew :engine:test :app:testDebugUnitTest` pass with a tiny fake Family B engine. Existing four games still play in unit tests.
 **Lead review note (21 Nov 2026):** Agent review is merge (`44e32fb`). Waiting on human contract read. Follow-ups after merge: bankgen should use engine `PlayBankLine` + a `PlayEngine` adapter (`isWinnable`/`difficulty`); Home must iterate Family B (plan 7.3 one list — first Family B intro card or a small wiring card); document that Continue may be applied more than once. Each real lane must re-test `isLost` false at deal start.
+**Lead completion note (22 Nov 2026):** Squash-merged as `616bff9` after human OK. `applyContinue` may be applied more than once; app policy limits it. `PlayRegistry` stays empty until CSC. Bankgen adapter is a follow-up. Each Family B x1/x3 must assert `isLost` false at deal start.
 
 ### Hub Family A lanes (SU, PA, CT, KS, FU, SK, MO)
 

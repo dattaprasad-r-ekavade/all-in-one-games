@@ -14,7 +14,7 @@ Updated 22 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ██████████▒▒░░░░░░░░  49 %  (71 of 144 done, 13 in progress)
+All tasks                         ██████████▒▒░░░░░░░░  50 %  (72 of 144 done, 14 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,7 +24,7 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ████████████████████ 100 %  (10 of 10 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          █▒▒▒▒░░░░░░░░░░░░░░░   7 %  (5 of 70 done, 13 in progress)
+Phase 7 — Launch catalog          ██▒▒▒▒░░░░░░░░░░░░░░   9 %  (6 of 70 done, 14 in progress)
 
 Launch catalog, by game
   Sudoku 9x9                      ███░░░░░░░░░░░░░░░░░  14 %  (1 of 7 done)
@@ -32,12 +32,12 @@ Launch catalog, by game
   Futoshiki                       ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
   Skyscrapers                     ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
   Mosaic                          ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
-  Colour Sort                     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
-  Path                            █████████░░░░░░░░░░░  43 %  (3 of 7 done)
+  Colour Sort                     ▒▒▒░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done, 1 in progress)
+  Path                            █████████▒▒░░░░░░░░░  43 %  (3 of 7 done, 1 in progress)
   Arrows                          ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
   Klondike                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
   Chess tactics                   ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
-  Shared (B6, E3, H7)             ███████▒▒▒▒▒▒░░░░░░░  33 %  (1 of 3 done, 1 in progress)
+  Shared (B6, E3, H7)             █████████████░░░░░░░  67 %  (2 of 3 done)
 
 Launch games playable             ██████░░░░░░░░░░░░░░  29 %  (4 of 14 ready)
 ```
@@ -504,7 +504,7 @@ The production launch ships 14 games: the 4 built games plus the 10 below. Minim
 | Skyscrapers | built | built | in progress | Review fixes and the generator in progress (Codex). |
 | Chess tactics | built | built | built | Review found 6 blockers, including generator volume. Fixes in progress (Codex). First game to cut. |
 | Killer Sudoku | — | — | — | Waits for SU3. |
-| Colour Sort, Arrows, Klondike | — | — | — | Wait for E3 (Family B contract, in review). |
+| Colour Sort, Arrows, Klondike | CS1 | — | — | E3 merged as `616bff9`. CS1 (Colour Sort rules) active. Arrows and Klondike wait on their x1. |
 
 Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Futoshiki, Skyscrapers and Mosaic in parallel; E3 → Colour Sort → Arrows → Klondike; then Path → Chess tactics. Killer Sudoku, Futoshiki, Skyscrapers and Mosaic reuse the existing Family A input (`SetDigit`, `SetMark`), so they are the cheapest.
 
