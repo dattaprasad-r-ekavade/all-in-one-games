@@ -233,6 +233,39 @@ class TacticsTechniqueSolverTest {
     }
 
     @Test
+    fun gradeRejectsPaddedMediumPuzzleRelabelledHard() {
+        val medium = mediumMateInTwoFixture()
+        // Medium puzzle has 10 pieces and 1 opening check
+        assertEquals(10, medium.initialBoard.pieces.count { it != null })
+        assertEquals(1, TacticsPackBands.openingChecks(medium.initialBoard))
+        assertEquals(Pack.MEDIUM, TacticsEngine.grade(medium).pack)
+
+        // Pad the position with a white pawn on a2 (piece count becomes 11), relabel as HARD
+        val paddedPieces = medium.initialBoard.pieces.toMutableList()
+        paddedPieces[squareToCell("a2").index] = Piece(PieceColor.WHITE, PieceType.PAWN)
+        val paddedBoard = TacticsBoard(
+            paddedPieces,
+            medium.initialBoard.sideToMove,
+            medium.initialBoard.castling,
+            medium.initialBoard.enPassant,
+        )
+        val paddedHardPuzzle = TacticsPuzzle(
+            id = "padded-hard",
+            initialBoard = paddedBoard,
+            sideToMove = PieceColor.WHITE,
+            mateIn = 2,
+            solutionLine = medium.solutionLine,
+            pack = Pack.HARD,
+            storedGrade = "back-rank-mate:2",
+        )
+        // 11 pieces > 10, but only 1 opening check (< 3). Grade must reject it!
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            TacticsEngine.grade(paddedHardPuzzle)
+        }
+        assertTrue(ex.message!!.contains("Hard tactics puzzle requires at least 3 opening checks"))
+    }
+
+    @Test
     fun gradeCodecRoundTripsAndValidates() {
         val grade = Grade(TacticsTechniques.BACK_RANK_MATE, 2, Pack.MEDIUM)
         val encoded = TacticsGradeCodec.encode(grade)

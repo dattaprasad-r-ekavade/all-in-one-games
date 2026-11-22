@@ -1,8 +1,10 @@
 package com.datathecodie.witgrid.engine.tactics
 
 import com.datathecodie.witgrid.engine.core.BankLine
+import com.datathecodie.witgrid.engine.core.Pack
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class TacticsCodecTest {
@@ -74,5 +76,54 @@ class TacticsCodecTest {
             val invalid = line.replace("|d7g7|", "|$badSuffix|")
             assertThrows(IllegalArgumentException::class.java) { TacticsCodec.decode(invalid) }
         }
+    }
+
+    @Test
+    fun rejectsNonUniqueAttackerMoveInStoredLine() {
+        // mate2FirstMoveUniqueSecondMoveDoublePuzzle has Qf8+ Kh7, then Qg7#, Qg8#, Rg7# all mate
+        val puzzle = TacticsRulesTest.mate2FirstMoveUniqueSecondMoveDoublePuzzle()
+        val bankLine = "CT-TEST|8|${puzzle.initialBoard.toFen()} 2|a3f8 h8h7 f8g7|MEDIUM|checkmate:2"
+        assertThrows(IllegalArgumentException::class.java) {
+            TacticsCodec.decode(bankLine)
+        }
+    }
+
+    @Test
+    fun rejectsPromotionSuffixOnNonPawnMoveToLastRank() {
+        val puzzle = TacticsRulesTest.mate2UniquePuzzle()
+        // d3d8 is Queen move to rank 8 (d3d8q). Queen cannot have promotion suffix!
+        val bankLineWithQueenPromo = "CT-TEST|8|${puzzle.initialBoard.toFen()} 2|d3d8q c6d8 e1e8|MEDIUM|back-rank-mate:2"
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            TacticsCodec.decode(bankLineWithQueenPromo)
+        }
+        assertTrue(ex.message!!.contains("Promotion suffix 'q' only allowed for pawn"))
+    }
+
+    @Test
+    fun codecRoundTripsAndValidatesPawnPromotion() {
+        // White pawn on a7 mates with a7a8q#
+        val fen = "7k/P7/6K1/8/8/8/8/8 w - - 0 1"
+        val board = TacticsBoard.fromFen(fen)
+        val move = ChessMove(squareToCell("a7"), squareToCell("a8"))
+        val puzzle = TacticsPuzzle(
+            id = "pawn-promo-mate",
+            initialBoard = board,
+            sideToMove = PieceColor.WHITE,
+            mateIn = 1,
+            solutionLine = listOf(move),
+            pack = Pack.EASY,
+            storedGrade = "checkmate:1",
+        )
+        val encoded = TacticsCodec.encode(puzzle)
+        assertTrue(encoded.contains("|a7a8q|"), "Encoded solution line must contain 'q' for pawn promotion: $encoded")
+        val decoded = TacticsCodec.decode(encoded)
+        assertEquals(puzzle, decoded)
+
+        // Suffix missing for pawn promotion to last rank is rejected
+        val missingSuffix = encoded.replace("|a7a8q|", "|a7a8|")
+        val ex = assertThrows(IllegalArgumentException::class.java) {
+            TacticsCodec.decode(missingSuffix)
+        }
+        assertTrue(ex.message!!.contains("requires promotion suffix 'q'"))
     }
 }

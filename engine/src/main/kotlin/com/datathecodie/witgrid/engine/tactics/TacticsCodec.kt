@@ -17,10 +17,34 @@ object TacticsCodec {
         val fenString = "${tokens[0]} ${tokens[1]} ${tokens[2]} ${tokens[3]}"
         val initialBoard = TacticsBoard.fromFen(fenString)
 
-        val solutionMoves = bankLine.solution.trim().split(Regex("\\s+")).map { uci ->
-            ChessMove.fromUci(uci)
+        var currentBoard = initialBoard
+        val rawUciMoves = bankLine.solution.trim().split(Regex("\\s+"))
+        require(rawUciMoves.isNotEmpty() && rawUciMoves.none { it.isEmpty() }) {
+            "Tactics solution line must not be empty"
         }
-        require(solutionMoves.isNotEmpty()) { "Tactics solution line must not be empty" }
+        val solutionMoves = rawUciMoves.map { uci ->
+            require(uci.length in 4..5) { "Invalid UCI move: $uci" }
+            val move = ChessMove.fromUci(uci)
+            val movingPiece = currentBoard.pieceAt(move.from)
+            requireNotNull(movingPiece) { "No piece at ${cellToSquare(move.from)} for move $uci" }
+            val toRow = move.to.index / 8
+            val isPawnPromotion = movingPiece.type == PieceType.PAWN &&
+                ((movingPiece.color == PieceColor.WHITE && toRow == 0) ||
+                 (movingPiece.color == PieceColor.BLACK && toRow == 7))
+
+            if (uci.length == 5) {
+                require(isPawnPromotion) {
+                    "Promotion suffix 'q' only allowed for pawn move to the last rank, got $movingPiece on ${cellToSquare(move.from)} moving to ${cellToSquare(move.to)}"
+                }
+            } else {
+                require(!isPawnPromotion) {
+                    "Pawn move to the last rank requires promotion suffix 'q': $uci"
+                }
+            }
+            require(currentBoard.legalMoves().contains(move)) { "Illegal move in solution line: $uci" }
+            currentBoard = currentBoard.applyMoveInternal(move)
+            move
+        }
 
         val mateIn = if (tokens.size == 5 || tokens.size == 7) {
             requireNotNull(tokens.last().toIntOrNull()) { "Invalid Tactics mate horizon" }

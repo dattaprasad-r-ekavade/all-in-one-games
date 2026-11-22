@@ -14,12 +14,10 @@ object TacticsRules {
         for (turn in 0 until puzzle.mateIn) {
             val remaining = puzzle.mateIn - turn
             val move = puzzle.solutionLine[2 * turn]
-            val legalMoves = board.legalMoves()
-            if (move !in legalMoves) return false
-            val afterMove = board.applyMoveInternal(move)
-            if (!forcesMate(afterMove, remaining)) return false
+            val winners = winningMoves(board, remaining, limit = 2)
+            if (winners.size != 1 || winners[0] != move) return false
 
-            board = afterMove
+            board = board.applyMoveInternal(move)
             if (remaining > 1) {
                 val reply = puzzle.solutionLine[2 * turn + 1]
                 if (bestReply(board, remaining - 1) != reply) return false
@@ -50,23 +48,13 @@ object TacticsRules {
     }
 
     /**
-     * Returns zero for an invalid stored line. Otherwise returns the count of distinct
-     * winning first moves from the initial board, capped at [limit].
+     * Returns the count of distinct winning first moves from the initial board, capped at [limit].
+     * Depends only on the position and the mate horizon, never on the stored line.
      */
     fun countSolutions(puzzle: TacticsPuzzle, limit: Int = 2): Int {
         require(limit > 0) { "Solution limit must be positive" }
-        if (!isValidSolution(puzzle)) return 0
-
-        var winningCount = 1
-        if (limit > 1) {
-            val firstMove = puzzle.solutionLine[0]
-            for (alternative in puzzle.initialBoard.legalMoves()) {
-                if (alternative != firstMove && forcesMate(puzzle.initialBoard.applyMoveInternal(alternative), puzzle.mateIn)) {
-                    if (++winningCount >= limit) break
-                }
-            }
-        }
-        return winningCount
+        if (canForceMate(puzzle.initialBoard, puzzle.mateIn - 1)) return 0
+        return winningMoves(puzzle.initialBoard, puzzle.mateIn, limit).size
     }
 
     /** Finds an exact-length mate with one winning move per player turn and one best defence. */

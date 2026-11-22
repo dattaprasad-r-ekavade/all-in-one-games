@@ -36,6 +36,35 @@ class TacticsRulesTest {
         assertEquals(3, TacticsRules.winningMoves(afterOpener.applyMove(reply), 1).size)
         // Distinct winning first moves is 1, even though later positions have multiple mates.
         assertEquals(1, TacticsRules.countSolutions(puzzle))
+        // Stored-line validator rejects this puzzle because turn 1 attacker move is not unique
+        assertFalse(TacticsRules.isValidSolution(puzzle))
+        assertThrows(IllegalArgumentException::class.java) { TacticsCodec.encode(puzzle) }
+    }
+
+    @Test
+    fun countSolutionsDependsOnlyOnPositionAndMateHorizonNotStoredLine() {
+        val puzzle = mate2UniquePuzzle()
+        assertEquals(1, TacticsRules.countSolutions(puzzle))
+        assertTrue(TacticsRules.isValidSolution(puzzle))
+
+        // Change only the stored line to an alternative non-winning sequence
+        val corruptedLinePuzzle = TacticsPuzzle(
+            id = "corrupted-line",
+            initialBoard = puzzle.initialBoard,
+            sideToMove = puzzle.sideToMove,
+            mateIn = puzzle.mateIn,
+            solutionLine = listOf(
+                ChessMove(squareToCell("c4"), squareToCell("a2")),
+                ChessMove(squareToCell("g8"), squareToCell("h8")),
+                ChessMove(squareToCell("a2"), squareToCell("b3")),
+            ),
+            pack = puzzle.pack,
+            storedGrade = puzzle.storedGrade,
+        )
+        // Stored line is invalid
+        assertFalse(TacticsRules.isValidSolution(corruptedLinePuzzle))
+        // Solution count remains 1 because position and mate horizon are identical
+        assertEquals(1, TacticsRules.countSolutions(corruptedLinePuzzle))
     }
 
     @Test
@@ -130,7 +159,7 @@ class TacticsRulesTest {
     }
 
     @Test
-    fun counterRejectsCooperativeNonWinningStoredLine() {
+    fun validatorRejectsCooperativeNonWinningStoredLine() {
         val start = TacticsBoard.fromFen("3r2k1/4bppp/8/2B5/8/3Q4/8/3R2K1 w - -")
         val puzzle = TacticsPuzzle(
             "cooperative-mate", start, PieceColor.WHITE, 2,
@@ -138,14 +167,16 @@ class TacticsRulesTest {
             Pack.MEDIUM, "checkmate:2",
         )
         assertTrue(puzzle.solutionLine.fold(start, TacticsBoard::applyMove).isCheckmate())
+        // Distinct winning first moves from initial board is 1 (d3d8 is winning opener)
+        assertEquals(1, TacticsRules.countSolutions(puzzle))
+        // Stored line is rejected because c5e7 does not force mate
         assertFalse(TacticsRules.isValidSolution(puzzle))
-        assertEquals(0, TacticsRules.countSolutions(puzzle))
         assertThrows(IllegalArgumentException::class.java) { TacticsEngine.grade(puzzle) }
         assertThrows(IllegalArgumentException::class.java) { TacticsCodec.encode(puzzle) }
     }
 
     @Test
-    fun counterRejectsTiedDefencesToAWinningMove() {
+    fun validatorRejectsTiedDefencesToAWinningMove() {
         val start = TacticsBoard.fromFen("3r2k1/4bppp/8/2B5/8/3Q4/8/3R2K1 w - -")
         val puzzle = TacticsPuzzle(
             "tied-defences", start, PieceColor.WHITE, 2,
@@ -155,7 +186,12 @@ class TacticsRulesTest {
         assertEquals(listOf(puzzle.solutionLine.first()), TacticsRules.winningMoves(start, 2))
         assertEquals(2, start.applyMove(puzzle.solutionLine.first()).legalMoves().size)
         assertTrue(puzzle.solutionLine.fold(start, TacticsBoard::applyMove).isCheckmate())
-        assertEquals(0, TacticsRules.countSolutions(puzzle))
+        // Distinct winning first moves from initial board is 1
+        assertEquals(1, TacticsRules.countSolutions(puzzle))
+        // Stored line is rejected because bestReply cannot select between tied defences
+        assertFalse(TacticsRules.isValidSolution(puzzle))
+        assertThrows(IllegalArgumentException::class.java) { TacticsEngine.grade(puzzle) }
+        assertThrows(IllegalArgumentException::class.java) { TacticsCodec.encode(puzzle) }
     }
 
     @Test

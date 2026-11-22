@@ -6,7 +6,6 @@ import com.datathecodie.witgrid.engine.core.SplitMix64
 /** Builds deterministic positions from mating patterns and proves each resulting line. */
 object TacticsGenerator {
     private const val MAX_PUZZLE_ATTEMPTS = 5_000
-    private const val HARD_MIN_CHECKS = 3
 
     private val easyPatterns = listOf(
         // Back-rank mate with a pawn shield.
@@ -93,8 +92,8 @@ object TacticsGenerator {
             if (board in seenPositions) return@repeat
             if (board.isCheck(board.sideToMove.opponent())) return@repeat
             if (pack == Pack.HARD || pack == Pack.MEDIUM) {
-                val checks = board.legalMoves().count { board.applyMoveInternal(it).isCheck() }
-                if ((checks >= HARD_MIN_CHECKS) != (pack == Pack.HARD)) return@repeat
+                val checks = TacticsPackBands.openingChecks(board)
+                if ((checks >= TacticsPackBands.HARD_MIN_CHECKS) != (pack == Pack.HARD)) return@repeat
             }
 
             val line = TacticsRules.findUniqueLine(board, mateIn) ?: return@repeat

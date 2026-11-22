@@ -47,6 +47,13 @@ object TacticsPackBands {
     /** Maximum piece count for a Medium mate-in-2; boards with more pieces are categorized as Hard. */
     const val MAX_MEDIUM_PIECES: Int = 10
 
+    /** Minimum opening checks required for a Hard mate-in-2 puzzle. */
+    const val HARD_MIN_CHECKS: Int = 3
+
+    /** Returns opening checks available to side to move from initial board. */
+    fun openingChecks(board: TacticsBoard): Int =
+        board.legalMoves().count { board.applyMoveInternal(it).isCheck() }
+
     /** Returns the canonical pack band for a puzzle with [mateIn] horizon and [pieceCount] pieces. */
     fun packFor(mateIn: Int, pieceCount: Int): Pack = when (mateIn) {
         1 -> Pack.EASY
@@ -55,10 +62,16 @@ object TacticsPackBands {
         else -> throw IllegalArgumentException("Unsupported Tactics mate horizon: $mateIn")
     }
 
-    /** Returns whether [puzzle] has a pack band consistent with its mate horizon and piece count. */
+    /** Returns whether [puzzle] has a pack band consistent with its mate horizon, piece count, and checks. */
     fun isPuzzleInPackBand(puzzle: TacticsPuzzle): Boolean {
         val pieceCount = puzzle.initialBoard.pieces.count { it != null }
-        return puzzle.pack == packFor(puzzle.mateIn, pieceCount)
+        val checks = openingChecks(puzzle.initialBoard)
+        if (puzzle.pack == Pack.HARD && checks < HARD_MIN_CHECKS) return false
+        return try {
+            puzzle.pack == packFor(puzzle.mateIn, pieceCount)
+        } catch (_: IllegalArgumentException) {
+            false
+        }
     }
 }
 

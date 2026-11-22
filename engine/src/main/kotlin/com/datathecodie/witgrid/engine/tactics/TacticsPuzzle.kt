@@ -45,8 +45,19 @@ class TacticsPuzzle(
     /** Formats the puzzle payload as FEN-like text with mateIn appended. */
     fun toPayload(): String = "${initialBoard.toFen()} $mateIn"
 
-    /** Formats the solution line as space-separated UCI move strings. */
-    fun toSolutionString(): String = solutionLine.joinToString(" ") { it.toUci() }
+    /** Formats the solution line as space-separated UCI move strings, appending 'q' for pawn promotions. */
+    fun toSolutionString(): String {
+        var board = initialBoard
+        return solutionLine.joinToString(" ") { move ->
+            val piece = board.pieceAt(move.from)
+            val toRow = move.to.index / 8
+            val isPromo = piece?.type == PieceType.PAWN &&
+                ((piece.color == PieceColor.WHITE && toRow == 0) ||
+                 (piece.color == PieceColor.BLACK && toRow == 7))
+            board = board.applyMoveInternal(move)
+            if (isPromo) "${move.toUci()}q" else move.toUci()
+        }
+    }
 
     override fun equals(other: Any?): Boolean = other is TacticsPuzzle &&
         id == other.id &&

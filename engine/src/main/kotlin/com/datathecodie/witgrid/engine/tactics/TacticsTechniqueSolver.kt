@@ -39,10 +39,19 @@ object TacticsTechniqueSolver {
         require(TacticsRules.countSolutions(puzzle) == 1) {
             "Tactics grading requires exactly one solution"
         }
+        require(TacticsRules.isValidSolution(puzzle)) {
+            "Tactics puzzle stored solution line does not force checkmate"
+        }
         val pieceCount = puzzle.initialBoard.pieces.count { it != null }
         val expectedPack = TacticsPackBands.packFor(puzzle.mateIn, pieceCount)
         require(puzzle.pack == expectedPack) {
             "Tactics puzzle pack ${puzzle.pack} does not match expected pack $expectedPack for mate-in-${puzzle.mateIn} with $pieceCount pieces"
+        }
+        if (expectedPack == Pack.HARD) {
+            val openingChecks = TacticsPackBands.openingChecks(puzzle.initialBoard)
+            require(openingChecks >= TacticsPackBands.HARD_MIN_CHECKS) {
+                "Hard tactics puzzle requires at least ${TacticsPackBands.HARD_MIN_CHECKS} opening checks to ensure competing candidate moves, had $openingChecks"
+            }
         }
         return requireNotNull(gradeLine(puzzle.initialBoard, puzzle.solutionLine, expectedPack)) {
             "Tactics puzzle is stuck with the supported techniques"
