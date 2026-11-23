@@ -85,7 +85,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 active (Gemini) |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 active (Gemini fix: fixed clue templates) |
 | SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | review (batch and Codex review) |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
@@ -117,7 +117,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | review (batch and Codex review) |
 | FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | active (Codex luna) |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
-| SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done, SK4 active (Claude haiku) |
+| SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done, SK4 review (batch) |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
 | SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | review (batch and Codex review) |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
