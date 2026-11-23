@@ -115,7 +115,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done |
 | FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | review (batch and Codex review) |
-| FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | review (lead review ok; batch) |
+| FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | done |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done, SK4 done |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
