@@ -128,13 +128,147 @@ class ColourSortEngineTest {
     }
 
     @Test
-    fun deferredFeaturesThrow() {
+    fun deadlockReachedThroughApplyAction() {
+        val dealTubes = listOf(
+            listOf(1, 2, 4, 5),
+            listOf(2, 3, 5, 1),
+            listOf(4, 5, 3, 2),
+            listOf(4, 5, 2),
+        )
+        val puzzle = easyFixture.copy(initialTubes = dealTubes)
+        val start = engine.initialState(puzzle)
+        assertEquals(0, start.pourCount)
+        assertFalse(engine.isLost(puzzle, start))
+        assertFalse(engine.isWon(puzzle, start))
+
+        val legalPours = ColourSortRules.legalPours(start.tubes)
+        assertEquals(1, legalPours.size)
+        assertEquals(ColourSortAction(2, 3), legalPours.single())
+
+        val deadlocked = engine.applyAction(start, ColourSortAction(2, 3))
+        assertEquals(1, deadlocked.pourCount)
+        assertTrue(engine.isLost(puzzle, deadlocked))
+        assertFalse(engine.isWon(puzzle, deadlocked))
+        assertTrue(ColourSortRules.legalPours(deadlocked.tubes).isEmpty())
+    }
+
+    @Test
+    fun topRunThatOnlyPartlyFits() {
+        val tubes = listOf(
+            listOf(1, 2, 2, 2),
+            listOf(3, 2, 2),
+            emptyList<Int>(),
+            emptyList<Int>(),
+        )
+        val puzzle = easyFixture.copy(initialTubes = tubes)
+        val start = engine.initialState(puzzle)
+
+        assertEquals(3, ColourSortRules.topRunLength(tubes[0]))
+        assertEquals(1, ColourSortRules.freeSpace(tubes[1]))
+        assertEquals(1, ColourSortRules.pourUnits(tubes, 0, 1))
+
+        val afterPour = engine.applyAction(start, ColourSortAction(0, 1))
+        assertEquals(listOf(1, 2, 2), afterPour.tubes[0])
+        assertEquals(listOf(3, 2, 2, 2), afterPour.tubes[1])
+    }
+
+    @Test
+    fun hintActionOnEasyFixture() {
         val start = engine.initialState(easyFixture)
-        assertThrows(NotImplementedError::class.java) {
-            engine.hintAction(easyFixture, start)
+        val hint = engine.hintAction(easyFixture, start)
+        org.junit.jupiter.api.Assertions.assertNotNull(hint)
+        assertTrue(ColourSortRules.isPourLegal(easyFixture.initialTubes, hint!!.from, hint.to))
+        val nextState = engine.applyAction(start, hint)
+        assertTrue(ColourSortSolver.isWinnable(nextState.tubes))
+    }
+
+    @Test
+    fun hintActionReturnsNullWhenWonOrLost() {
+        val wonTubes = listOf(
+            listOf(1, 1, 1, 1),
+            listOf(2, 2, 2, 2),
+            listOf(3, 3, 3, 3),
+            emptyList(),
+        )
+        val wonState = ColourSortState(easyFixture, wonTubes, pourCount = 4)
+        assertTrue(engine.isWon(easyFixture, wonState))
+        assertEquals(null, engine.hintAction(easyFixture, wonState))
+
+        val deadlockedState = ColourSortState(
+            easyFixture,
+            listOf(
+                listOf(1, 2, 4, 5),
+                listOf(2, 3, 5, 1),
+                listOf(4, 5, 3),
+                listOf(4, 5, 2, 2),
+            ),
+            pourCount = 1,
+        )
+        assertTrue(engine.isLost(easyFixture, deadlockedState))
+        assertEquals(null, engine.hintAction(easyFixture, deadlockedState))
+    }
+
+    @Test
+    fun tenWinnableLevelsPerPackWithSameSeedSameOutput() {
+        for (pack in Pack.entries) {
+            val rng1 = SplitMix64(1)
+            val puzzles1 = (1..10).map { engine.generate(rng1, pack) }
+
+            assertEquals(10, puzzles1.size)
+            puzzles1.forEach { puzzle ->
+                assertEquals(pack, puzzle.pack)
+                assertEquals(ColourSortCodec.expectedTubeCount(pack), puzzle.initialTubes.size)
+                assertTrue(ColourSortSolver.isWinnable(puzzle.initialTubes))
+                val emptyCount = puzzle.initialTubes.count { it.isEmpty() }
+                assertEquals(if (pack == Pack.EASY) 1 else 2, emptyCount)
+                puzzle.initialTubes.filter { it.isNotEmpty() }.forEach { tube ->
+                    assertEquals(ColourSortRules.TUBE_CAPACITY, tube.size)
+                    assertFalse(ColourSortRules.isTubeSorted(tube))
+                }
+            }
+
+            val rng2 = SplitMix64(1)
+            val puzzles2 = (1..10).map { engine.generate(rng2, pack) }
+            assertEquals(puzzles1, puzzles2)
         }
-        assertThrows(NotImplementedError::class.java) {
-            engine.generate(SplitMix64(1), Pack.EASY)
-        }
+    }
+
+    @Test
+    fun generatorConfigMatchesPacks() {
+        val easy = ColourSortGenerator.configFor(Pack.EASY)
+        assertEquals(4, easy.tubeCount)
+        assertEquals(3, easy.colorCount)
+        assertEquals(1, easy.emptyTubeCount)
+        assertEquals("d1", easy.difficulty)
+
+        val medium = ColourSortGenerator.configFor(Pack.MEDIUM)
+        assertEquals(6, medium.tubeCount)
+        assertEquals(4, medium.colorCount)
+        assertEquals(2, medium.emptyTubeCount)
+        assertEquals("d2", medium.difficulty)
+
+        val hard = ColourSortGenerator.configFor(Pack.HARD)
+        assertEquals(8, hard.tubeCount)
+        assertEquals(6, hard.colorCount)
+        assertEquals(2, hard.emptyTubeCount)
+        assertEquals("d3", hard.difficulty)
+
+        val expert = ColourSortGenerator.configFor(Pack.EXPERT)
+        assertEquals(10, expert.tubeCount)
+        assertEquals(8, expert.colorCount)
+        assertEquals(2, expert.emptyTubeCount)
+        assertEquals("d4", expert.difficulty)
+    }
+
+    @Test
+    fun solverReturnsNullForUnsolvableState() {
+        val unsolvable = listOf(
+            listOf(1, 2, 4, 5),
+            listOf(2, 3, 5, 1),
+            listOf(4, 5, 3),
+            listOf(4, 5, 2, 2),
+        )
+        assertFalse(ColourSortSolver.isWinnable(unsolvable))
+        assertEquals(null, ColourSortSolver.solve(unsolvable))
     }
 }
