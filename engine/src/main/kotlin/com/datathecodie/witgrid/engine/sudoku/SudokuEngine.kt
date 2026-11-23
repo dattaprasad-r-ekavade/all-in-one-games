@@ -35,7 +35,7 @@ object SudokuEngine : GameEngine<SudokuPuzzle, SudokuState> {
     override fun grade(puzzle: SudokuPuzzle): Grade = SudokuTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): SudokuPuzzle =
-        throw NotImplementedError("sudoku")
+        SudokuGenerator.generate(rng, pack)
 
     override fun encodeState(state: SudokuState): ByteArray = SudokuStateCodec.encode(state)
 

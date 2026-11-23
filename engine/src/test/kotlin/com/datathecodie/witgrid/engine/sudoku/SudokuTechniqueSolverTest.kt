@@ -127,9 +127,6 @@ class SudokuTechniqueSolverTest {
 
         assertEquals(SudokuTechniqueSolver.nextStep(puzzle, state), SudokuEngine.nextStep(puzzle, state))
         assertEquals(SudokuTechniqueSolver.grade(puzzle), SudokuEngine.grade(puzzle))
-        assertThrows(NotImplementedError::class.java) {
-            SudokuEngine.generate(SplitMix64(1L), Pack.EASY)
-        }
     }
 
     @Test
