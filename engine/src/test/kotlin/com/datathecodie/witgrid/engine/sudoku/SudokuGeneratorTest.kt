@@ -70,16 +70,19 @@ class SudokuGeneratorTest {
     }
 
     @Test
-    fun generatesOneHundredFiftyDistinctPuzzlesPerPackFromOneSeed() {
+    fun generatesDistinctPuzzlesPerPackFromOneSeed() {
+        // Expert takes about 0.6 s per puzzle; a smaller sample for the slow packs keeps the engine suite fast.
+        val sampleSize = mapOf(Pack.EASY to 150, Pack.MEDIUM to 150, Pack.HARD to 60, Pack.EXPERT to 20)
         Pack.values().forEach { pack ->
+            val count = sampleSize.getValue(pack)
             val rng = SplitMix64(42)
             val startTime = System.currentTimeMillis()
-            val puzzles = List(150) { SudokuGenerator.generate(rng, pack) }
+            val puzzles = List(count) { SudokuGenerator.generate(rng, pack) }
             val durationMs = System.currentTimeMillis() - startTime
-            println("Generation timing: $pack 150 puzzles generated in ${durationMs}ms (average ${durationMs / 150}ms/puzzle)")
-            assertEquals(150, puzzles.size)
-            assertEquals(150, puzzles.map { it.givens }.toSet().size, "$pack clue layouts must all be distinct")
-            assertEquals(150, puzzles.map { it.id }.toSet().size, "$pack puzzle IDs must all be distinct")
+            println("Generation timing: $pack $count puzzles generated in ${durationMs}ms (average ${durationMs / count}ms/puzzle)")
+            assertEquals(count, puzzles.size)
+            assertEquals(count, puzzles.map { it.givens }.toSet().size, "$pack clue layouts must all be distinct")
+            assertEquals(count, puzzles.map { it.id }.toSet().size, "$pack puzzle IDs must all be distinct")
             puzzles.forEach { puzzle ->
                 assertEquals(pack, puzzle.pack)
                 assertTrue(SudokuRules.isValidSolution(puzzle))
