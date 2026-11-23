@@ -4,6 +4,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -270,5 +271,92 @@ class ColourSortEngineTest {
         )
         assertFalse(ColourSortSolver.isWinnable(unsolvable))
         assertEquals(null, ColourSortSolver.solve(unsolvable))
+    }
+
+    @Test
+    fun hintSolvesFirstTenLevelsOfEveryPackWithinThreeHundredMoves() {
+        for (pack in Pack.entries) {
+            val rng = SplitMix64(1)
+            val puzzles = (1..10).map { engine.generate(rng, pack) }
+
+            for ((index, puzzle) in puzzles.withIndex()) {
+                var state = engine.initialState(puzzle)
+                assertFalse(engine.isWon(puzzle, state), "$pack level $index should not start won")
+
+                val initialHint = engine.hintAction(puzzle, state)
+                assertNotNull(initialHint, "hintAction should be non-null at deal for $pack level $index")
+
+                var moves = 0
+                val moveHistory = ArrayList<ColourSortAction>()
+                while (!engine.isWon(puzzle, state) && moves < 300) {
+                    val hint = engine.hintAction(puzzle, state)
+                    assertNotNull(hint, "hintAction returned null at move $moves for $pack level $index")
+                    moveHistory.add(hint!!)
+                    state = engine.applyAction(state, hint)
+                    moves++
+                }
+
+                if (moves >= 300) {
+                    println("Failure on $pack level $index. Initial tubes: ${puzzle.initialTubes}")
+                    println("First 15 moves: ${moveHistory.take(15)}")
+                    // Replay first 6 moves and print states
+                    var debugState = engine.initialState(puzzle)
+                    for (m in 0 until minOf(8, moveHistory.size)) {
+                        println("State at move $m: ${debugState.tubes}")
+                        println("Applying: ${moveHistory[m]}")
+                        debugState = engine.applyAction(debugState, moveHistory[m])
+                    }
+                    println("State at move 8: ${debugState.tubes}")
+                }
+
+                assertTrue(
+                    engine.isWon(puzzle, state),
+                    "$pack level $index should be won within 300 moves (took $moves)",
+                )
+            }
+        }
+        println("Largest node count seen across all hint solves: ${ColourSortSolver.maxExploredNodesSeen}")
+        assertTrue(ColourSortSolver.maxExploredNodesSeen < ColourSortSolver.MAX_EXPLORED_STATES)
+    }
+
+    @Test
+    fun midGameExpertStateHintIsNonNull() {
+        val rng = SplitMix64(1)
+        val expertPuzzle = engine.generate(rng, Pack.EXPERT)
+        var state = engine.initialState(expertPuzzle)
+
+        repeat(5) {
+            val hint = engine.hintAction(expertPuzzle, state)
+            assertNotNull(hint, "Hint should be non-null during play")
+            state = engine.applyAction(state, hint!!)
+        }
+
+        assertEquals(5, state.pourCount)
+        assertFalse(engine.isWon(expertPuzzle, state))
+        assertFalse(engine.isLost(expertPuzzle, state))
+
+        val midGameHint = engine.hintAction(expertPuzzle, state)
+        assertNotNull(midGameHint, "hintAction should be non-null in mid-game Expert state")
+        assertTrue(ColourSortRules.isPourLegal(state.tubes, midGameHint!!.from, midGameHint.to))
+    }
+
+    @Test
+    fun expertLevelsHintTimingAveragesUnderTwoHundredMilliseconds() {
+        val rng = SplitMix64(1)
+        val puzzles = (1..10).map { engine.generate(rng, Pack.EXPERT) }
+
+        val durationsMs = ArrayList<Long>()
+        for ((index, puzzle) in puzzles.withIndex()) {
+            val startState = engine.initialState(puzzle)
+            val startNano = System.nanoTime()
+            val hint = engine.hintAction(puzzle, startState)
+            val elapsedMs = (System.nanoTime() - startNano) / 1_000_000
+            durationsMs.add(elapsedMs)
+            assertNotNull(hint, "Expert level $index hint should be non-null")
+        }
+
+        val averageMs = durationsMs.average()
+        println("Expert 10 levels hint times (ms): $durationsMs, average: $averageMs ms")
+        assertTrue(averageMs < 200.0, "Hint on 10 Expert levels must average under 200 ms, was $averageMs ms")
     }
 }

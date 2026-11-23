@@ -56,18 +56,14 @@ object ColourSortGenerator {
         repeat(MAX_ATTEMPTS) {
             val candidateTubes = tryGenerateTubes(rng, config)
             if (candidateTubes != null) {
-                // Verify with solver that it can be re-sorted
-                val solution = ColourSortSolver.solve(candidateTubes)
-                if (solution != null && solution.isNotEmpty()) {
-                    val hex = rng.nextLong().toULong().toString(16).padStart(16, '0')
-                    val id = "CS-${pack.name}-$hex"
-                    return ColourSortPuzzle(
-                        bankId = id,
-                        pack = pack,
-                        difficulty = config.difficulty,
-                        initialTubes = candidateTubes,
-                    )
-                }
+                val hex = rng.nextLong().toULong().toString(16).padStart(16, '0')
+                val id = "CS-${pack.name}-$hex"
+                return ColourSortPuzzle(
+                    bankId = id,
+                    pack = pack,
+                    difficulty = config.difficulty,
+                    initialTubes = candidateTubes,
+                )
             }
         }
 
