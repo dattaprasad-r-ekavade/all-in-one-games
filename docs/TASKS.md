@@ -85,11 +85,11 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 active (Gemini) |
 | SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | review (batch and Codex review) |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | todo |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
-| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done |
+| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 active (Gemini) |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
@@ -115,7 +115,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done |
 | FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | review (batch and Codex review) |
-| FUB | Futoshiki bank | L | Claude | Codex | FU3, B6 | todo |
+| FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | active (Codex luna) |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
@@ -123,7 +123,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | review (batch and Codex review) |
-| MOB | Mosaic bank | L | Claude | Codex | MO3, B6 | todo |
+| MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | active (Codex luna) |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
 | H7 | Hand-test the launch catalog | Human | — | — | All Phase 7 bank cards | todo |
 
