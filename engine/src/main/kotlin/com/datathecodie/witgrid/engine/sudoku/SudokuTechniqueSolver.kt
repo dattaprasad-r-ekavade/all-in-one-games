@@ -77,15 +77,21 @@ object SudokuTechniqueSolver {
     }
 
     /** Computes a technique grade without enforcing the pack band, for generator filtering. */
-    internal fun gradeByTechniques(puzzle: SudokuPuzzle): Grade {
+    internal fun gradeByTechniques(
+        puzzle: SudokuPuzzle,
+        maxRank: Int = Int.MAX_VALUE,
+        checkUnique: Boolean = true,
+    ): Grade {
         require(SudokuRules.isValidSolution(puzzle)) {
             "Sudoku grading requires a valid stored solution"
         }
         require(puzzle.givens.indices.all { index ->
             puzzle.givens[index] == null || puzzle.givens[index] == puzzle.solution[index]
         }) { "Sudoku givens must agree with the stored solution" }
-        require(SudokuRules.countSolutions(puzzle, limit = 2) == 1) {
-            "Sudoku grading requires exactly one solution"
+        if (checkUnique) {
+            require(SudokuRules.countSolutions(puzzle, limit = 2) == 1) {
+                "Sudoku grading requires exactly one solution"
+            }
         }
 
         var state = SudokuState.initial(puzzle)
@@ -95,6 +101,9 @@ object SudokuTechniqueSolver {
         while (!SudokuRules.isSolved(puzzle, state)) {
             val step = requireNotNull(nextStep(puzzle, state)) {
                 "Sudoku puzzle is stuck with the supported techniques"
+            }
+            if (step.technique.difficultyRank > maxRank) {
+                throw IllegalArgumentException("Technique rank exceeded max rank: ${step.technique}")
             }
             val nextState = step.moves.fold(state, SudokuState::withMove)
             require(nextState != state && visited.add(nextState)) {
@@ -213,7 +222,7 @@ object SudokuTechniqueSolver {
             }
         }
 
-        for (unit in units().filter { it.kind != UnitKind.BOX }) {
+        for (unit in LINE_UNITS) {
             for (digit in SUDOKU_DIGITS) {
                 val bit = digitBit(digit)
                 val possible = unit.cells.filter { digits[it] == null && candidates[it] and bit != 0 }
@@ -423,30 +432,37 @@ object SudokuTechniqueSolver {
         return null
     }
 
-    private fun units(): List<SudokuUnit> = buildList(27) {
+    private val BOX_CELLS: List<List<Int>> = (0 until SUDOKU_SIZE).map { boxIndex ->
+        val boxRow = boxIndex / BOX_SIZE
+        val boxColumn = boxIndex % BOX_SIZE
+        buildList(9) {
+            for (rowOffset in 0 until BOX_SIZE) {
+                for (columnOffset in 0 until BOX_SIZE) {
+                    add((boxRow * BOX_SIZE + rowOffset) * SUDOKU_SIZE + boxColumn * BOX_SIZE + columnOffset)
+                }
+            }
+        }
+    }
+
+    private val UNITS: List<SudokuUnit> = buildList(27) {
         for (row in 0 until SUDOKU_SIZE) {
             add(SudokuUnit(UnitKind.LINE, "row ${row + 1}", (0 until SUDOKU_SIZE).map { row * SUDOKU_SIZE + it }))
         }
         for (column in 0 until SUDOKU_SIZE) {
             add(SudokuUnit(UnitKind.LINE, "column ${column + 1}", (0 until SUDOKU_SIZE).map { it * SUDOKU_SIZE + column }))
         }
-        for (boxRow in 0 until BOX_SIZE) {
-            for (boxColumn in 0 until BOX_SIZE) {
-                val boxNumber = boxRow * BOX_SIZE + boxColumn + 1
-                add(SudokuUnit(UnitKind.BOX, "box $boxNumber", boxCells(boxRow, boxColumn)))
-            }
+        for (box in 0 until SUDOKU_SIZE) {
+            add(SudokuUnit(UnitKind.BOX, "box ${box + 1}", BOX_CELLS[box]))
         }
     }
 
-    private fun boxCells(boxRow: Int, boxColumn: Int): List<Int> = buildList(9) {
-        for (rowOffset in 0 until BOX_SIZE) {
-            for (columnOffset in 0 until BOX_SIZE) {
-                add((boxRow * BOX_SIZE + rowOffset) * SUDOKU_SIZE + boxColumn * BOX_SIZE + columnOffset)
-            }
-        }
-    }
+    private val LINE_UNITS: List<SudokuUnit> = UNITS.filter { it.kind != UnitKind.BOX }
 
-    private fun boxCellsByIndex(box: Int): List<Int> = boxCells(box / BOX_SIZE, box % BOX_SIZE)
+    private fun units(): List<SudokuUnit> = UNITS
+
+    private fun boxCells(boxRow: Int, boxColumn: Int): List<Int> = BOX_CELLS[boxRow * BOX_SIZE + boxColumn]
+
+    private fun boxCellsByIndex(box: Int): List<Int> = BOX_CELLS[box]
 
     private fun usedInRow(digits: List<Int?>, row: Int): Int =
         (0 until SUDOKU_SIZE).fold(0) { mask, column ->

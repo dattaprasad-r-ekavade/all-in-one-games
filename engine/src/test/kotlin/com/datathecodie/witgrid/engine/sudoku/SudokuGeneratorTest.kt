@@ -76,7 +76,7 @@ class SudokuGeneratorTest {
             val startTime = System.currentTimeMillis()
             val puzzles = List(150) { SudokuGenerator.generate(rng, pack) }
             val durationMs = System.currentTimeMillis() - startTime
-            println("Generation timing: $pack 150 puzzles generated in ${durationMs}ms")
+            println("Generation timing: $pack 150 puzzles generated in ${durationMs}ms (average ${durationMs / 150}ms/puzzle)")
             assertEquals(150, puzzles.size)
             assertEquals(150, puzzles.map { it.givens }.toSet().size, "$pack clue layouts must all be distinct")
             assertEquals(150, puzzles.map { it.id }.toSet().size, "$pack puzzle IDs must all be distinct")
@@ -89,6 +89,19 @@ class SudokuGeneratorTest {
                 assertEquals(SudokuGradeCodec.encode(grade), puzzle.storedGrade)
             }
         }
+    }
+
+    @Test
+    fun easyPuzzlesHaveAtLeastOneHundredDistinctCluePositionPatternsAcrossOneHundredFiftyLevels() {
+        val rng = SplitMix64(101)
+        val puzzles = List(150) { SudokuGenerator.generate(rng, Pack.EASY) }
+        val distinctPositionPatterns = puzzles.map { puzzle ->
+            puzzle.givens.indices.filter { puzzle.givens[it] != null }.toSet()
+        }.toSet().size
+        assertTrue(
+            distinctPositionPatterns >= 100,
+            "150 Easy puzzles must have at least 100 distinct clue position patterns, got $distinctPositionPatterns",
+        )
     }
 
     private fun generateTenPerPack(): Map<Pack, List<SudokuPuzzle>> =
