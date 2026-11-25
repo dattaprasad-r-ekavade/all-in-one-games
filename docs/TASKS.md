@@ -120,7 +120,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done, SK4 done |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
 | SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | done |
-| SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | active (Codex luna) |
+| SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | review (lead fixes; batch not run) |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done, MO4 done |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | done |
 | MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | active (paused; Codex luna run stopped) |
