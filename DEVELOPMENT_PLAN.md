@@ -14,7 +14,7 @@ Updated 25 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ███████████████▒░░░░  75 %  (109 of 145 done, 6 in progress)
+All tasks                         ███████████████▒░░░░  77 %  (112 of 145 done, 3 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,22 +24,22 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ████████████████████ 100 %  (11 of 11 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          ████████████▒▒░░░░░░  60 %  (42 of 70 done, 6 in progress)
+Phase 7 — Launch catalog          █████████████▒░░░░░░  64 %  (45 of 70 done, 3 in progress)
 
 Launch catalog, by game
-  Sudoku 9x9                      ██████████████▒▒▒▒▒▒  71 %  (5 of 7 done, 2 in progress)
-  Killer Sudoku                   ███▒▒▒░░░░░░░░░░░░░░  14 %  (1 of 7 done, 1 in progress)
-  Futoshiki                       █████████████████░░░  86 %  (6 of 7 done)
-  Skyscrapers                     █████████████████▒▒▒  86 %  (6 of 7 done, 1 in progress)
+  Sudoku 9x9                      ████████████████████ 100 %  (7 of 7 done)
+  Killer Sudoku                   ███░░░░░░░░░░░░░░░░░  14 %  (1 of 7 done)
+  Futoshiki                       █████████████████▒▒▒  86 %  (6 of 7 done, 1 in progress)
+  Skyscrapers                     ████████████████████ 100 %  (7 of 7 done)
   Mosaic                          ██████████████▒▒▒░░░  71 %  (5 of 7 done, 1 in progress)
   Colour Sort                     █████████████░░░░░░░  67 %  (4 of 6 done)
-  Path                            █████████████████░░░  86 %  (6 of 7 done)
+  Path                            █████████████████▒▒▒  86 %  (6 of 7 done, 1 in progress)
   Arrows                          ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
-  Klondike                        ███▒▒▒▒░░░░░░░░░░░░░  17 %  (1 of 6 done, 1 in progress)
+  Klondike                        ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
   Chess tactics                   ██████████████░░░░░░  71 %  (5 of 7 done)
   Shared (B6, E3, H7)             █████████████░░░░░░░  67 %  (2 of 3 done)
 
-Launch games playable             ██████░░░░░░░░░░░░░░  29 %  (4 of 14 ready)
+Launch games playable             █████████░░░░░░░░░░░  43 %  (6 of 14 ready)
 ```
 
 Open human tasks: H0.1, H1, H4, H5, H6, H7.
