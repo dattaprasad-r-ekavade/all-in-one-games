@@ -32,10 +32,10 @@ object KillerSudokuEngine : GameEngine<KillerSudokuPuzzle, KillerSudokuState> {
         KillerSudokuRules.countSolutions(puzzle, limit)
 
     override fun nextStep(puzzle: KillerSudokuPuzzle, state: KillerSudokuState): HintStep? =
-        throw NotImplementedError("killersudoku")
+        KillerSudokuTechniqueSolver.nextStep(puzzle, state)
 
     override fun grade(puzzle: KillerSudokuPuzzle): Grade =
-        throw NotImplementedError("killersudoku")
+        KillerSudokuTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): KillerSudokuPuzzle =
         throw NotImplementedError("killersudoku")
