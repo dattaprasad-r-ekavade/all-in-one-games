@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.sudoku.SudokuState
 import com.datathecodie.witgrid.games.EngineGameModule
 import com.datathecodie.witgrid.games.GameModule
 
-/** Sudoku bank behaviour and its digit/notes board. Registration lives in SUC. */
+/** Sudoku bank behaviour and its digit/notes board. */
 object SudokuGameModule : GameModule<SudokuPuzzle, SudokuState> by EngineGameModule(
     engine = SudokuEngine,
     puzzleOf = SudokuState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 1 },
 ) {
     @Composable

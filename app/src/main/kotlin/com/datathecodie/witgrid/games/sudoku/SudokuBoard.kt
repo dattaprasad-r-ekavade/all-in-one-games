@@ -147,13 +147,13 @@ fun SudokuBoard(
                 FilterChip(
                     selected = !notesMode,
                     onClick = { notesMode = false },
-                    label = { Text(stringResource(R.string.minisudoku_mode_digits)) },
+                    label = { Text(stringResource(R.string.sudoku_mode_digits)) },
                 )
                 Spacer(Modifier.width(Spacing.xs))
                 FilterChip(
                     selected = notesMode,
                     onClick = { notesMode = true },
-                    label = { Text(stringResource(R.string.minisudoku_mode_notes)) },
+                    label = { Text(stringResource(R.string.sudoku_mode_notes)) },
                 )
                 Spacer(Modifier.width(Spacing.sm))
                 TextButton(
@@ -165,7 +165,7 @@ fun SudokuBoard(
                         }
                     },
                 ) {
-                    Text(stringResource(R.string.minisudoku_clear_cell))
+                    Text(stringResource(R.string.sudoku_clear_cell))
                 }
             }
 
@@ -180,9 +180,9 @@ fun SudokuBoard(
                     val remaining = (SUDOKU_SIZE - state.digits.count { it == digit }).coerceAtLeast(0)
                     val buttonDescription = stringResource(
                         if (notesMode) {
-                            R.string.minisudoku_note_button_accessibility
+                            R.string.sudoku_note_button_accessibility
                         } else {
-                            R.string.minisudoku_digit_button_accessibility
+                            R.string.sudoku_digit_button_accessibility
                         },
                         digit,
                     )
@@ -261,27 +261,27 @@ fun SudokuBoard(
 
 @Composable
 private fun describeSudokuCell(state: SudokuState, cell: Cell, selected: Boolean): String {
-    val digit = state.digits[cell.index]?.toString() ?: stringResource(R.string.minisudoku_cell_empty)
+    val digit = state.digits[cell.index]?.toString() ?: stringResource(R.string.sudoku_cell_empty)
     val noteDigits = (1..SUDOKU_SIZE)
         .filter { value -> state.notes[cell.index] and (1 shl (value - 1)) != 0 }
         .joinToString(", ")
     val notes = if (noteDigits.isEmpty()) {
-        stringResource(R.string.minisudoku_no_notes)
+        stringResource(R.string.sudoku_no_notes)
     } else {
-        stringResource(R.string.minisudoku_cell_notes_accessibility, noteDigits)
+        stringResource(R.string.sudoku_cell_notes_accessibility, noteDigits)
     }
     val editability = stringResource(
         if (state.puzzle.givens[cell.index] == null) {
-            R.string.minisudoku_cell_editable
+            R.string.sudoku_cell_editable
         } else {
-            R.string.minisudoku_cell_given
+            R.string.sudoku_cell_given
         },
     )
     val selection = stringResource(
-        if (selected) R.string.minisudoku_cell_selected else R.string.minisudoku_cell_not_selected,
+        if (selected) R.string.sudoku_cell_selected else R.string.sudoku_cell_not_selected,
     )
     return stringResource(
-        R.string.minisudoku_cell_accessibility_label,
+        R.string.sudoku_cell_accessibility_label,
         cell.index / state.puzzle.size + 1,
         cell.index % state.puzzle.size + 1,
         digit,
