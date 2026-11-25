@@ -96,7 +96,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done, PA4 done |
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | done |
-| PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | review (lead checked; merged into FUC branch; batch not run) |
+| PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | done |
 | AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 done, AR2 todo |
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
@@ -109,14 +109,14 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | done |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
-| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 paused (WIP committed; Gemini quota), KS4 part 1 review (committed; not compiled; batch not run) |
+| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 paused (WIP committed; Gemini quota), KS4 part 1 done (technique part waits for KS2) |
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done, FU4 done |
 | FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | done |
 | FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | done |
-| FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | review (lead checked; batch not run) |
+| FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | done |
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done, SK4 done |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
 | SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | done |
