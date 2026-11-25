@@ -152,10 +152,12 @@ if ($Agent -eq 'codex') {
     $grokPrompt = $prompt + "`nYou cannot run Gradle or git in this mode. Write the code and tests carefully, then stop. The lead compiles and commits.`n"
     $promptFile = Join-Path $logDir "$Task.prompt.md"
     Set-Content -Path $promptFile -Value $grokPrompt -Encoding UTF8
-    # Headless acceptEdits still asks before Edit/Write, so allow only those two tools (no shell).
+    # Headless acceptEdits still asks before Edit/Write, so allow only those two tools.
+    # Remove the shell tool: a denied shell call ends the headless run before any code is written.
     # Grok writes notices to stderr; with 'Stop' PowerShell 5.1 would treat them as a fatal error.
     $ErrorActionPreference = 'Continue'
     grok --prompt-file $promptFile --cwd $wt -m $model --permission-mode acceptEdits --allow Edit --allow Write `
+        --disallowed-tools run_terminal_command --disable-web-search `
         --no-memory --max-turns 200 2>&1 |
         Tee-Object -Variable agentOutput
     $ErrorActionPreference = 'Stop'
