@@ -8,16 +8,16 @@ import com.datathecodie.witgrid.engine.core.SplitMix64
 /**
  * Deterministic Killer Sudoku generator.
  *
- * A candidate is a random full grid, then connected cages of 1 to 5 cells.
- * Cage digits do not repeat and the cage sum is the solution sum.
- * Easy uses cages alone. Medium plants one single-house innie. Expert plants
- * one multi-house outie. Hard removes givens on loose cages.
- * A candidate is kept only when it has one solution and the technique grade
- * sits in the KS2 pack band.
+ * Each candidate starts from a random solved 9x9 grid partitioned into orthogonally
+ * connected cages of 1 to 5 distinct digits whose sum matches the solution.
+ * Easy keeps zero givens and peels cages until cage combinations alone solve the board.
+ * Medium, Hard, and Expert grow loose cages, absorb isolated singletons where possible,
+ * and remove givens down to a minimal set while preserving uniqueness and the pack ceiling.
  */
 object KillerSudokuGenerator {
-    private const val MAX_ATTEMPTS = 24
-    private const val SPRINKLE_LIMIT = 16
+    private const val MAX_ATTEMPTS = 128
+    private const val MAX_EASY_SINGLETONS = 28
+    private const val MAX_GIVENS = 20
 
     private val NEIGHBORS: Array<IntArray> = Array(KILLER_SUDOKU_CELL_COUNT) { index ->
         val row = index / KILLER_SUDOKU_SIZE
@@ -36,9 +36,7 @@ object KillerSudokuGenerator {
             val solution = randomValidGrid(rng)
             val puzzle = when (pack) {
                 Pack.EASY -> buildEasy(solution, rng)
-                Pack.MEDIUM -> buildMedium(solution, rng)
-                Pack.HARD -> buildHard(solution, rng)
-                Pack.EXPERT -> buildExpert(solution, rng)
+                Pack.MEDIUM, Pack.HARD, Pack.EXPERT -> buildWithGivenRemoval(solution, rng, pack)
             }
             if (puzzle != null && KillerSudokuRules.countSolutions(puzzle, limit = 2) == 1) {
                 return puzzle
@@ -54,7 +52,9 @@ object KillerSudokuGenerator {
         val givens = noGivens()
         val ceiling = maxRank(Pack.EASY)
         for (step in 0 until KILLER_SUDOKU_CELL_COUNT) {
-            val grade = tryGrade(groups, givens, solution, Pack.EASY, ceiling)
+            if (groups.count { it.size == 1 } > MAX_EASY_SINGLETONS) return null
+            val candidatePuzzle = candidate(groups, givens, solution, Pack.EASY)
+            val grade = tryGrade(candidatePuzzle, ceiling)
             val mixed = groups.any { it.size > 1 }
             if (grade != null && mixed && KillerSudokuPackBands.isGradeInPackBand(Pack.EASY, grade)) {
                 return finish(groups, givens, solution, Pack.EASY, grade, rng)
@@ -64,268 +64,65 @@ object KillerSudokuGenerator {
         return null
     }
 
-    private fun buildMedium(solution: IntArray, rng: SplitMix64): KillerSudokuPuzzle? {
-        val narrow = mediumWindow(solution, rng, span = 2)
-        if (narrow != null) return narrow
-        return mediumWindow(solution, rng, span = 3)
-    }
-
-    /**
-     * One row has a single innie. The other rows of the window stay empty so that
-     * column is not a naked single, and the cells outside the window are givens.
-     */
-    private fun mediumWindow(solution: IntArray, rng: SplitMix64, span: Int): KillerSudokuPuzzle? {
-        val top = rng.nextInt(KILLER_SUDOKU_SIZE - span + 1)
-        val innieColumn = EVEN_COLUMNS[rng.nextInt(EVEN_COLUMNS.size)]
-        val partner = (top + 1) * KILLER_SUDOKU_SIZE + innieColumn
-        val groups = ArrayList<MutableList<Int>>()
-        groups.add(mutableListOf(top * KILLER_SUDOKU_SIZE + innieColumn, partner))
-        addContiguousPieces(groups, top, innieColumn)
-
-        val windowRemainder = BooleanArray(KILLER_SUDOKU_CELL_COUNT) { true }
-        for (row in top + 1 until top + span) {
-            for (column in 0 until KILLER_SUDOKU_SIZE) {
-                val cell = row * KILLER_SUDOKU_SIZE + column
-                if (cell != partner) windowRemainder[cell] = false
-            }
-        }
-        groups.addAll(grow(solution, rng, preferLoose = true, blocked = windowRemainder) { 3 + it.nextInt(3) })
-
-        val taken = BooleanArray(KILLER_SUDOKU_CELL_COUNT)
-        for (group in groups) {
-            for (cell in group) taken[cell] = true
-        }
-        groups.addAll(grow(solution, rng, preferLoose = false, blocked = taken) { 1 + it.nextInt(3) })
-
-        val givens = ArrayList<Int?>(KILLER_SUDOKU_CELL_COUNT)
-        for (cell in 0 until KILLER_SUDOKU_CELL_COUNT) {
-            val row = cell / KILLER_SUDOKU_SIZE
-            val inWindow = row in top until top + span
-            givens.add(if (inWindow) null else solution[cell])
-        }
-        val protected = hashSetOf(top * KILLER_SUDOKU_SIZE + innieColumn, partner)
-        return acceptOrSprinkle(solution, rng, Pack.MEDIUM, groups, givens, protected)
-    }
-
-    private fun buildHard(solution: IntArray, rng: SplitMix64): KillerSudokuPuzzle? {
-        // Loose cages keep a house from collapsing into one innie, so the 45 rule
-        // does not solve the board before a Sudoku technique in the Hard band.
+    private fun buildWithGivenRemoval(
+        solution: IntArray,
+        rng: SplitMix64,
+        pack: Pack,
+    ): KillerSudokuPuzzle? {
         val groups = grow(solution, rng, preferLoose = true) { 3 + it.nextInt(3) }
-        val probe = tryGrade(groups, noGivens(), solution, Pack.HARD, maxRank(Pack.HARD))
-        if (probe != null && KillerSudokuPackBands.isGradeInPackBand(Pack.HARD, probe)) {
-            return finish(groups, noGivens(), solution, Pack.HARD, probe, rng)
-        }
-        val probeRank = probe?.hardestTechnique?.difficultyRank ?: -1
-        if (probe != null && probeRank < minimumRank(Pack.HARD)) return null
-        return removeGivens(solution, rng, Pack.HARD, groups)
-    }
-
-    private fun buildExpert(solution: IntArray, rng: SplitMix64): KillerSudokuPuzzle? {
-        val planted = plantMultiHouseOutie(solution, rng) ?: return null
-        val groups = ArrayList<MutableList<Int>>()
-        groups.addAll(planted.groups)
-        val blocked = BooleanArray(KILLER_SUDOKU_CELL_COUNT)
-        for (cell in planted.emptyCells) blocked[cell] = true
-        groups.addAll(grow(solution, rng, preferLoose = false, blocked = blocked) { 1 + it.nextInt(3) })
-        val givens = ArrayList<Int?>(KILLER_SUDOKU_CELL_COUNT)
-        for (cell in 0 until KILLER_SUDOKU_CELL_COUNT) {
-            givens.add(if (cell in planted.emptyCells) null else solution[cell])
-        }
-        return acceptOrSprinkle(solution, rng, Pack.EXPERT, groups, givens, planted.protectedCells)
+        mergeSingletons(groups, solution)
+        return removeGivens(solution, rng, pack, groups)
     }
 
     /**
-     * Two empty rows of column dominos, plus one cage that steps into the next row.
-     * That step is a single outie of the two-row region. A second pair on the outie
-     * row stops the outie from being a naked single after the other givens are filled.
-     */
-    private fun plantMultiHouseOutie(solution: IntArray, rng: SplitMix64): ExpertPlant? {
-        val top = rng.nextInt(KILLER_SUDOKU_SIZE - 2)
-        val columns = (0 until KILLER_SUDOKU_SIZE).toMutableList()
-        shuffle(columns, rng)
-        for (outieColumn in columns) {
-            val neighbors = ArrayList<Int>(2)
-            if (outieColumn > 0) neighbors.add(outieColumn - 1)
-            if (outieColumn < KILLER_SUDOKU_SIZE - 1) neighbors.add(outieColumn + 1)
-            shuffle(neighbors, rng)
-            for (neighbor in neighbors) {
-                val cap = top * KILLER_SUDOKU_SIZE + outieColumn
-                val sideTop = top * KILLER_SUDOKU_SIZE + neighbor
-                val sideBottom = (top + 1) * KILLER_SUDOKU_SIZE + neighbor
-                if (!distinctDigits(listOf(cap, sideTop, sideBottom), solution)) continue
-                val extra = chooseExtraPair(outieColumn, rng) ?: continue
-                val groups = ArrayList<MutableList<Int>>()
-                val innie = (top + 1) * KILLER_SUDOKU_SIZE + outieColumn
-                val outie = (top + 2) * KILLER_SUDOKU_SIZE + outieColumn
-                groups.add(mutableListOf(innie, outie))
-                groups.add(mutableListOf(cap, sideTop, sideBottom))
-                for (column in 0 until KILLER_SUDOKU_SIZE) {
-                    if (column == outieColumn || column == neighbor) continue
-                    groups.add(
-                        mutableListOf(
-                            top * KILLER_SUDOKU_SIZE + column,
-                            (top + 1) * KILLER_SUDOKU_SIZE + column,
-                        ),
-                    )
-                }
-                val extraA = (top + 2) * KILLER_SUDOKU_SIZE + extra.first
-                val extraB = (top + 2) * KILLER_SUDOKU_SIZE + extra.second
-                groups.add(mutableListOf(extraA, extraB))
-                val empty = HashSet<Int>()
-                for (group in groups) empty.addAll(group)
-                return ExpertPlant(groups, empty, hashSetOf(innie, outie))
-            }
-        }
-        return null
-    }
-
-    private fun chooseExtraPair(outieColumn: Int, rng: SplitMix64): Pair<Int, Int>? {
-        val options = ArrayList<Int>()
-        for (column in 0 until KILLER_SUDOKU_SIZE - 1) {
-            if (column != outieColumn && column + 1 != outieColumn) options.add(column)
-        }
-        if (options.isEmpty()) return null
-        val start = options[rng.nextInt(options.size)]
-        return start to start + 1
-    }
-
-    private fun acceptOrSprinkle(
-        solution: IntArray,
-        rng: SplitMix64,
-        pack: Pack,
-        groups: MutableList<MutableList<Int>>,
-        givens: MutableList<Int?>,
-        protected: Set<Int>,
-    ): KillerSudokuPuzzle? {
-        val ceiling = maxRank(pack)
-        val grade = tryGrade(groups, givens, solution, pack, ceiling)
-        if (grade != null && KillerSudokuPackBands.isGradeInPackBand(pack, grade)) {
-            return finish(groups, givens, solution, pack, grade, rng)
-        }
-        val rank = grade?.hardestTechnique?.difficultyRank ?: -1
-        if (grade != null && rank < minimumRank(pack)) return null
-        return sprinkle(solution, rng, pack, groups, givens, protected)
-    }
-
-    /**
-     * Adds givens outside the planted cage.
-     * The planted cells stay empty so that cage can still force the pack technique.
-     */
-    private fun sprinkle(
-        solution: IntArray,
-        rng: SplitMix64,
-        pack: Pack,
-        groups: MutableList<MutableList<Int>>,
-        givens: MutableList<Int?>,
-        protected: Set<Int>,
-    ): KillerSudokuPuzzle? {
-        val holes = ArrayList<Int>()
-        for (index in givens.indices) {
-            if (givens[index] != null || index in protected) continue
-            holes.add(index)
-        }
-        shuffle(holes, rng)
-        var added = 0
-        for (index in holes) {
-            if (added == SPRINKLE_LIMIT) break
-            givens[index] = solution[index]
-            added++
-            val grade = tryGrade(groups, givens, solution, pack, maxRank(pack))
-            if (grade == null) continue
-            val rank = grade.hardestTechnique?.difficultyRank ?: -1
-            if (rank < minimumRank(pack)) return null
-            if (KillerSudokuPackBands.isGradeInPackBand(pack, grade)) {
-                return finish(groups, givens, solution, pack, grade, rng)
-            }
-        }
-        return null
-    }
-
-    /**
-     * Removes givens while the technique solver still finishes within the pack ceiling.
-     * Returns the first board whose grade is inside the pack band.
+     * Removes as many givens as possible while keeping uniqueness and staying within the
+     * pack's top technique rank, accepting only when the minimal board lands in the band.
      */
     private fun removeGivens(
         solution: IntArray,
         rng: SplitMix64,
         pack: Pack,
-        groups: MutableList<MutableList<Int>>,
+        groups: List<List<Int>>,
     ): KillerSudokuPuzzle? {
         val givens = ArrayList<Int?>(KILLER_SUDOKU_CELL_COUNT)
         for (digit in solution) givens.add(digit)
         val order = (0 until KILLER_SUDOKU_CELL_COUNT).toMutableList()
         shuffle(order, rng)
         val ceiling = maxRank(pack)
+        var lastGrade: Grade? = null
+
         for (index in order) {
             val saved = givens[index] ?: continue
             givens[index] = null
-            val grade = tryGrade(groups, givens, solution, pack, ceiling)
+            val candidatePuzzle = candidate(groups, givens, solution, pack)
+            if (KillerSudokuRules.countSolutions(candidatePuzzle, limit = 2) != 1) {
+                givens[index] = saved
+                continue
+            }
+            val grade = tryGrade(candidatePuzzle, ceiling)
             val rank = grade?.hardestTechnique?.difficultyRank ?: -1
             if (grade == null || grade.stepCount == 0 || rank > ceiling) {
                 givens[index] = saved
                 continue
             }
-            if (KillerSudokuPackBands.isGradeInPackBand(pack, grade)) {
-                return finish(groups, givens, solution, pack, grade, rng)
-            }
+            lastGrade = grade
         }
-        return null
-    }
 
-    /** Splits one row around [skipColumn] so each piece stays on adjacent columns. */
-    private fun addContiguousPieces(
-        groups: MutableList<MutableList<Int>>,
-        row: Int,
-        skipColumn: Int,
-    ) {
-        var segment = ArrayList<Int>()
-        fun flush() {
-            if (segment.isEmpty()) return
-            for (piece in splitContiguous(segment)) groups.add(piece.toMutableList())
-            segment = ArrayList()
-        }
-        for (column in 0 until KILLER_SUDOKU_SIZE) {
-            if (column == skipColumn) {
-                flush()
-            } else {
-                segment.add(row * KILLER_SUDOKU_SIZE + column)
-            }
-        }
-        flush()
-    }
-
-    private fun splitContiguous(cells: List<Int>): List<List<Int>> {
-        val pieces = ArrayList<List<Int>>()
-        var start = 0
-        while (start < cells.size) {
-            val remaining = cells.size - start
-            val size = when {
-                remaining <= 5 -> remaining
-                remaining == 6 -> 3
-                remaining == 7 -> 4
-                remaining == 8 -> 4
-                else -> 5
-            }
-            val piece = ArrayList<Int>(size)
-            for (offset in 0 until size) piece.add(cells[start + offset])
-            pieces.add(piece)
-            start += size
-        }
-        return pieces
+        val finalGrade = lastGrade ?: return null
+        if (givens.count { it != null } > MAX_GIVENS) return null
+        if (!KillerSudokuPackBands.isGradeInPackBand(pack, finalGrade)) return null
+        return finish(groups, givens, solution, pack, finalGrade, rng)
     }
 
     private fun grow(
         solution: IntArray,
         rng: SplitMix64,
         preferLoose: Boolean,
-        blocked: BooleanArray = BooleanArray(KILLER_SUDOKU_CELL_COUNT),
         targetSize: (SplitMix64) -> Int,
     ): MutableList<MutableList<Int>> {
-        val unassigned = BooleanArray(KILLER_SUDOKU_CELL_COUNT) { index -> !blocked[index] }
+        val unassigned = BooleanArray(KILLER_SUDOKU_CELL_COUNT) { true }
         val order = ArrayList<Int>(KILLER_SUDOKU_CELL_COUNT)
-        for (index in 0 until KILLER_SUDOKU_CELL_COUNT) {
-            if (unassigned[index]) order.add(index)
-        }
+        for (index in 0 until KILLER_SUDOKU_CELL_COUNT) order.add(index)
         shuffle(order, rng)
         val groups = ArrayList<MutableList<Int>>()
         for (seed in order) {
@@ -346,6 +143,40 @@ object KillerSudokuGenerator {
             groups.add(group)
         }
         return groups
+    }
+
+    /** Absorbs isolated 1-cell leftovers into an adjacent cage below size 5 without repeating digits. */
+    private fun mergeSingletons(groups: MutableList<MutableList<Int>>, solution: IntArray) {
+        val cellToGroup = IntArray(KILLER_SUDOKU_CELL_COUNT)
+        for (groupIndex in groups.indices) {
+            for (cell in groups[groupIndex]) cellToGroup[cell] = groupIndex
+        }
+        for (groupIndex in groups.indices) {
+            if (groups[groupIndex].size != 1) continue
+            val cell = groups[groupIndex][0]
+            val bit = digitBit(solution[cell])
+            var bestTarget = -1
+            var bestSize = 6
+            for (neighbor in NEIGHBORS[cell]) {
+                val targetIndex = cellToGroup[neighbor]
+                if (targetIndex == groupIndex) continue
+                val targetGroup = groups[targetIndex]
+                if (targetGroup.size >= 5) continue
+                var usedMask = 0
+                for (member in targetGroup) usedMask = usedMask or digitBit(solution[member])
+                if (usedMask and bit != 0) continue
+                if (targetGroup.size < bestSize) {
+                    bestSize = targetGroup.size
+                    bestTarget = targetIndex
+                }
+            }
+            if (bestTarget != -1) {
+                groups[bestTarget].add(cell)
+                groups[groupIndex].clear()
+                cellToGroup[cell] = bestTarget
+            }
+        }
+        groups.removeAll { it.isEmpty() }
     }
 
     private fun openNeighbors(
@@ -384,10 +215,7 @@ object KillerSudokuGenerator {
     private fun looseScore(group: List<Int>, extra: Int, solution: IntArray): Int {
         var sum = solution[extra]
         for (cell in group) sum += solution[cell]
-        return combinationCount(group.size + 1, sum)
-    }
-
-    private fun combinationCount(size: Int, sum: Int): Int {
+        val size = group.size + 1
         if (size !in KILLER_SUDOKU_DIGITS || sum !in 1..KILLER_SUDOKU_MAX_CAGE_SUM) return 0
         return KillerSudokuCageMath.CAGE_COMBINATIONS[size][sum].size
     }
@@ -425,15 +253,9 @@ object KillerSudokuGenerator {
         group.removeAt(index)
     }
 
-    private fun tryGrade(
-        groups: List<List<Int>>,
-        givens: List<Int?>,
-        solution: IntArray,
-        pack: Pack,
-        maxRank: Int,
-    ): Grade? = try {
+    private fun tryGrade(candidatePuzzle: KillerSudokuPuzzle, maxRank: Int): Grade? = try {
         KillerSudokuTechniqueSolver.gradeByTechniques(
-            candidate(groups, givens, solution, pack),
+            candidatePuzzle,
             maxRank = maxRank,
             checkUnique = false,
         )
@@ -592,13 +414,6 @@ object KillerSudokuGenerator {
         Pack.EXPERT -> KillerSudokuTechniques.MAX_RANK
     }
 
-    private fun minimumRank(pack: Pack): Int = when (pack) {
-        Pack.EASY -> KillerSudokuTechniques.NAKED_SINGLE.difficultyRank
-        Pack.MEDIUM -> KillerSudokuTechniques.RULE_45.difficultyRank
-        Pack.HARD -> KillerSudokuTechniques.LOCKED_CANDIDATES.difficultyRank
-        Pack.EXPERT -> KillerSudokuTechniques.INNIE_OUTIE.difficultyRank
-    }
-
     private fun noGivens(): List<Int?> = List(KILLER_SUDOKU_CELL_COUNT) { null }
 
     private fun newId(pack: Pack, rng: SplitMix64): String {
@@ -651,12 +466,4 @@ object KillerSudokuGenerator {
             values[other] = value
         }
     }
-
-    private data class ExpertPlant(
-        val groups: List<MutableList<Int>>,
-        val emptyCells: Set<Int>,
-        val protectedCells: Set<Int>,
-    )
-
-    private val EVEN_COLUMNS = intArrayOf(0, 2, 4, 6, 8)
 }

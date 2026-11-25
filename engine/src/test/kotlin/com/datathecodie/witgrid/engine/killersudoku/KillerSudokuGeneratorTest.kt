@@ -26,25 +26,46 @@ class KillerSudokuGeneratorTest {
                 KillerSudokuGenerator.generate(SplitMix64(20L + index), pack)
             }
             assertEquals(SAMPLE_SIZE, puzzles.map { cageLayout(it) }.toSet().size, "$pack cage layouts must differ")
-            puzzles.forEach { puzzle ->
-                assertEquals(pack, puzzle.pack)
-                assertTrue(KillerSudokuRules.isValidSolution(puzzle))
-                assertEquals(1, KillerSudokuRules.countSolutions(puzzle, limit = 2), puzzle.id)
-                if (pack == Pack.EASY) {
-                    assertTrue(puzzle.givens.all { it == null }, "Easy uses cages instead of givens")
-                }
-                puzzle.cages.forEach { cage ->
-                    assertTrue(cage.cells.size in 1..5, "Cage size ${cage.cells.size} in ${puzzle.id}")
-                    assertTrue(isOrthogonallyConnected(cage.cells.map { it.index }), puzzle.id)
-                    val digits = cage.cells.map { puzzle.solution[it.index] }
-                    assertEquals(digits.toSet().size, digits.size, "Repeated cage digit in ${puzzle.id}")
-                    assertEquals(digits.sum(), cage.sum, puzzle.id)
-                }
-                val grade = KillerSudokuTechniqueSolver.grade(puzzle)
-                assertTrue(KillerSudokuPackBands.isGradeInPackBand(pack, grade), "$pack grade $grade")
-                assertEquals(KillerSudokuGradeCodec.encode(grade), puzzle.storedGrade)
-            }
+            puzzles.forEach { puzzle -> assertGeneratedPuzzle(pack, puzzle) }
         }
+    }
+
+    @Test
+    fun seedOneProducesTenDeterministicInBandPuzzlesPerPack() {
+        Pack.values().forEach { pack ->
+            val firstRng = SplitMix64(1)
+            val secondRng = SplitMix64(1)
+            val firstRun = List(TEN_PUZZLES) { KillerSudokuGenerator.generate(firstRng, pack) }
+            val secondRun = List(TEN_PUZZLES) { KillerSudokuGenerator.generate(secondRng, pack) }
+            assertEquals(firstRun, secondRun, "$pack seed 1 sequence must be deterministic")
+            assertEquals(TEN_PUZZLES, firstRun.map { it.id }.toSet().size, "$pack IDs must differ")
+            assertEquals(TEN_PUZZLES, firstRun.map { cageLayout(it) }.toSet().size, "$pack cage layouts must differ")
+            firstRun.forEach { puzzle -> assertGeneratedPuzzle(pack, puzzle) }
+        }
+    }
+
+    private fun assertGeneratedPuzzle(pack: Pack, puzzle: KillerSudokuPuzzle) {
+        assertEquals(pack, puzzle.pack)
+        assertTrue(ID_PATTERN.matches(puzzle.id), "Unexpected puzzle ID format: ${puzzle.id}")
+        assertTrue(KillerSudokuRules.isValidSolution(puzzle))
+        assertEquals(1, KillerSudokuRules.countSolutions(puzzle, limit = 2), puzzle.id)
+        val givenCount = puzzle.givens.count { it != null }
+        if (pack == Pack.EASY) {
+            assertTrue(puzzle.givens.all { it == null }, "Easy uses cages instead of givens")
+        } else {
+            assertTrue(givenCount <= MAX_NON_EASY_GIVENS, "$pack ${puzzle.id} has too many givens: $givenCount")
+        }
+        puzzle.cages.forEach { cage ->
+            assertTrue(cage.cells.size in 1..5, "Cage size ${cage.cells.size} in ${puzzle.id}")
+            assertTrue(isOrthogonallyConnected(cage.cells.map { it.index }), puzzle.id)
+            val digits = cage.cells.map { puzzle.solution[it.index] }
+            assertEquals(digits.toSet().size, digits.size, "Repeated cage digit in ${puzzle.id}")
+            assertEquals(digits.sum(), cage.sum, puzzle.id)
+        }
+        val grade = KillerSudokuTechniqueSolver.grade(puzzle)
+        assertTrue(KillerSudokuPackBands.isGradeInPackBand(pack, grade), "$pack grade $grade")
+        assertEquals(KillerSudokuGradeCodec.encode(grade), puzzle.storedGrade)
+        assertEquals(puzzle, KillerSudokuCodec.decode(KillerSudokuCodec.encode(puzzle)))
     }
 
     private fun cageLayout(puzzle: KillerSudokuPuzzle): List<List<Int>> =
@@ -74,5 +95,8 @@ class KillerSudokuGeneratorTest {
 
     private companion object {
         const val SAMPLE_SIZE = 5
+        const val TEN_PUZZLES = 10
+        const val MAX_NON_EASY_GIVENS = 20
+        val ID_PATTERN = Regex("^KS-[A-Z]+-[0-9a-f]{16}$")
     }
 }
