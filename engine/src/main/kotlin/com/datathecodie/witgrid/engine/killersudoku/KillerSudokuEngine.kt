@@ -38,7 +38,7 @@ object KillerSudokuEngine : GameEngine<KillerSudokuPuzzle, KillerSudokuState> {
         KillerSudokuTechniqueSolver.grade(puzzle)
 
     override fun generate(rng: SplitMix64, pack: Pack): KillerSudokuPuzzle =
-        throw NotImplementedError("killersudoku")
+        KillerSudokuGenerator.generate(rng, pack)
 
     override fun encodeState(state: KillerSudokuState): ByteArray =
         KillerSudokuStateCodec.encode(state)
