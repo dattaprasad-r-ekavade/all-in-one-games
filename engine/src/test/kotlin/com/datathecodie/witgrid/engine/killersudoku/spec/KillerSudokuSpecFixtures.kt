@@ -73,6 +73,92 @@ object KillerSudokuSpecFixtures {
         storedGrade = "hand",
     )
 
+    /**
+     * Unique Easy board whose first hint is a cage-combination placement.
+     *
+     * Hand check:
+     * - [solution] is a valid Sudoku (each row, column and box holds 1-9 once).
+     * - Cell 0 is given 5, which matches [solution].
+     * - Cage `{0,1}` uses digits 5 and 3, which are distinct and sum to 8.
+     * - Every other cell `i` is a 1-cell cage of sum `solution[i]`.
+     * - The cages partition 0..80: `{0,1}` plus singletons 2..80.
+     * Cell 1 is not a Sudoku single: only one given exists, so row 1, column 2
+     * and box 1 still have many empty cells. The cage leftover 8-5=3 forces it.
+     */
+    fun cageCombinationPuzzle(): KillerSudokuPuzzle = KillerSudokuPuzzle(
+        id = "KS-SPEC-CAGE-COMBO",
+        givens = List(81) { index -> if (index == 0) 5 else null },
+        cages = groupsAndSingletons(listOf(listOf(0, 1))),
+        solution = solution,
+        pack = Pack.EASY,
+        storedGrade = "hand",
+    )
+
+    /**
+     * Unique Medium board whose 45-rule innie in row 1 is r1c1 = 5.
+     *
+     * Hand check of the 45 step:
+     * - Row 1 is empty. Two cages sit wholly in it: `{1,2,3,4}` = 3+4+6+7 = 20
+     *   and `{5,6,7,8}` = 8+9+1+2 = 20. The leftover innie is cell 0.
+     * - 45 - 20 - 20 = 5, and [solution][0] is 5.
+     * - Cell 0 shares a cage with cell 9 (5+6=11), so the innie is not a 1-cell cage.
+     * Rows 3 to 9 are given, so each column of the innie still has two empty
+     * cells and is not a Sudoku single.
+     *
+     * Hand check of the empty-region cages (cells 0-17). Each group is a
+     * horizontal piece of one row, so digits are distinct; sums are from [solution]:
+     * `{1,2,3,4}`=20, `{5,6,7,8}`=20, `{0,9}`=11, `{10,11}`=9, `{12,13}`=10,
+     * `{14,15}`=8, `{16,17}`=12. That is 18 cells, 0 through 17.
+     * Cells 18-80 are given 1-cell cages. Together they partition 0..80.
+     * Givens match [solution].
+     */
+    fun rule45Puzzle(): KillerSudokuPuzzle = KillerSudokuPuzzle(
+        id = "KS-SPEC-RULE-45",
+        givens = List(81) { index -> if (index >= 18) solution[index] else null },
+        cages = groupsAndSingletons(RULE_45_EMPTY_GROUPS),
+        solution = solution,
+        pack = Pack.MEDIUM,
+        storedGrade = "hand",
+    )
+
+    /**
+     * Unique board that needs a guess: a published 17-clue Sudoku (Norvig)
+     * with cages that add no extra constraint.
+     *
+     * Hand check of the solution grid:
+     * - Each row, column and box of [STUCK_SOLUTION_TEXT] holds 1-9 once
+     *   (verified by sorting each house).
+     * - Each of the 17 givens equals the solution at that cell:
+     *   0=4, 6=8, 8=5, 10=3, 21=7, 28=2, 34=6, 40=8, 42=4, 49=1,
+     *   57=6, 59=3, 61=7, 63=5, 66=2, 72=1, 74=4.
+     *
+     * Hand check of the cages:
+     * - Each given cell is a 1-cell cage of that given.
+     * - Empty cells inside each 3x3 box form one cage. Digits in a box are
+     *   distinct, and the cage sum is the sum of those solution digits.
+     * - Empty counts per box are 7,8,7, 8,7,7, 6,6,8, so no empty 1-cell cage.
+     * - Givens plus the nine box cages partition 0..80.
+     * A box cage of the empty cells is the same constraint as the box rule
+     * plus the givens, so uniqueness is the Sudoku uniqueness of this 17-clue.
+     */
+    fun uniqueStuckPuzzle(): KillerSudokuPuzzle {
+        val values = stuckSolution
+        val givens = STUCK_GIVENS_TEXT.map { symbol ->
+            if (symbol == '.') null else symbol.digitToInt()
+        }
+        val groups = (0 until 9).map { box ->
+            boxCells(box).filter { index -> givens[index] == null }
+        }
+        return KillerSudokuPuzzle(
+            id = "KS-SPEC-STUCK",
+            givens = givens,
+            cages = groupsAndSingletons(groups, values),
+            solution = values,
+            pack = Pack.EXPERT,
+            storedGrade = "hand",
+        )
+    }
+
     /** Returns whether each row, column and 3x3 box holds digits 1 through 9 once. */
     fun isSudokuGrid(values: List<Int>): Boolean {
         val digits = (1..9).toList()
@@ -86,6 +172,70 @@ object KillerSudokuSpecFixtures {
             }
         }
         return (rows + columns + boxes).all { house -> house.sorted() == digits }
+    }
+
+    /** Norvig 17-clue given mask. Dots are empty. */
+    const val STUCK_GIVENS_TEXT =
+        "4.....8.5" +
+            ".3......." +
+            "...7....." +
+            ".2.....6." +
+            "....8.4.." +
+            "....1...." +
+            "...6.3.7." +
+            "5..2....." +
+            "1.4......"
+
+    /** Published unique completion of [STUCK_GIVENS_TEXT]. */
+    const val STUCK_SOLUTION_TEXT =
+        "417369825" +
+            "632158947" +
+            "958724316" +
+            "825437169" +
+            "791586432" +
+            "346912758" +
+            "289643571" +
+            "573291684" +
+            "164875293"
+
+    /** Row-major digits of [STUCK_SOLUTION_TEXT]. */
+    val stuckSolution: List<Int> = STUCK_SOLUTION_TEXT.map { it.digitToInt() }
+
+    private val RULE_45_EMPTY_GROUPS: List<List<Int>> = listOf(
+        listOf(1, 2, 3, 4),
+        listOf(5, 6, 7, 8),
+        listOf(0, 9),
+        listOf(10, 11),
+        listOf(12, 13),
+        listOf(14, 15),
+        listOf(16, 17),
+    )
+
+    /**
+     * Builds [groups] as cages, then a 1-cell cage for every uncovered cell.
+     * Each cage sum is the sum of [values] in that cage.
+     */
+    private fun groupsAndSingletons(
+        groups: List<List<Int>>,
+        values: List<Int> = solution,
+    ): List<KillerCage> {
+        val covered = groups.flatten()
+        require(covered.size == covered.toSet().size) { "Cage groups overlap" }
+        val grouped = groups.map { indices ->
+            KillerCage(indices.map(::Cell), indices.sumOf { values[it] })
+        }
+        val singletons = values.indices
+            .filter { index -> index !in covered }
+            .map { index -> KillerCage(listOf(Cell(index)), values[index]) }
+        return grouped + singletons
+    }
+
+    private fun boxCells(box: Int): List<Int> {
+        val boxRow = box / 3
+        val boxColumn = box % 3
+        return (0 until 9).map { offset ->
+            (boxRow * 3 + offset / 3) * 9 + (boxColumn * 3 + offset % 3)
+        }
     }
 
     private fun cage(sum: Int, cells: IntRange): KillerCage = KillerCage(cells.map(::Cell), sum)
