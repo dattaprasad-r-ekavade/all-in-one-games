@@ -31,12 +31,17 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
+import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersPackBands
+import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersPuzzle
+import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersRules
+import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameModule
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
+import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersBoard
 import com.datathecodie.witgrid.ui.board.BoardViewportMode
 import com.datathecodie.witgrid.ui.board.LocalBoardViewportMode
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
@@ -145,6 +150,84 @@ class PlayLayoutMatrixTest {
         }
         composeRule.runOnIdle { assertEquals(1, restarts) }
     }
+
+    @Test
+    fun everyGameFitsLandscapeAtShortScreenWithLargeFont() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val bank = AssetBankSource(context.assets)
+        val directory = File(context.cacheDir, "u10-landscape").apply { mkdirs() }
+        var sample by mutableStateOf(Sample("crowns", width = 840, height = 360, fontScale = 1.3f))
+        composeRule.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(1f, sample.fontScale)) {
+                WitgridTheme(darkTheme = sample.dark) {
+                    Box(Modifier.requiredSize(sample.width.dp, sample.height.dp).testTag("play-sample")) {
+                        SamplePlay(sample, bank)
+                    }
+                }
+            }
+        }
+        val clippedLabels = mutableListOf<String>()
+        val toolLabels = listOf(
+            R.string.button_undo, R.string.button_redo, R.string.button_restart,
+            R.string.button_hint, R.string.button_check, R.string.minisudoku_mode_notes, R.string.play_erase,
+        ).map(context::getString)
+
+        val gamesToTest = GameRegistry.games.map { it.id } + listOf("skyscrapers")
+        gamesToTest.forEach { gameId ->
+            listOf(false, true).forEach { dark ->
+                composeRule.runOnIdle { sample = Sample(gameId, width = 840, height = 360, dark = dark, fontScale = 1.3f) }
+                composeRule.waitForIdle()
+
+                val bitmap = composeRule.onNodeWithTag("play-sample").captureToImage().asAndroidBitmap()
+                assertEquals(840, bitmap.width)
+                assertEquals(360, bitmap.height)
+                val name = "$gameId-840x360-${if (dark) "dark" else "light"}-1.3.png"
+                File(directory, name).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                bitmap.recycle()
+
+                val root = composeRule.onNodeWithTag("play-sample").fetchSemanticsNode().boundsInRoot
+                val board = composeRule.onNodeWithTag("play-board").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+                val tools = composeRule.onNodeWithTag("play-toolbar").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+
+                assertTrue("Board must be within horizontal bounds", board.left >= root.left && board.right <= root.right)
+                assertTrue("Board must fit within vertical bounds", board.top >= root.top && board.bottom <= root.bottom)
+                assertTrue("Tools must be beside the board to the right", tools.left >= board.right)
+                assertEquals("Board slot is square", board.width, board.height, 1f)
+                assertTrue("Board has usable height (at least 200 dp)", board.height >= 200f)
+
+                composeRule.onNodeWithText(context.getString(R.string.button_check)).assertIsDisplayed()
+                composeRule.onNodeWithText(context.getString(R.string.button_hint)).assertIsDisplayed()
+
+                if (gameId == "minisudoku") {
+                    val digits = composeRule.onNodeWithTag("play-digit-pad").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+                    assertTrue("Digit pad must be beside the board to the right", digits.left >= board.right)
+                    composeRule.onNodeWithText(context.getString(R.string.play_erase)).assertIsDisplayed()
+                }
+
+                if (gameId == "skyscrapers") {
+                    composeRule.onNodeWithText(context.getString(R.string.minisudoku_clear_cell)).assertIsDisplayed()
+                    composeRule.onNodeWithText(context.getString(R.string.minisudoku_mode_notes)).assertIsDisplayed()
+                    composeRule.onNodeWithText(context.getString(R.string.minisudoku_mode_digits)).assertIsDisplayed()
+                }
+
+                composeRule.onAllNodes(hasText("", substring = true), useUnmergedTree = true).fetchSemanticsNodes().forEach { node ->
+                    val results = mutableListOf<TextLayoutResult>()
+                    if (node.config.contains(SemanticsActions.GetTextLayoutResult)) node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
+                    results.forEach { result ->
+                        val fits = (0 until result.lineCount).all { line ->
+                            result.getLineRight(line) - result.getLineLeft(line) <= result.size.width + 1f &&
+                                result.getLineBottom(line) <= result.size.height + 1f &&
+                                !result.isLineEllipsized(line)
+                        }
+                        if (!fits || (result.layoutInput.text.text in toolLabels && result.lineCount != 1)) {
+                            clippedLabels.add("$sample: ${result.layoutInput.text}; size=${result.size}")
+                        }
+                    }
+                }
+            }
+        }
+        assertTrue("Clipped labels in landscape: $clippedLabels", clippedLabels.isEmpty())
+    }
 }
 
 private data class Sample(val gameId: String = "crowns", val width: Int = 360, val height: Int = 780,
@@ -152,22 +235,60 @@ private data class Sample(val gameId: String = "crowns", val width: Int = 360, v
 
 @Composable
 private fun SamplePlay(sample: Sample, bank: AssetBankSource) {
-    @Suppress("UNCHECKED_CAST")
-    val module = requireNotNull(GameRegistry.find(sample.gameId)) as GameModule<Any, Any>
-    val ref = LevelRef.forLevel(613, module.levelRefs(Pack.EXPERT, bank))
-    val state = module.newState(module.loadLevel(ref, bank))
+    val (ref, state, boardContent) = if (sample.gameId == "skyscrapers") {
+        val puzzle = skyscrapersSampleFixture(4)
+        val levelRef = LevelRef("skyscrapers", "SK-SAMPLE", Pack.EASY, levelNumber = 1)
+        val skyscrapersState = SkyscrapersState.initial(puzzle)
+        Triple(
+            levelRef,
+            skyscrapersState,
+            @Composable { layout: (@Composable (@Composable () -> Unit, @Composable () -> Unit, (@Composable () -> Unit)?) -> Unit) ->
+                SkyscrapersBoard(skyscrapersState, {}, {}, layout = { board, controls -> layout(board, controls, null) })
+            },
+        )
+    } else {
+        @Suppress("UNCHECKED_CAST")
+        val module = requireNotNull(GameRegistry.find(sample.gameId)) as GameModule<Any, Any>
+        val levelRef = LevelRef.forLevel(613, module.levelRefs(Pack.EXPERT, bank))
+        val gameState = module.newState(module.loadLevel(levelRef, bank))
+        Triple(
+            levelRef,
+            gameState,
+            @Composable { layout: (@Composable (@Composable () -> Unit, @Composable () -> Unit, (@Composable () -> Unit)?) -> Unit) ->
+                when (gameState) {
+                    is MiniSudokuState -> MiniSudokuBoard(gameState, {}, {}, playLayout = { board, actions ->
+                        layout(board, { PlaySudokuDigits(gameState, actions) }, { PlaySudokuTools(actions) })
+                    })
+                    is NonogramState -> NonogramBoard(gameState, {}, {}, layout = { board, controls -> layout(board, controls, null) })
+                    is SkyscrapersState -> SkyscrapersBoard(gameState, {}, {}, layout = { board, controls -> layout(board, controls, null) })
+                    else -> layout({ module.Board(gameState, {}, {}) }, {}, null)
+                }
+            },
+        )
+    }
     val layout: @Composable (@Composable () -> Unit, @Composable () -> Unit, (@Composable () -> Unit)?) -> Unit = { board, controls, tools ->
         PlayScreenLayout(ref, 123_000, true, false, false, null, playPuzzleStatus(state), false,
             board = board, gameControls = controls, onUndo = {}, onRedo = {}, onRequestHint = {},
             onCheck = {}, onBack = {}, hintCredits = "3", modeTools = tools)
     }
     CompositionLocalProvider(LocalBoardViewportMode provides BoardViewportMode(embedded = true)) {
-        when (state) {
-            is MiniSudokuState -> MiniSudokuBoard(state, {}, {}, playLayout = { board, actions ->
-                layout(board, { PlaySudokuDigits(state, actions) }, { PlaySudokuTools(actions) })
-            })
-            is NonogramState -> NonogramBoard(state, {}, {}, layout = { board, controls -> layout(board, controls, null) })
-            else -> layout({ module.Board(state, {}, {}) }, {}, null)
-        }
+        boardContent(layout)
     }
+}
+
+private fun skyscrapersSampleFixture(size: Int = 4): SkyscrapersPuzzle {
+    val solution = List(size * size) { index -> (index / size + index % size) % size + 1 }
+    val rows = solution.chunked(size)
+    val columns = List(size) { column -> rows.map { it[column] } }
+    return SkyscrapersPuzzle(
+        id = "SK-LAYOUT-$size",
+        size = size,
+        topClues = columns.map(SkyscrapersRules::countVisible),
+        bottomClues = columns.map { SkyscrapersRules.countVisible(it.asReversed()) },
+        leftClues = rows.map(SkyscrapersRules::countVisible),
+        rightClues = rows.map { SkyscrapersRules.countVisible(it.asReversed()) },
+        solution = solution,
+        pack = SkyscrapersPackBands.packForSize(size),
+        storedGrade = "none:0",
+    )
 }

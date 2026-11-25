@@ -9,6 +9,7 @@ import com.datathecodie.witgrid.engine.core.Mark
 import com.datathecodie.witgrid.engine.crowns.CrownsState
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
+import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 
 @Composable
 internal fun playPuzzleStatus(state: Any): String? = when (state) {
@@ -16,5 +17,6 @@ internal fun playPuzzleStatus(state: Any): String? = when (state) {
     is BinaryState -> stringResource(R.string.play_cells_count, state.symbols.count { it != BinarySymbol.EMPTY }, state.symbols.size)
     is MiniSudokuState -> stringResource(R.string.play_cells_count, state.digits.count { it != null }, state.digits.size)
     is NonogramState -> stringResource(R.string.play_marked_count, state.marks.count { it != Mark.EMPTY }, state.marks.size)
+    is SkyscrapersState -> stringResource(R.string.play_cells_count, state.digits.count { it != null }, state.digits.size)
     else -> null
 }
