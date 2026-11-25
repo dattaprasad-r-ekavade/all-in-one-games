@@ -8,6 +8,7 @@ import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuEngine
 import com.datathecodie.witgrid.engine.nonogram.NonogramEngine
 import com.datathecodie.witgrid.engine.path.PathEngine
 import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersEngine
+import com.datathecodie.witgrid.engine.sudoku.SudokuEngine
 
 /** Launch engines in product order; concrete objects retain each lane's puzzle/state types. */
 object Registry {
@@ -23,5 +24,6 @@ object Registry {
         FutoshikiEngine,
         SkyscrapersEngine,
         PathEngine,
+        SudokuEngine,
     )
 }
