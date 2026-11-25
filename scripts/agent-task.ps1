@@ -62,12 +62,52 @@ Run every 'Done when' command. Continue until all pass, or until you are blocked
 Always add --no-daemon to Gradle commands (a daemon started in the sandbox breaks later builds outside it).
 "@
 }
+# Lane prefix -> engine id and package (KS has no engine yet; its id is fixed here so its cards agree).
+$laneGames = @{
+    SU = 'sudoku'; KS = 'killersudoku'; FU = 'futoshiki'; SK = 'skyscrapers'; MO = 'mosaic'
+    PA = 'path'; CS = 'coloursort'; AR = 'arrows'; KL = 'klondike'; CT = 'tactics'
+}
+$lanePrefix = if ($Task.Length -ge 3) { $Task.Substring(0, 2) } else { '' }
+$gameId = $laneGames[$lanePrefix]
+$cardRules = ''
+
+if ($gameId -and $Task -match '^[A-Z]{2}B$' -and $Agent -eq 'claude') {
+    # Claude print mode has no Bash, so it cannot run bankgen.
+    throw "$Task is a bank card and needs bankgen. Use -Agent codex or -Agent gemini."
+}
+if ($gameId -and $Task -match '^[A-Z]{2}B$') {
+    # Every bank card needs bankgen and the Registry; without this, agents stop and ask (SUB, 25 Nov 2026).
+    $cardRules = @"
+LEAD AUTHORIZATION FOR BANK CARDS (this overrides the 'no bankgen' rule above for this card only):
+1. You MAY run bank generation and validation:
+   .\gradlew.bat :bankgen:run --args="generate --game $gameId --pack <easy|medium|hard|expert> --count <n> --seed <s>" --no-daemon -q
+   .\gradlew.bat :bankgen:run --args="generate --game $gameId --daily --seed <s>" --no-daemon -q
+   .\gradlew.bat :bankgen:run --args="validate --all" --no-daemon -q
+   Take the counts from the card and plan. Pick an unused seed block (see docs/reports/bank-*.md) and record every seed in the report.
+   If validate reports a duplicate across files (small boards), try the next daily seed and record the failed seeds.
+2. You MAY edit engine/src/main/kotlin/com/datathecodie/witgrid/engine/Registry.kt and engine/src/test/kotlin/com/datathecodie/witgrid/engine/RegistryTest.kt.
+   bankgen finds games only through Registry.engines. Add this game's engine at the end of the list and update the id list and count in RegistryTest.
+3. Write docs/reports/bank-$gameId.md like docs/reports/bank-skyscrapers.md: seeds, counts, sizes, compressed bytes, grade histogram per pack,
+   and a spread line (distinct solution or clue patterns), so the lead can see whether the generator repeats itself.
+"@
+} elseif ($gameId -and $Task -match '^[A-Z]{2}4$') {
+    # x4 cards have no card of their own; agents could not find them (CT4, 25 Nov 2026).
+    $cardRules = @"
+CARD LOCATION: $Task is an 'x4' card. It has no section of its own. Read the hub lane table in docs/TASKS.md (the row that starts '| x4 |')
+and the lines under it. x4 = independent tests from the plan rules, with hand-made fixtures.
+Owns only engine/src/test/kotlin/com/datathecodie/witgrid/engine/$gameId/spec/**. Write the tests from the plan section for this game, not from the code;
+read the main code only for public function names and fixture formats.
+Done when: the tests compile and run. A failure that shows a real engine bug stays failing and goes in the handoff; do not change engine code.
+"@
+}
+
 $prompt = @"
 You are a build agent on the Witgrid project.
 Do task $Task from docs/TASKS.md, and only that task.
 Read AGENTS.md first and obey it. Then read the plan sections that the task card names.
 Change only the files in the card's Owns line.
 $gateRules
+$cardRules
 Commit on the current branch with the message '${Task}: <summary>'.
 End with the handoff note from AGENTS.md section 7.
 $Extra
