@@ -157,7 +157,7 @@ if ($Agent -eq 'codex') {
     # Grok writes notices to stderr; with 'Stop' PowerShell 5.1 would treat them as a fatal error.
     $ErrorActionPreference = 'Continue'
     grok --prompt-file $promptFile --cwd $wt -m $model --permission-mode acceptEdits --allow Edit --allow Write `
-        --disallowed-tools run_terminal_command --disable-web-search `
+        --disallowed-tools run_terminal_command,monitor,workflow,spawn_subagent,use_tool,scheduler_create --disable-web-search `
         --no-memory --max-turns 200 2>&1 |
         Tee-Object -Variable agentOutput
     $ErrorActionPreference = 'Stop'
