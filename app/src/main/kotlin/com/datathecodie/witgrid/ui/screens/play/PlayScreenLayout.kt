@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,6 +43,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datathecodie.witgrid.R
@@ -80,96 +82,102 @@ internal fun PlayScreenLayout(
     var rulesVisible by remember(levelRef) { mutableStateOf(false) }
     var restartVisible by remember(levelRef) { mutableStateOf(false) }
     val colors = WitgridTheme.colors
-    Scaffold(
-        containerColor = colors.paper,
-        contentColor = colors.ink,
-        topBar = {
-            PlayHeader(levelRef, elapsedTimeMillis, timerVisible, enlargedBoardMode,
-                onBack, { timerVisible = !timerVisible }, onToggleEnlargedBoard, { rulesVisible = true })
-        },
-        bottomBar = {
-            Column {
-                HorizontalDivider(color = colors.cardEdge)
-                val toolbarTypography = MaterialTheme.typography.copy(
-                    labelMedium = MaterialTheme.typography.labelMedium.copy(
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                    ),
-                    labelSmall = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 12.sp),
-                )
-                MaterialTheme(typography = toolbarTypography) {
-                    if (LocalDensity.current.fontScale > 1.1f) {
-                        Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp).testTag("play-toolbar")) {
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                ToolBarItem(playIcon(PlayIcon.UNDO), stringResource(R.string.button_undo), onUndo,
-                                    Modifier.weight(1f), enabled = canUndo)
-                                ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
-                                    Modifier.weight(1f), enabled = canRedo)
-                                if (modeTools == null) {
-                                    ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
-                                        { restartVisible = true }, Modifier.weight(1f))
-                                } else {
-                                    Row(Modifier.weight(2f)) { modeTools() }
-                                }
-                            }
-                            Row(Modifier.fillMaxWidth()) {
-                                LargeTextAction(playIcon(PlayIcon.HINT), R.string.button_hint,
-                                    onRequestHint, !hintOperationPending, hintCredits)
-                                LargeTextAction(playIcon(PlayIcon.CHECK), R.string.button_check, onCheck, !hintOperationPending)
-                            }
-                        }
-                    } else {
-                        Row(
-                            Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp).testTag("play-toolbar"),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                        ) {
-                            ToolBarItem(playIcon(PlayIcon.UNDO), stringResource(R.string.button_undo), onUndo,
-                                Modifier.weight(1f), enabled = canUndo)
-                            ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
-                                Modifier.weight(1f), enabled = canRedo)
-                            if (modeTools == null) {
-                                ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
-                                    { restartVisible = true }, Modifier.weight(1f))
-                            } else {
-                                // Game mode items share the same equal-width columns as the common actions.
-                                Row(Modifier.weight(2f)) { modeTools() }
-                            }
-                            ToolBarItem(playIcon(PlayIcon.HINT), stringResource(R.string.button_hint), onRequestHint,
-                                Modifier.weight(1.1f), badge = hintCredits, enabled = !hintOperationPending)
-                            ToolBarItem(playIcon(PlayIcon.CHECK), stringResource(R.string.button_check), onCheck,
-                                Modifier.weight(1f), enabled = !hintOperationPending)
-                        }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val landscape = isLandscapeLayout(maxWidth, maxHeight)
+        Scaffold(
+            containerColor = colors.paper,
+            contentColor = colors.ink,
+            topBar = {
+                PlayHeader(levelRef, elapsedTimeMillis, timerVisible, enlargedBoardMode,
+                    onBack, { timerVisible = !timerVisible }, onToggleEnlargedBoard, { rulesVisible = true })
+            },
+            bottomBar = {
+                if (!landscape) {
+                    Column {
+                        HorizontalDivider(color = colors.cardEdge)
+                        PlayToolbar(
+                            canUndo = canUndo,
+                            canRedo = canRedo,
+                            onUndo = onUndo,
+                            onRedo = onRedo,
+                            onRestart = { restartVisible = true },
+                            onRequestHint = onRequestHint,
+                            onCheck = onCheck,
+                            hintCredits = hintCredits,
+                            hintOperationPending = hintOperationPending,
+                            modeTools = modeTools,
+                        )
                     }
                 }
-            }
-        },
-    ) { padding ->
-        BoxWithConstraints(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-            val landscape = maxWidth > maxHeight && maxWidth >= 600.dp
-            if (landscape) {
-                Row(Modifier.fillMaxSize().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    PlayBoard(board, Modifier.weight(1f).fillMaxHeight())
-                    Column(Modifier.weight(0.65f).padding(start = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        PlayMessages(introCoachLine, statusMessage, saveFailed, enlargedBoardMode)
-                        gameControls()
-                    }
-                }
-            } else {
-                Column(
-                    Modifier.fillMaxSize().widthIn(max = 840.dp).padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    introCoachLine?.let {
-                        Text(it, Modifier.fillMaxWidth().padding(vertical = 8.dp), style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Column(
-                        Modifier.weight(1f).fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
+            },
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                if (landscape) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        PlayBoard(board, Modifier.weight(1f, fill = false).fillMaxWidth())
-                        PlayMessages(null, statusMessage, saveFailed, enlargedBoardMode)
-                        Box(Modifier.fillMaxWidth().padding(bottom = 12.dp)) { gameControls() }
+                        PlayBoard(
+                            board = board,
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .aspectRatio(1f),
+                            verticalPadding = 4.dp,
+                        )
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .padding(start = 16.dp)
+                                .verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            introCoachLine?.let {
+                                Text(
+                                    it,
+                                    Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                            PlayMessages(null, statusMessage, saveFailed, enlargedBoardMode)
+                            Box(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                gameControls()
+                            }
+                            HorizontalDivider(color = colors.cardEdge, modifier = Modifier.padding(vertical = 4.dp))
+                            PlayToolbar(
+                                canUndo = canUndo,
+                                canRedo = canRedo,
+                                onUndo = onUndo,
+                                onRedo = onRedo,
+                                onRestart = { restartVisible = true },
+                                onRequestHint = onRequestHint,
+                                onCheck = onCheck,
+                                hintCredits = hintCredits,
+                                hintOperationPending = hintOperationPending,
+                                modeTools = modeTools,
+                            )
+                        }
+                    }
+                } else {
+                    Column(
+                        Modifier.fillMaxSize().widthIn(max = 840.dp).padding(horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        introCoachLine?.let {
+                            Text(it, Modifier.fillMaxWidth().padding(vertical = 8.dp), style = MaterialTheme.typography.bodyMedium)
+                        }
+                        Column(
+                            Modifier.weight(1f).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            PlayBoard(board, Modifier.weight(1f, fill = false).fillMaxWidth(), verticalPadding = 16.dp)
+                            PlayMessages(null, statusMessage, saveFailed, enlargedBoardMode)
+                            Box(Modifier.fillMaxWidth().padding(bottom = 12.dp)) { gameControls() }
+                        }
                     }
                 }
             }
@@ -234,8 +242,74 @@ private fun RowScope.LargeTextAction(
 }
 
 @Composable
-private fun PlayBoard(board: @Composable () -> Unit, modifier: Modifier) {
-    BoxWithConstraints(modifier.padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
+private fun PlayToolbar(
+    canUndo: Boolean,
+    canRedo: Boolean,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    onRestart: () -> Unit,
+    onRequestHint: () -> Unit,
+    onCheck: () -> Unit,
+    hintCredits: String?,
+    hintOperationPending: Boolean,
+    modeTools: (@Composable () -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    val toolbarTypography = MaterialTheme.typography.copy(
+        labelMedium = MaterialTheme.typography.labelMedium.copy(
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+        ),
+        labelSmall = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 12.sp),
+    )
+    MaterialTheme(typography = toolbarTypography) {
+        if (LocalDensity.current.fontScale > 1.1f) {
+            Column(modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp).testTag("play-toolbar")) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    ToolBarItem(playIcon(PlayIcon.UNDO), stringResource(R.string.button_undo), onUndo,
+                        Modifier.weight(1f), enabled = canUndo)
+                    ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
+                        Modifier.weight(1f), enabled = canRedo)
+                    if (modeTools == null) {
+                        ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
+                            onRestart, Modifier.weight(1f))
+                    } else {
+                        Row(Modifier.weight(2f)) { modeTools() }
+                    }
+                }
+                Row(Modifier.fillMaxWidth()) {
+                    LargeTextAction(playIcon(PlayIcon.HINT), R.string.button_hint,
+                        onRequestHint, !hintOperationPending, hintCredits)
+                    LargeTextAction(playIcon(PlayIcon.CHECK), R.string.button_check, onCheck, !hintOperationPending)
+                }
+            }
+        } else {
+            Row(
+                modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp).testTag("play-toolbar"),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                ToolBarItem(playIcon(PlayIcon.UNDO), stringResource(R.string.button_undo), onUndo,
+                    Modifier.weight(1f), enabled = canUndo)
+                ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
+                    Modifier.weight(1f), enabled = canRedo)
+                if (modeTools == null) {
+                    ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
+                        onRestart, Modifier.weight(1f))
+                } else {
+                    Row(Modifier.weight(2f)) { modeTools() }
+                }
+                ToolBarItem(playIcon(PlayIcon.HINT), stringResource(R.string.button_hint), onRequestHint,
+                    Modifier.weight(1.1f), badge = hintCredits, enabled = !hintOperationPending)
+                ToolBarItem(playIcon(PlayIcon.CHECK), stringResource(R.string.button_check), onCheck,
+                    Modifier.weight(1f), enabled = !hintOperationPending)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlayBoard(board: @Composable () -> Unit, modifier: Modifier, verticalPadding: Dp = 16.dp) {
+    BoxWithConstraints(modifier.padding(vertical = verticalPadding), contentAlignment = Alignment.Center) {
         val side = minOf(maxWidth, maxHeight).coerceAtLeast(1.dp)
         Box(Modifier.size(side).testTag("play-board"), contentAlignment = Alignment.Center) { board() }
     }
@@ -265,7 +339,7 @@ private fun PlayHeader(
             levelRef.levelNumber ?: ((levelRef.bankIndex ?: 0) + 1L))
     }
     BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
-        val compact = maxWidth < 440.dp || LocalDensity.current.fontScale > 1.1f
+        val compact = isPlayHeaderCompact(maxWidth, LocalDensity.current.fontScale)
         Column {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconActionButton(painterResource(R.drawable.ic_back), stringResource(R.string.button_back), onBack)
@@ -304,14 +378,19 @@ private fun TimerChip(elapsed: Long, visible: Boolean, onTimer: () -> Unit) {
         Modifier.semantics { contentDescription = description }, onClick = onTimer)
 }
 
-private fun packNameResource(pack: Pack): Int = when (pack) {
+internal fun isLandscapeLayout(maxWidth: Dp, maxHeight: Dp): Boolean = maxWidth > maxHeight
+
+internal fun isPlayHeaderCompact(maxWidth: Dp, fontScale: Float): Boolean =
+    (maxWidth < 440.dp || fontScale > 1.1f) && maxWidth < 600.dp
+
+internal fun packNameResource(pack: Pack): Int = when (pack) {
     Pack.EASY -> R.string.pack_easy
     Pack.MEDIUM -> R.string.pack_medium
     Pack.HARD -> R.string.pack_hard
     Pack.EXPERT -> R.string.pack_expert
 }
 
-private fun playRulesResource(gameId: String): Int = when (gameId) {
+internal fun playRulesResource(gameId: String): Int = when (gameId) {
     "crowns" -> R.string.play_rules_crowns
     "binary" -> R.string.play_rules_binary
     "nonogram" -> R.string.play_rules_nonogram

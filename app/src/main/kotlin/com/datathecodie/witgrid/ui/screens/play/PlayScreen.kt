@@ -33,11 +33,13 @@ import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
+import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 import com.datathecodie.witgrid.games.BankSource
 import com.datathecodie.witgrid.games.GameModule
 import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
+import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersBoard
 import com.datathecodie.witgrid.play.Allowance
 import com.datathecodie.witgrid.play.CheckUi
 import com.datathecodie.witgrid.play.HintController
@@ -368,6 +370,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                     layout(board, { PlaySudokuDigits(state, actions) }, { PlaySudokuTools(actions) })
                 })
                 is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = { board, controls -> layout(board, controls, null) })
+                is SkyscrapersState -> SkyscrapersBoard(state, onMoves, onUndo, layout = { board, controls -> layout(board, controls, null) })
                 else -> layout({ gameModule.Board(snapshot.state, onMoves, onUndo) }, {}, null)
             }
         }
