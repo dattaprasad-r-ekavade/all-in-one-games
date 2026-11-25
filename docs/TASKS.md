@@ -106,7 +106,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
 | CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 done |
-| CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | active |
+| CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | done |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
 | KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 active (Gemini Hydrogen) |
@@ -823,6 +823,7 @@ Plan: 12.6, 4.
 **Owns:** `app/…/games/tactics/**`.
 **Do:** 8×8 paper-and-ink pieces (letters or simple marks, not photo sprites). Tap from, tap to. Last opponent reply shown.
 **Done when:** `./gradlew :app:testDebugUnitTest` passes. A test mates a mate-in-1 fixture.
+**Lead completion note (25 Nov 2026):** Squash-merged as `1e78ba4`. Tap-from/tap-to, not registered (CTC). CTC should own TalkBack strings and haptics wiring.
 
 ### CTB — Chess tactics bank
 Tier L · Build Codex (`gpt-6-luna`) · Review Claude
