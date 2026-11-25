@@ -288,29 +288,26 @@ class KillerSudokuTechniqueSolverTest {
     }
 
     private fun lockedCageDigitsPuzzle(): KillerSudokuPuzzle {
-        // Leave enough empty columns in rows 0, 3, 6, 7, 8 so 54,55,56 keep 1 as candidate and 58 keeps 1 before row 6 lock.
-        val emptyCells = setOf(
-            0, 1, 2, 4,
-            13, 14,
-            27, 28, 29, 31,
-            37, 38,
-            45, 46,
-            54, 55, 56, 58,
-            63, 64, 65, 67,
-            72, 73, 74, 75, 76, 77,
-        )
+        val emptyCells = (36..80).toSet()
         val givens = solution.mapIndexed { index, digit -> if (index in emptyCells) null else digit }
         val custom = listOf(
-            listOf(54, 55, 56), // 5+2+1=8 -> locks digit 1 in row 6 and box 6
-            listOf(58, 67), // 7+2=9 -> allows {1,8} and {2,7}
-            listOf(76, 77), // 1+8=9
-            listOf(4, 13, 14), // 5+6+8=19
-            listOf(27, 28, 31), // 1+5+3=9
-            listOf(29, 64, 65), // 4+3+8=15
-            listOf(0, 1, 2), // 8+1+2=11
-            listOf(37, 38, 45, 46), // 6+9+2+8=25
-            listOf(63, 72, 73), // 4+7+9=20
-            listOf(74, 75), // 6+3=9
+            listOf(54, 55, 56), // 5+2+1=8 -> locks {1,2,5} in row 6 and box 6
+            listOf(58, 67), // 7+2=9
+            listOf(36, 37),
+            listOf(38, 39, 40),
+            listOf(41, 42),
+            listOf(43, 44, 53, 62),
+            listOf(45, 46, 47, 48),
+            listOf(49, 50),
+            listOf(51, 60),
+            listOf(52, 61, 70, 79),
+            listOf(57, 66),
+            listOf(59, 68, 69),
+            listOf(63, 64, 72),
+            listOf(65, 73, 74),
+            listOf(71, 80),
+            listOf(75, 76),
+            listOf(77, 78),
         )
         return KillerSudokuPuzzle(
             id = "KS-LOCKED-CAGE-DIGITS",
@@ -323,27 +320,26 @@ class KillerSudokuTechniqueSolverTest {
     }
 
     private fun rule45InniePuzzle(): KillerSudokuPuzzle {
-        // Leave rows 0..3 (0..35) empty so every column has 4 empty cells.
-        val emptyCells = (0..35).toSet()
+        val emptyCells = (0..53).toSet()
         val givens = rulesSolution.mapIndexed { index, digit -> if (index in emptyCells) null else digit }
         val custom = listOf(
-            listOf(0, 1), // 5+3=8
-            listOf(2, 3), // 4+6=10
-            listOf(4, 5), // 7+8=15
-            listOf(6, 7), // 9+1=10
-            listOf(8, 17, 26), // 2+8+7=17 -> single innie 8 in row 0 = 45 - (8+10+15+10) = 2
-            listOf(9, 18), // 6+1=7
-            listOf(10, 11), // 7+2=9
-            listOf(12, 13), // 1+9=10
-            listOf(14, 15), // 5+3=8
-            listOf(16, 25), // 4+6=10
-            listOf(19, 28), // 9+5=14
-            listOf(20, 21), // 8+3=11
-            listOf(22, 23), // 4+2=6
-            listOf(24, 33), // 5+4=9
-            listOf(27, 31), // 8+6=14
-            listOf(29, 30, 32), // 9+7+1=17
-            listOf(34, 35), // 2+3=5
+            listOf(0, 1, 2, 3), // 5+3+4+6=18 (wholly in row 0)
+            listOf(4, 5, 6, 7), // 7+8+9+1=25 (wholly in row 0)
+            listOf(8, 17, 26), // 2+8+7=17 -> single innie 8 in row 0 = 45 - (18+25) = 2
+            listOf(9, 10),
+            listOf(11, 12, 13),
+            listOf(14, 23),
+            listOf(15, 16, 24, 25),
+            listOf(18, 19, 27, 36),
+            listOf(20, 21, 22, 31),
+            listOf(28, 29, 30, 37),
+            listOf(32, 33, 42),
+            listOf(34, 35, 43, 44),
+            listOf(38, 47, 48),
+            listOf(39, 40, 49),
+            listOf(41, 50, 51),
+            listOf(45, 46),
+            listOf(52, 53),
         )
         return KillerSudokuPuzzle(
             id = "KS-RULE45-INNIE",
@@ -356,24 +352,26 @@ class KillerSudokuTechniqueSolverTest {
     }
 
     private fun rule45OutiePuzzle(): KillerSudokuPuzzle {
-        val emptyCells = (0..35).toSet()
+        val emptyCells = (0..53).toSet()
         val givens = rulesSolution.mapIndexed { index, digit -> if (index in emptyCells) null else digit }
         val custom = listOf(
             listOf(0, 1, 2), // 5+3+4=12 (wholly in row 0)
             listOf(3, 4, 5), // 6+7+8=21 (wholly in row 0)
             listOf(6, 7, 8, 17), // 9+1+2+8=20 -> single outie 17 of row 0 = (12+21+20) - 45 = 8
-            listOf(9, 18), // 6+1=7
-            listOf(10, 11), // 7+2=9
-            listOf(12, 13), // 1+9=10
-            listOf(14, 15), // 5+3=8
-            listOf(16, 25), // 4+6=10
-            listOf(19, 28), // 9+5=14
-            listOf(20, 21), // 8+3=11
-            listOf(22, 23), // 4+2=6
-            listOf(24, 33), // 5+4=9
-            listOf(26, 35), // 7+3=10
-            listOf(27, 31), // 8+6=14
-            listOf(29, 30, 32, 34), // 9+7+1+2=19
+            listOf(9, 18, 27),
+            listOf(10, 11, 19),
+            listOf(12, 13, 14),
+            listOf(15, 24, 33),
+            listOf(16, 25, 26),
+            listOf(20, 21, 22),
+            listOf(23, 31, 32, 41),
+            listOf(28, 29, 37, 38),
+            listOf(30, 39, 40),
+            listOf(34, 35, 43),
+            listOf(36, 45, 46),
+            listOf(42, 49, 50, 51),
+            listOf(44, 52, 53),
+            listOf(47, 48),
         )
         return KillerSudokuPuzzle(
             id = "KS-RULE45-OUTIE",
@@ -386,20 +384,26 @@ class KillerSudokuTechniqueSolverTest {
     }
 
     private fun multiHouseInnieOutiePuzzle(): KillerSudokuPuzzle {
-        val emptyCells = (0..17).toSet() + setOf(24, 25, 26, 33, 34, 62, 71)
+        val emptyCells = (0..53).toSet()
         val givens = rulesSolution.mapIndexed { index, digit -> if (index in emptyCells) null else digit }
         val custom = listOf(
-            listOf(0, 1, 9), // 5+3+6=14
-            listOf(10, 11), // 7+2=9
-            listOf(2, 12), // 4+1=5
-            listOf(3, 13), // 6+9=15
-            listOf(4, 5, 14), // 7+8+5=20
-            listOf(6, 15), // 9+3=12
-            listOf(7, 16), // 1+4=5
-            listOf(8, 17, 26), // outie 26 of rows 1 and 2 = (14+9+5+15+20+12+5+17) - 90 = 7
-            listOf(24, 33), // 5+4=9
-            listOf(25, 34), // 6+2=8
-            listOf(62, 71), // 4+5=9
+            listOf(0, 9, 10), // 5+6+7=18 (wholly in rows 0..1)
+            listOf(1, 2, 3), // 3+4+6=13
+            listOf(11, 12, 13), // 2+1+9=12
+            listOf(4, 5, 6), // 7+8+9=24
+            listOf(14, 15, 16), // 5+3+4=12
+            listOf(7, 8, 17, 26), // 1+2+8+7=18 -> outie 26 of rows 1 and 2 = (18+13+12+24+12+18) - 90 = 7
+            listOf(18, 27, 28),
+            listOf(19, 20, 21, 22),
+            listOf(23, 24, 32),
+            listOf(25, 34, 35),
+            listOf(29, 30, 31),
+            listOf(33, 42, 43),
+            listOf(36, 37, 38, 39),
+            listOf(40, 41, 50),
+            listOf(44, 51, 52, 53),
+            listOf(45, 46),
+            listOf(47, 48, 49),
         )
         return KillerSudokuPuzzle(
             id = "KS-INNIE-OUTIE-MULTIHOUSE",
@@ -412,23 +416,26 @@ class KillerSudokuTechniqueSolverTest {
     }
 
     private fun virtualCageInnieOutiePuzzle(): KillerSudokuPuzzle {
-        val emptyCells = (45..80).toSet() - 54
+        val emptyCells = (27..80).toSet() - 54
         val givens = solution.mapIndexed { index, digit -> if (index in emptyCells) null else digit }
         val custom = listOf(
             listOf(57, 58, 59), // 9+7+4=20 (wholly in row 6)
             listOf(60, 61, 62), // 3+6+8=17 (wholly in row 6)
             listOf(55, 64, 73), // 2+3+9=14 (innie 55)
-            listOf(56, 65, 74), // 1+8+6=15 (innie 56) -> virtual cage {55,56}=3 -> {1,2}
-            listOf(45, 46, 47), // 2+8+7=17
-            listOf(48, 49, 50), // 1+6+9=16
-            listOf(51, 52, 53), // 5+3+4=12
-            listOf(63, 72), // 4+7=11
-            listOf(66, 75), // 5+3=8
-            listOf(67, 68), // 2+6=8
-            listOf(69, 70), // 9+1=10
-            listOf(71, 80), // 7+2=9
-            listOf(76, 77), // 1+8=9
-            listOf(78, 79), // 4+5=9
+            listOf(56, 65, 74), // 1+8+6=15 (innie 56) -> virtual cage {55,56}=3
+            listOf(27, 36, 37),
+            listOf(28, 29, 38),
+            listOf(30, 39, 40, 48),
+            listOf(31, 32, 33),
+            listOf(34, 35, 44),
+            listOf(41, 42, 49, 50),
+            listOf(43, 51, 52, 53),
+            listOf(45, 46, 47),
+            listOf(63, 72),
+            listOf(66, 75, 76),
+            listOf(67, 68, 69),
+            listOf(70, 71, 80),
+            listOf(77, 78, 79),
         )
         return KillerSudokuPuzzle(
             id = "KS-INNIE-OUTIE-VIRTUAL",
@@ -441,28 +448,41 @@ class KillerSudokuTechniqueSolverTest {
     }
 
     private fun differenceInnieOutiePuzzle(): KillerSudokuPuzzle {
-        val emptyCells = (18..53).toSet()
-        val givens = solution.mapIndexed { index, digit -> if (index in emptyCells) null else digit }
-        val custom = listOf(
-            listOf(30, 39, 40, 41),
-            listOf(48, 49),
-            listOf(23, 31, 32),
-            listOf(50, 51),
-            listOf(18, 19, 27),
-            listOf(20, 21, 22),
-            listOf(24, 25, 26),
-            listOf(28, 29),
-            listOf(33, 42),
-            listOf(34, 35),
-            listOf(36, 37, 38),
-            listOf(43, 52),
-            listOf(44, 53),
-            listOf(45, 46, 47),
+        val groups = listOf(
+            listOf(30, 31, 39), // 2+3+8=13 (wholly inside box 4)
+            listOf(40, 48, 49), // 4+1+6=11 (wholly inside box 4)
+            listOf(23, 32, 41), // 1+7+5=13 (outie 23 of box 4)
+            listOf(50, 51, 52), // 9+5+3=17 (innie 50 of box 4) -> r6c6 - r3c6 = 8
+            listOf(0, 1),
+            listOf(2, 3, 4),
+            listOf(5, 6, 7, 16),
+            listOf(8, 17, 26),
+            listOf(9, 10),
+            listOf(11, 12),
+            listOf(13, 21, 22),
+            listOf(14, 15),
+            listOf(18, 27),
+            listOf(19, 28, 37),
+            listOf(20, 29, 38),
+            listOf(24, 25),
+            listOf(33, 34, 35),
+            listOf(36, 45),
+            listOf(42, 43, 44),
+            listOf(46, 47),
+            listOf(53, 61, 62, 70),
+            listOf(54, 55, 63, 72),
+            listOf(56, 57, 65),
+            listOf(58, 67, 68),
+            listOf(59, 60),
+            listOf(64, 73),
+            listOf(66, 74, 75, 76),
+            listOf(69, 77, 78),
+            listOf(71, 79, 80),
         )
         return KillerSudokuPuzzle(
             id = "KS-INNIE-OUTIE-DIFF",
-            givens = givens,
-            cages = fillRemainingWithSingletons(custom, emptyCells, solution),
+            givens = List(CELL_COUNT) { null },
+            cages = cagesFromGroups(groups, solution),
             solution = solution,
             pack = Pack.EXPERT,
             storedGrade = "pending",
@@ -470,41 +490,42 @@ class KillerSudokuTechniqueSolverTest {
     }
 
     private fun lockedCandidatesPuzzle(): KillerSudokuPuzzle =
-        sudokuWithDistinctCages("KS-LOCKED-CANDIDATES", lockedCandidatesClues, solution, Pack.HARD)
+        sudokuWithHouseCages("KS-LOCKED-CANDIDATES", lockedCandidatesClues, solution, Pack.HARD, byBox = false)
 
     private fun nakedPairPuzzle(): KillerSudokuPuzzle =
-        sudokuWithDistinctCages("KS-NAKED-PAIR", nakedPairClues, solution, Pack.HARD)
+        sudokuWithHouseCages("KS-NAKED-PAIR", nakedPairClues, solution, Pack.HARD, byBox = true)
 
     private fun hiddenPairPuzzle(): KillerSudokuPuzzle =
-        sudokuWithDistinctCages("KS-HIDDEN-PAIR", hiddenPairClues, solution, Pack.EXPERT)
+        sudokuWithHouseCages("KS-HIDDEN-PAIR", hiddenPairClues, solution, Pack.EXPERT, byBox = false)
 
     private fun nakedTriplePuzzle(): KillerSudokuPuzzle =
-        sudokuWithDistinctCages("KS-NAKED-TRIPLE", nakedTripleClues, solution, Pack.EXPERT)
+        sudokuWithHouseCages("KS-NAKED-TRIPLE", nakedTripleClues, solution, Pack.EXPERT, byBox = true)
 
     private fun xWingPuzzle(): KillerSudokuPuzzle =
-        sudokuWithDistinctCages("KS-X-WING", xWingClues, solution, Pack.EXPERT)
+        sudokuWithHouseCages("KS-X-WING", xWingClues, solution, Pack.EXPERT, byBox = true)
 
-    private fun uniqueStuckPuzzle(): KillerSudokuPuzzle {
-        // Variant of uniqueZeroGivensCages with (37,46)=3 and (47,56)=4 merged into neighboring cages
-        // so no small 2-cell cage unlocks the board without bifurcation.
-        val groups = listOf(
-            listOf(0, 9), listOf(1, 2, 10), listOf(3, 12), listOf(4, 13, 14, 23),
-            listOf(5, 6), listOf(7, 16), listOf(8, 17), listOf(11, 20, 21, 22),
-            listOf(15, 24), listOf(18, 19, 27, 28), listOf(25, 26, 35), listOf(29, 38),
-            listOf(30, 31, 39), listOf(32, 40, 41), listOf(33, 34, 42),
-            listOf(36, 37, 45, 46, 54), // 4+2+7+1+9=23 (5 distinct digits)
-            listOf(43, 44, 52, 53),
-            listOf(47, 55, 56, 64, 65), // 3+6+1+8+7=25 (5 distinct digits)
-            listOf(48, 49, 57), listOf(50, 51), listOf(58, 66, 67), listOf(59, 68, 69),
-            listOf(60, 61, 70), listOf(62, 71, 79, 80), listOf(63, 72, 73),
-            listOf(74, 75, 76), listOf(77, 78),
-        )
+    private fun uniqueStuckPuzzle(): KillerSudokuPuzzle =
+        sudokuWithHouseCages("KS-STUCK", stuckClues, solution, Pack.EASY, byBox = true)
+
+    /** Groups empty cells within each 3x3 box or column so cages never add cross-house restrictions. */
+    private fun sudokuWithHouseCages(
+        id: String,
+        clueIndices: List<Int>,
+        gridSolution: List<Int>,
+        pack: Pack,
+        byBox: Boolean,
+    ): KillerSudokuPuzzle {
+        val clues = clueIndices.toSet()
+        val givens = gridSolution.mapIndexed { index, digit -> if (index in clues) digit else null }
+        val houseCells = if (byBox) KillerSudokuCageMath.BOX_CELLS else KillerSudokuCageMath.COLUMN_CELLS
+        val custom = houseCells.map { unit -> unit.filter { givens[it] == null } }.filter { it.isNotEmpty() }
+        val emptyCells = givens.indices.filter { givens[it] == null }.toSet()
         return KillerSudokuPuzzle(
-            id = "KS-STUCK",
-            givens = List(CELL_COUNT) { null },
-            cages = cagesFromGroups(groups, rulesSolution),
-            solution = rulesSolution,
-            pack = Pack.EASY,
+            id = id,
+            givens = givens,
+            cages = fillRemainingWithSingletons(custom, emptyCells, gridSolution),
+            solution = gridSolution,
+            pack = pack,
             storedGrade = "pending",
         )
     }
