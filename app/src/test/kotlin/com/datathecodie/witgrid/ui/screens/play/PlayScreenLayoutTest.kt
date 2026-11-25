@@ -57,6 +57,7 @@ class PlayScreenLayoutTest {
         assertEquals(R.string.play_rules_binary, playRulesResource("binary"))
         assertEquals(R.string.play_rules_nonogram, playRulesResource("nonogram"))
         assertEquals(R.string.play_rules_minisudoku, playRulesResource("minisudoku"))
+        assertEquals(R.string.play_rules_skyscrapers, playRulesResource("skyscrapers"))
         assertEquals(R.string.play_rules_minisudoku, playRulesResource("unknown"))
     }
 }

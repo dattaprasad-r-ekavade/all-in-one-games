@@ -155,11 +155,13 @@
     <string name="game_binary">Binary</string>
     <string name="game_nonogram">Nonogram</string>
     <string name="game_minisudoku">Mini Sudoku</string>
+    <string name="game_skyscrapers">Skyscrapers</string>
     <string name="game_unknown">Game</string>
     <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally.</string>
     <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
     <string name="intro_coach_nonogram">A clue gives the length of a filled run; a 5 fills the whole column.</string>
     <string name="intro_coach_minisudoku">Each row, column, and 2 by 3 box uses digits 1 through 6 once; fill the cell with only one possible digit.</string>
+    <string name="intro_coach_skyscrapers">From each edge, count the buildings you can see; taller buildings hide those behind them.</string>
     <string name="reminder_notification_channel_name">Daily puzzle reminder</string>
     <string name="reminder_notification_channel_description">A reminder at the time you choose.</string>
     <string name="reminder_notification_title">Your daily puzzle is ready</string>
@@ -259,6 +261,7 @@
     <string name="play_rules_binary">Fill each row and column with equal numbers of the two symbols. No three matching symbols may touch in a row or column. Rows and columns must be unique. Tap to cycle symbols; long press to clear.</string>
     <string name="play_rules_nonogram">Numbers beside each row and above each column describe the lengths of filled runs in order. Leave at least one empty cell between runs. Use Fill or Cross to mark cells. Drag to paint, or long press to clear.</string>
     <string name="play_rules_minisudoku">Fill each row, column, and 2 by 3 box with digits 1 through 6 exactly once. Select a cell, then choose a digit. Notes toggles pencil marks; Erase clears the selected cell.</string>
+    <string name="play_rules_skyscrapers">Fill each row and column with building heights 1 to N exactly once. A number on an edge tells how many buildings you can see from that side; taller buildings hide shorter ones behind them. Select a cell, then choose a height. Notes toggles pencil marks.</string>
     <string name="play_restart_message">Clear your entries and start this puzzle again?</string>
     <string name="play_cancel">Cancel</string>
     <string name="play_crowns_count">%1$d of %2$d crowns placed</string>

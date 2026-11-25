@@ -4,6 +4,7 @@ import com.datathecodie.witgrid.games.binary.BinaryGameModule
 import com.datathecodie.witgrid.games.crowns.CrownsGameModule
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
 import com.datathecodie.witgrid.games.nonogram.NonogramGameModule
+import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersGameModule
 
 object GameRegistry {
     val games: List<GameModule<*, *>> = listOf(
@@ -11,6 +12,7 @@ object GameRegistry {
         BinaryGameModule,
         NonogramGameModule,
         MiniSudokuGameModule,
+        SkyscrapersGameModule,
     )
 
     private val gamesById = games.associateBy { it.id }

@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 import com.datathecodie.witgrid.games.EngineGameModule
 import com.datathecodie.witgrid.games.GameModule
 
-/** Skyscrapers bank behaviour and its digit/notes board with outside clues. Registration lives in SKC. */
+/** Skyscrapers bank behaviour and its digit/notes board with outside clues. */
 object SkyscrapersGameModule : GameModule<SkyscrapersPuzzle, SkyscrapersState> by EngineGameModule(
     engine = SkyscrapersEngine,
     puzzleOf = SkyscrapersState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable
