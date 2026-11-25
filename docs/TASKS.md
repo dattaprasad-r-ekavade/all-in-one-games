@@ -89,7 +89,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | done |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | done |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | review (lead fixes 1babb1d; batch not run) |
-| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 done, CS3 todo |
+| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 done, CS3 active |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | done |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
@@ -106,7 +106,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
 | CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 done |
-| CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
+| CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | active |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
 | KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 active (Gemini Hydrogen) |
