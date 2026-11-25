@@ -105,7 +105,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
-| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 active (Haiku) |
+| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 review (committed; not compiled; batch not run) |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
