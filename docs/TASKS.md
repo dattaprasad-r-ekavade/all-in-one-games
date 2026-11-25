@@ -97,7 +97,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | done |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | done |
-| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 done, AR2 todo |
+| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 done, AR2 active (Grok 4.7) |
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |

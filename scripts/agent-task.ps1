@@ -14,10 +14,12 @@
     claude: L = haiku,               M = sonnet,               H = sonnet
     gemini: L = gemini-4-hydrogen-medium, M = gemini-4-hydrogen-high, H = gemini-4-hydrogen-xhigh
             (Antigravity CLI 'agy'.)
+    grok  : L = grok-4.7-build-fast,     M = grok-4.6,               H = grok-4.7
+            (Grok CLI, headless, acceptEdits: it edits files but cannot run Gradle or git; the lead compiles and commits.)
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Task,
-    [ValidateSet('codex', 'claude', 'gemini')][string]$Agent = 'codex',
+    [ValidateSet('codex', 'claude', 'gemini', 'grok')][string]$Agent = 'codex',
     [ValidateSet('L', 'M', 'H')][string]$Tier = 'M',
     [string]$Base = 'main',
     [string]$Extra = '',
@@ -71,8 +73,8 @@ $lanePrefix = if ($Task.Length -ge 3) { $Task.Substring(0, 2) } else { '' }
 $gameId = $laneGames[$lanePrefix]
 $cardRules = ''
 
-if ($gameId -and $Task -match '^[A-Z]{2}B$' -and $Agent -eq 'claude') {
-    # Claude print mode has no Bash, so it cannot run bankgen.
+if ($gameId -and $Task -match '^[A-Z]{2}B$' -and $Agent -in @('claude', 'grok')) {
+    # Claude print mode and Grok acceptEdits mode have no shell, so they cannot run bankgen.
     throw "$Task is a bank card and needs bankgen. Use -Agent codex or -Agent gemini."
 }
 if ($gameId -and $Task -match '^[A-Z]{2}B$') {
@@ -144,6 +146,15 @@ if ($Agent -eq 'codex') {
     } finally {
         Pop-Location
     }
+} elseif ($Agent -eq 'grok') {
+    $model = @{ L = 'grok-4.7-build-fast'; M = 'grok-4.6'; H = 'grok-4.7' }[$Tier]
+    # acceptEdits only: bypassPermissions would let it run any command unreviewed.
+    $grokPrompt = $prompt + "`nYou cannot run Gradle or git in this mode. Write the code and tests carefully, then stop. The lead compiles and commits.`n"
+    $promptFile = Join-Path $logDir "$Task.prompt.md"
+    Set-Content -Path $promptFile -Value $grokPrompt -Encoding UTF8
+    grok --prompt-file $promptFile --cwd $wt -m $model --permission-mode acceptEdits --no-memory --max-turns 200 2>&1 |
+        Tee-Object -Variable agentOutput
+    $agentOutput | Out-File -FilePath $handoff -Encoding utf8
 } else {
     $model = @{ L = 'haiku'; M = 'sonnet'; H = 'sonnet' }[$Tier]
     Push-Location $wt
