@@ -738,6 +738,7 @@ private fun gameTitleResource(gameId: String): Int = when (gameId) {
     "nonogram" -> R.string.game_nonogram
     "minisudoku" -> R.string.game_minisudoku
     "sudoku" -> R.string.game_sudoku
+    "skyscrapers" -> R.string.game_skyscrapers
     else -> R.string.game_unknown
 }
 

@@ -398,5 +398,6 @@ internal fun playRulesResource(gameId: String): Int = when (gameId) {
     "binary" -> R.string.play_rules_binary
     "nonogram" -> R.string.play_rules_nonogram
     "sudoku" -> R.string.play_rules_sudoku
+    "skyscrapers" -> R.string.play_rules_skyscrapers
     else -> R.string.play_rules_minisudoku
 }
