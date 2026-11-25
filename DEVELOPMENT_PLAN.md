@@ -9,12 +9,12 @@ This plan replaces the game design document (the GDD PDF in this folder) where t
 <!-- progress:start -->
 ## Progress
 
-Updated 25 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `python scripts/progress.py`.
+Updated 26 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `python scripts/progress.py`.
 
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ████████████████░░░░  79 %  (114 of 145 done, 1 in progress)
+All tasks                         ████████████████░░░░  81 %  (118 of 145 done, 1 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,18 +24,18 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ████████████████████ 100 %  (11 of 11 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          █████████████▒░░░░░░  67 %  (47 of 70 done, 1 in progress)
+Phase 7 — Launch catalog          ███████████████░░░░░  73 %  (51 of 70 done, 1 in progress)
 
 Launch catalog, by game
   Sudoku 9x9                      ████████████████████ 100 %  (7 of 7 done)
-  Killer Sudoku                   ███░░░░░░░░░░░░░░░░░  14 %  (1 of 7 done)
+  Killer Sudoku                   █████████░░░░░░░░░░░  43 %  (3 of 7 done)
   Futoshiki                       ████████████████████ 100 %  (7 of 7 done)
   Skyscrapers                     ████████████████████ 100 %  (7 of 7 done)
   Mosaic                          ██████████████▒▒▒░░░  71 %  (5 of 7 done, 1 in progress)
   Colour Sort                     █████████████░░░░░░░  67 %  (4 of 6 done)
   Path                            ████████████████████ 100 %  (7 of 7 done)
-  Arrows                          ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
-  Klondike                        ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
+  Arrows                          ███████░░░░░░░░░░░░░  33 %  (2 of 6 done)
+  Klondike                        ███████░░░░░░░░░░░░░  33 %  (2 of 6 done)
   Chess tactics                   ██████████████░░░░░░  71 %  (5 of 7 done)
   Shared (B6, E3, H7)             █████████████░░░░░░░  67 %  (2 of 3 done)
 
