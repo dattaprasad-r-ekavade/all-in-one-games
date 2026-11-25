@@ -1,0 +1,107 @@
+
+package com.datathecodie.witgrid.engine.tactics
+
+import com.datathecodie.witgrid.engine.core.Cell
+
+object TacticsRules {
+
+    /** Checks that the stored line forces mate at the declared depth against best defence. */
+    fun isValidSolution(puzzle: TacticsPuzzle): Boolean {
+        if (puzzle.solutionLine.size != 2 * puzzle.mateIn - 1) return false
+        var board = puzzle.initialBoard
+        if (canForceMate(board, puzzle.mateIn - 1)) return false
+
+        for (turn in 0 until puzzle.mateIn) {
+            val remaining = puzzle.mateIn - turn
+            val move = puzzle.solutionLine[2 * turn]
+            val winners = winningMoves(board, remaining, limit = 2)
+            if (winners.size != 1 || winners[0] != move) return false
+
+            board = board.applyMoveInternal(move)
+            if (remaining > 1) {
+                val reply = puzzle.solutionLine[2 * turn + 1]
+                if (bestReply(board, remaining - 1) != reply) return false
+                board = board.applyMoveInternal(reply)
+            }
+        }
+        return true
+    }
+
+    /** Returns true once the player completes the unique mate sequence. */
+    fun isSolved(puzzle: TacticsPuzzle, state: TacticsState): Boolean {
+        require(state.puzzle == puzzle) { "Tactics state belongs to a different puzzle" }
+        return state.completedPlayerMoves.size == puzzle.mateIn &&
+            mistakes(puzzle, state).isEmpty() &&
+            state.currentBoard.isCheckmate() &&
+            countSolutions(puzzle) == 1
+    }
+
+    /**
+     * Returns the destination squares of committed moves that differ from the stored line,
+     * in row-major order. A source-square selection alone is never a mistake.
+     */
+    fun mistakes(puzzle: TacticsPuzzle, state: TacticsState): List<Cell> {
+        require(state.puzzle == puzzle) { "Tactics state belongs to a different puzzle" }
+        return state.completedPlayerMoves.mapIndexedNotNull { index, move ->
+            move.to.takeIf { move != puzzle.solutionLine.getOrNull(index * 2) }
+        }.distinct().sortedBy { it.index }
+    }
+
+    /**
+     * Returns the count of distinct winning first moves from the initial board, capped at [limit].
+     * Depends only on the position and the mate horizon, never on the stored line.
+     */
+    fun countSolutions(puzzle: TacticsPuzzle, limit: Int = 2): Int {
+        require(limit > 0) { "Solution limit must be positive" }
+        if (canForceMate(puzzle.initialBoard, puzzle.mateIn - 1)) return 0
+        return winningMoves(puzzle.initialBoard, puzzle.mateIn, limit).size
+    }
+
+    /** Finds an exact-length mate with one winning move per player turn and one best defence. */
+    internal fun findUniqueLine(start: TacticsBoard, mateIn: Int): List<ChessMove>? {
+        val line = ArrayList<ChessMove>(2 * mateIn - 1)
+        var board = start
+        for (remaining in mateIn downTo 1) {
+            val move = winningMoves(board, remaining, limit = 2).singleOrNull() ?: return null
+            board = board.applyMoveInternal(move)
+            line.add(move)
+            if (remaining > 1) {
+                val reply = bestReply(board, remaining - 1) ?: return null
+                board = board.applyMoveInternal(reply)
+                line.add(reply)
+            }
+        }
+        return line
+    }
+
+    internal fun winningMoves(board: TacticsBoard, remaining: Int, limit: Int = Int.MAX_VALUE): List<ChessMove> =
+        board.legalMoves().asSequence()
+            .filter { forcesMate(board.applyMoveInternal(it), remaining) }
+            .take(limit)
+            .toList()
+
+    // A valid defence must allow mate at the declared depth and be either forced or the unique slowest defence.
+    internal fun bestReply(board: TacticsBoard, remaining: Int): ChessMove? {
+        val legalMoves = board.legalMoves()
+        if (legalMoves.size == 1) {
+            val only = legalMoves[0]
+            return only.takeIf { canForceMate(board.applyMoveInternal(it), remaining) }
+        }
+        if (remaining <= 1) return null
+        return legalMoves.singleOrNull { reply ->
+            val after = board.applyMoveInternal(reply)
+            canForceMate(after, remaining) && !canForceMate(after, remaining - 1)
+        }
+    }
+
+    // At a defender node every legal reply must still allow mate, and stalemate is a refutation.
+    private fun forcesMate(defender: TacticsBoard, remaining: Int): Boolean {
+        if (remaining == 1) return defender.isCheckmate()
+        val replies = defender.legalMoves()
+        if (replies.isEmpty()) return defender.isCheck()
+        return replies.all { canForceMate(defender.applyMoveInternal(it), remaining - 1) }
+    }
+
+    private fun canForceMate(attacker: TacticsBoard, remaining: Int): Boolean =
+        remaining > 0 && attacker.legalMoves().any { forcesMate(attacker.applyMoveInternal(it), remaining) }
+}
