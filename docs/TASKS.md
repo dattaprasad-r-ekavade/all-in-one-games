@@ -87,10 +87,10 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
 | SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 done, SU4 todo |
 | SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | done |
-| SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | active (Codex luna) |
+| SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | done |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
 | CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 done, CS3 todo |
-| CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | review (lead fix a062c3e; batch not run) |
+| CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | done |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
 | PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done, PA4 done |
@@ -101,20 +101,20 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
-| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 review (fix ok; batch not run) |
+| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 todo |
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
-| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 review (committed; not compiled; batch not run) |
+| CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 done |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
-| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 review (lead review ok; batch not run) |
+| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 todo |
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done, FU4 done |
-| FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | review (lead fixes 0f6aed7: TalkBack signs, keypad wrap; batch not run) |
+| FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | done |
 | FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | done |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done, SK4 done |
