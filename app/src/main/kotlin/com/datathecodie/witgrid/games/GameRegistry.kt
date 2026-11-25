@@ -2,6 +2,7 @@ package com.datathecodie.witgrid.games
 
 import com.datathecodie.witgrid.games.binary.BinaryGameModule
 import com.datathecodie.witgrid.games.crowns.CrownsGameModule
+import com.datathecodie.witgrid.games.futoshiki.FutoshikiGameModule
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
 import com.datathecodie.witgrid.games.nonogram.NonogramGameModule
 import com.datathecodie.witgrid.games.path.PathGameModule
@@ -16,6 +17,7 @@ object GameRegistry {
         MiniSudokuGameModule,
         SudokuGameModule,
         SkyscrapersGameModule,
+        FutoshikiGameModule,
         PathGameModule,
     )
 
