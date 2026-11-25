@@ -41,7 +41,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.datathecodie.witgrid.R
@@ -273,9 +273,8 @@ fun FutoshikiBoard(
                                 text = stringResource(R.string.play_digit_left, remaining),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                 color = colors.mutedInk,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Clip,
+                                // Wraps at large font scales; clipping would hide the count (plan 4.1).
+                                textAlign = TextAlign.Center,
                             )
                         }
                     }
@@ -418,7 +417,7 @@ private fun describeFutoshikiCell(state: FutoshikiState, cell: Cell, selected: B
     val selection = stringResource(
         if (selected) R.string.minisudoku_cell_selected else R.string.minisudoku_cell_not_selected,
     )
-    return stringResource(
+    val base = stringResource(
         R.string.minisudoku_cell_accessibility_label,
         cell.index / state.puzzle.size + 1,
         cell.index % state.puzzle.size + 1,
@@ -427,6 +426,33 @@ private fun describeFutoshikiCell(state: FutoshikiState, cell: Cell, selected: B
         editability,
         selection,
     )
+    // TalkBack players cannot see the signs, so each cell names its inequalities.
+    val relations = futoshikiCellRelations(state, cell).map { (smaller, side) ->
+        stringResource(
+            if (smaller) R.string.futoshiki_cell_smaller_than else R.string.futoshiki_cell_larger_than,
+            stringResource(side),
+        )
+    }
+    return (listOf(base) + relations).joinToString(", ")
+}
+
+/** Each pair is (this cell is smaller, string id of the neighbour side). */
+internal fun futoshikiCellRelations(state: FutoshikiState, cell: Cell): List<Pair<Boolean, Int>> {
+    val puzzle = state.puzzle
+    val size = puzzle.size
+    val row = cell.index / size
+    val column = cell.index % size
+    val relations = mutableListOf<Pair<Boolean, Int>>()
+    fun add(sign: FutoshikiSign, thisIsFirst: Boolean, side: Int) {
+        if (sign == FutoshikiSign.NONE) return
+        val firstIsSmaller = sign == FutoshikiSign.LESS
+        relations += Pair(firstIsSmaller == thisIsFirst, side)
+    }
+    if (row > 0) add(puzzle.verticalSign(row - 1, column), thisIsFirst = false, R.string.futoshiki_side_above)
+    if (column < size - 1) add(puzzle.horizontalSign(row, column), thisIsFirst = true, R.string.futoshiki_side_right)
+    if (row < size - 1) add(puzzle.verticalSign(row, column), thisIsFirst = true, R.string.futoshiki_side_below)
+    if (column > 0) add(puzzle.horizontalSign(row, column - 1), thisIsFirst = false, R.string.futoshiki_side_left)
+    return relations
 }
 
 private fun DrawScope.drawNotes(

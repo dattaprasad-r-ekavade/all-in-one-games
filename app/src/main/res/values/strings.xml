@@ -259,6 +259,12 @@
     <string name="play_marked_count">%1$d of %2$d cells marked</string>
     <string name="play_status_with_mistakes">%1$s \u00b7 %2$s</string>
     <string name="play_digit_left">%1$d left</string>
+    <string name="futoshiki_cell_smaller_than">smaller than the cell %1$s</string>
+    <string name="futoshiki_cell_larger_than">larger than the cell %1$s</string>
+    <string name="futoshiki_side_above">above</string>
+    <string name="futoshiki_side_below">below</string>
+    <string name="futoshiki_side_left">on the left</string>
+    <string name="futoshiki_side_right">on the right</string>
     <string name="play_erase">Erase</string>
     <string name="result_solved">Solved</string>
     <string name="result_time_label">Time</string>
