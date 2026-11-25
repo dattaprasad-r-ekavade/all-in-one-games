@@ -69,6 +69,19 @@ class SkyscrapersGeneratorTest {
         assertEquals(directPuzzle, enginePuzzle)
     }
 
+    @Test
+    fun expert150PuzzlesHaveDistinctFingerprints() {
+        val seedStream = SplitMix64(230904)
+        val puzzleSeeds = List(150) { seedStream.nextLong() }
+        val fingerprints = HashSet<String>()
+        for (i in 0 until 150) {
+            val puzzle = SkyscrapersGenerator.generate(SplitMix64(puzzleSeeds[i]), Pack.EXPERT)
+            val fingerprint = "${puzzle.size}|${puzzle.topClues}/${puzzle.bottomClues}/${puzzle.leftClues}/${puzzle.rightClues}|${puzzle.solution.joinToString("")}|${puzzle.pack.name}"
+            assertTrue(fingerprints.add(fingerprint), "Duplicate fingerprint at index $i: $fingerprint")
+        }
+        assertEquals(150, fingerprints.size)
+    }
+
     private fun generateTenPerPack(): Map<Pack, List<SkyscrapersPuzzle>> =
         Pack.values().associateWith { pack ->
             val rng = SplitMix64(1)
