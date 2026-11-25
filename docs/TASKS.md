@@ -109,7 +109,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | done |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
-| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 done, KS3 todo, KS4 part 1 done (technique part waits for KS2) |
+| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 done, KS3 active (Grok 4.7), KS4 part 2 active (Grok 4.6), KS4 part 1 done (technique part waits for KS2) |
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
