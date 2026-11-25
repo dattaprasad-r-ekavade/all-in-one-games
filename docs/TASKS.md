@@ -74,7 +74,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | U7 | Result, Failed, Calendar, Statistics, Settings | M | Codex | Claude (lead screenshots) | U3, U9 | done |
 | U8 | Screenshot matrix and visual QA gate | M | Codex | Claude (lead) | U4–U7 | done |
 | U9 | Endless level numbers and looping | H | Codex | Claude | U2 | done |
-| U10 | Play screen landscape layout | M | Codex | Claude | U4 | active (Gemini; also fixes SKA landscape blocker) |
+| U10 | Play screen landscape layout | M | Codex | Claude | U4 | review (lead review ok; batch not run) |
 | **Phase 5 — Closed test** |||||||
 | S1 | Store listing and policy form drafts | M | Claude | Codex | A9 | done |
 | S2 | Screenshot capture script | M | Codex | Claude | A14 | done |
@@ -93,9 +93,9 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | todo |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
-| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done, PA4 active (Haiku) |
+| PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done, PA4 review (committed; not compiled; batch not run) |
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
-| PAB | Path bank | L | Claude | Codex | PA3, B6 | active (Gemini) |
+| PAB | Path bank | L | Claude | Codex | PA3, B6 | review (built; Registry merged with SKB; batch not run) |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | todo |
 | AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 review (batch pass; lead review next) |
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
@@ -113,7 +113,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
-| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done, FU4 active (Codex luna) |
+| FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done, FU4 review (package tests pass; batch not run) |
 | FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | review (batch pass; lead review next) |
 | FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | done |
 | FUC | Futoshiki intro, config, strings | L | Claude | Codex | FUA, FUB | todo |
@@ -121,7 +121,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
 | SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | review (lead review ok; batch not run) |
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
-| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done, MO4 active (Codex luna) |
+| MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done, MO4 review (package tests pass; batch not run) |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | review (batch pass; lead review next) |
 | MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | active (paused; Codex luna run stopped) |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
