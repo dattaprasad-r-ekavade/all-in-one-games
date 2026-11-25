@@ -29,11 +29,14 @@ object ColourSortEngine : PlayEngine<ColourSortPuzzle, ColourSortState, ColourSo
     override fun isLost(puzzle: ColourSortPuzzle, state: ColourSortState): Boolean =
         ColourSortRules.isStuckAfterPlay(state.tubes, state.pourCount)
 
-    override fun hintAction(puzzle: ColourSortPuzzle, state: ColourSortState): ColourSortAction? =
-        throw NotImplementedError("coloursort")
+    override fun hintAction(puzzle: ColourSortPuzzle, state: ColourSortState): ColourSortAction? {
+        if (isWon(puzzle, state) || isLost(puzzle, state)) return null
+        val solution = ColourSortSolver.solve(state.tubes) ?: return null
+        return solution.firstOrNull()
+    }
 
     override fun generate(rng: SplitMix64, pack: Pack): ColourSortPuzzle =
-        throw NotImplementedError("coloursort")
+        ColourSortGenerator.generate(rng, pack)
 
     override fun encodeState(state: ColourSortState): ByteArray = ColourSortStateCodec.encode(state)
 
