@@ -316,4 +316,7 @@
     <string name="settings_more">More</string>
     <string name="settings_off">Off</string>
     <string name="settings_premium_active">Active</string>
+    <string name="coloursort_tube_accessibility">Tube %1$d, colours from bottom to top: %2$s</string>
+    <string name="coloursort_tube_empty_accessibility">Tube %1$d, empty</string>
+    <string name="coloursort_tube_selected_accessibility">%1$s, selected</string>
 </resources>
