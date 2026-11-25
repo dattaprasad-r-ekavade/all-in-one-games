@@ -378,7 +378,10 @@ private fun TimerChip(elapsed: Long, visible: Boolean, onTimer: () -> Unit) {
         Modifier.semantics { contentDescription = description }, onClick = onTimer)
 }
 
-internal fun isLandscapeLayout(maxWidth: Dp, maxHeight: Dp): Boolean = maxWidth > maxHeight
+// The side column needs room for the keypad and toolbar; near-square windows keep the stacked layout.
+internal fun isLandscapeLayout(maxWidth: Dp, maxHeight: Dp): Boolean = maxWidth - maxHeight >= LANDSCAPE_SIDE_COLUMN_MIN
+
+private val LANDSCAPE_SIDE_COLUMN_MIN = 240.dp
 
 internal fun isPlayHeaderCompact(maxWidth: Dp, fontScale: Float): Boolean =
     (maxWidth < 440.dp || fontScale > 1.1f) && maxWidth < 600.dp

@@ -17,6 +17,8 @@ class PlayScreenLayoutTest {
         assertFalse(isLandscapeLayout(360.dp, 780.dp))
         assertFalse(isLandscapeLayout(432.dp, 936.dp))
         assertFalse(isLandscapeLayout(600.dp, 600.dp))
+        assertFalse(isLandscapeLayout(400.dp, 390.dp))
+        assertTrue(isLandscapeLayout(1024.dp, 768.dp))
     }
 
     @Test
