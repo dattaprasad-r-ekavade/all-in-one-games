@@ -208,6 +208,84 @@ object KlondikeRules {
     fun isWon(state: KlondikeState): Boolean =
         state.foundations.values.all { it.size == 13 }
 
+    fun totalCardCount(state: KlondikeState): Int =
+        state.tableau.sumOf { it.size } +
+            state.foundations.values.sumOf { it.size } +
+            state.stock.size +
+            state.waste.size
+
+    /**
+     * True when at least one non-oscillating forward move exists: playing to foundation,
+     * playing a stock/waste card onto tableau or foundation, moving a complete face-up run
+     * to another column (excluding King-to-empty permutations), or splitting a run only to
+     * uncover a card that can immediately move to foundation.
+     */
+    fun hasForwardProgressMove(state: KlondikeState): Boolean {
+        if (isWon(state)) return false
+
+        for (col in 0 until TABLEAU_COLUMNS) {
+            val card = state.tableau[col].lastOrNull() ?: continue
+            if (card.faceUp && isFoundationPlacementLegal(state.foundations, card)) {
+                return true
+            }
+        }
+
+        val availableCards = state.stock + state.waste
+        for (card in availableCards) {
+            if (isFoundationPlacementLegal(state.foundations, card)) {
+                return true
+            }
+            for (to in 0 until TABLEAU_COLUMNS) {
+                if (isTableauPlacementLegal(state.tableau[to], card)) {
+                    return true
+                }
+            }
+        }
+
+        for (from in 0 until TABLEAU_COLUMNS) {
+            val pile = state.tableau[from]
+            if (pile.isEmpty()) continue
+            val firstFaceUp = pile.indexOfFirst { it.faceUp }
+            if (firstFaceUp == -1) continue
+
+            var runBase = pile.lastIndex
+            while (runBase > firstFaceUp) {
+                val upper = pile[runBase - 1]
+                val lower = pile[runBase]
+                if (upper.isRed != lower.isRed && upper.rank == lower.rank + 1) {
+                    runBase--
+                } else {
+                    break
+                }
+            }
+
+            val baseCard = pile[runBase]
+            for (to in 0 until TABLEAU_COLUMNS) {
+                if (to == from) continue
+                if (isTableauPlacementLegal(state.tableau[to], baseCard)) {
+                    val isRedundantKingMove = runBase == 0 && baseCard.rank == KING_RANK && state.tableau[to].isEmpty()
+                    if (!isRedundantKingMove) {
+                        return true
+                    }
+                }
+            }
+
+            for (splitIndex in (runBase + 1) until pile.size) {
+                val exposed = pile[splitIndex - 1]
+                if (!isFoundationPlacementLegal(state.foundations, exposed)) continue
+                val splitCard = pile[splitIndex]
+                for (to in 0 until TABLEAU_COLUMNS) {
+                    if (to == from || state.tableau[to].isEmpty()) continue
+                    if (isTableauPlacementLegal(state.tableau[to], splitCard)) {
+                        return true
+                    }
+                }
+            }
+        }
+
+        return false
+    }
+
     /**
      * True only when no legal move exists among tableau and foundations,
      * and cycling through stock and waste cannot introduce any playable card.

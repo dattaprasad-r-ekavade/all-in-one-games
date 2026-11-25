@@ -2,6 +2,11 @@ package com.datathecodie.witgrid.engine.klondike
 
 /**
  * In-progress Klondike play state: 7 tableau columns, 4 suit foundations, stock and waste.
+ *
+ * [previousState] retains one immediate prior position so Continue can step back after a fatal move.
+ * [extraUndos] is a one-action grace counter granted after Continue (not a spendable undo token):
+ * [KlondikeEngine.applyContinue] restores [previousState] and increments [extraUndos] so `isLost`
+ * remains suppressed for one grace action; the next [KlondikeEngine.applyAction] decrements it.
  */
 data class KlondikeState(
     val puzzle: KlondikePuzzle,

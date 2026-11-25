@@ -452,13 +452,10 @@ class KlondikeEngineTest {
     }
 
     @Test
-    fun deferredFeaturesThrow() {
-        val start = engine.initialState(testPuzzle)
-        assertThrows(NotImplementedError::class.java) {
-            engine.hintAction(testPuzzle, start)
-        }
-        assertThrows(NotImplementedError::class.java) {
-            engine.generate(SplitMix64(1), Pack.EASY)
-        }
+    fun hintAndGenerateWorkForWinnableDeals() {
+        val puzzle = engine.generate(SplitMix64(1), Pack.EASY)
+        val start = engine.initialState(puzzle)
+        val hint = engine.hintAction(puzzle, start)
+        assertTrue(hint != null)
     }
 }
