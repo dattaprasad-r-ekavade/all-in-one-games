@@ -90,7 +90,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | active (Codex luna) |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
 | CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 done, CS3 todo |
-| CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | active (Gemini Hydrogen) |
+| CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | review (lead fix a062c3e; batch not run) |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
 | PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done, PA4 done |
