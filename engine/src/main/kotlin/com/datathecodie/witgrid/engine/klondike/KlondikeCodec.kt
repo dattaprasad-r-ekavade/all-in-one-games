@@ -7,6 +7,9 @@ object KlondikeCodec {
 
     fun decodeLine(line: String): KlondikePuzzle {
         val bank = PlayBankLine.decode(line)
+        require(bank.size == DECK_SIZE) {
+            "Expected Klondike size $DECK_SIZE, got ${bank.size}"
+        }
         val seed = bank.payload.removePrefix("seed=").toLongOrNull()
             ?: throw IllegalArgumentException("Invalid deal seed in bank line: ${bank.payload}")
         return KlondikePuzzle(
