@@ -98,7 +98,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | done |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | done |
 | AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 done, AR2 done, AR3 todo |
-| ARA | Arrows board | M | Claude | Codex | AR2 | todo |
+| ARA | Arrows board | M | Claude | Codex | AR2 | active (Grok 4.7) |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
 | KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 done, KL3 todo |
@@ -110,7 +110,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
 | KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | done |
-| KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
+| KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | active (Grok 4.7) |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done, FU4 done |
