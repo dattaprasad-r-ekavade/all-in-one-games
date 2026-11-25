@@ -50,11 +50,16 @@ object ArrowsEngine : PlayEngine<ArrowsPuzzle, ArrowsState, ArrowsAction> {
     override fun isLost(puzzle: ArrowsPuzzle, state: ArrowsState): Boolean =
         !isWon(puzzle, state) && ArrowsRules.isLost(state.mistakes)
 
-    override fun hintAction(puzzle: ArrowsPuzzle, state: ArrowsState): ArrowsAction? =
-        throw NotImplementedError("arrows")
+    override fun hintAction(puzzle: ArrowsPuzzle, state: ArrowsState): ArrowsAction? {
+        if (isWon(puzzle, state) || isLost(puzzle, state)) return null
+        // A legal slide only removes an arrow, so on a clearable board it is the first
+        // step of a clearing order. The lowest index keeps the choice stable.
+        // A deadlocked remainder can still have a slide; that slide is the same choice.
+        return ArrowsRules.legalSlides(puzzle.size, state.arrows).firstOrNull()
+    }
 
     override fun generate(rng: SplitMix64, pack: Pack): ArrowsPuzzle =
-        throw NotImplementedError("arrows")
+        ArrowsGenerator.generate(rng, pack)
 
     override fun encodeState(state: ArrowsState): ByteArray = ArrowsStateCodec.encode(state)
 
