@@ -390,6 +390,36 @@ class KlondikeEngineTest {
     }
 
     @Test
+    fun continueAfterSaveRestoresPositionBeforeLastAction() {
+        val beforeLastAction = KlondikeState(
+            puzzle = testPuzzle,
+            tableau = listOf(
+                listOf(Card(2, Suit.SPADES, true)),
+                listOf(Card(2, Suit.CLUBS, true)),
+                listOf(Card(2, Suit.HEARTS, true)),
+                listOf(Card(2, Suit.DIAMONDS, true)),
+                listOf(Card(4, Suit.SPADES, true)),
+                listOf(Card(4, Suit.CLUBS, true)),
+                listOf(Card(4, Suit.HEARTS, true)),
+            ),
+            foundations = Suit.entries.associateWith { emptyList() },
+            stock = listOf(Card(10, Suit.SPADES, false)),
+            waste = emptyList(),
+        )
+        val deadlocked = engine.applyAction(beforeLastAction, CardMove.DrawStock)
+        assertTrue(engine.isLost(testPuzzle, deadlocked))
+
+        val restored = engine.decodeState(engine.encodeState(deadlocked))
+        assertTrue(engine.isLost(testPuzzle, restored))
+        val continued = engine.applyContinue(restored)
+
+        assertEquals(beforeLastAction.tableau, continued.tableau)
+        assertEquals(beforeLastAction.stock, continued.stock)
+        assertEquals(beforeLastAction.waste, continued.waste)
+        assertEquals(1, continued.extraUndos)
+    }
+
+    @Test
     fun bankCodecRoundTrips() {
         val encoded = engine.encodePuzzle(testPuzzle)
         val decoded = engine.decodePuzzle(encoded)
