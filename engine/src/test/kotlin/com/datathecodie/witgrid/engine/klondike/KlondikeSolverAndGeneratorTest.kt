@@ -194,6 +194,7 @@ class KlondikeSolverAndGeneratorTest {
         // After one reversible move (moving 9S from col 0 onto 10D in col 1), isLost becomes true.
         val afterBounce = engine.applyAction(start, CardMove.TableauToTableau(0, 4, 1))
         assertFalse(KlondikeRules.isDeadlocked(afterBounce))
+        assertEquals(KlondikeSolver.SolveVerdict.ProvenLoss, KlondikeSolver.solveVerdict(afterBounce))
         assertTrue(engine.isLost(puzzle, afterBounce), "Reversible-only unwinnable 52-card state must be lost")
         assertNull(engine.hintAction(puzzle, afterBounce))
 
@@ -305,6 +306,7 @@ class KlondikeSolverAndGeneratorTest {
         // Fatal mistake: place 11C from waste onto 12D in col 1.
         val afterMistake = engine.applyAction(mistakeState, CardMove.WasteToTableau(1))
         assertFalse(KlondikeRules.isDeadlocked(afterMistake), "7H can still bounce between 8S and 8C, so not deadlocked")
+        assertEquals(KlondikeSolver.SolveVerdict.ProvenLoss, KlondikeSolver.solveVerdict(afterMistake))
         assertTrue(engine.isLost(mistakeState.puzzle, afterMistake), "No winning line remains, so must be lost")
         assertNull(engine.hintAction(mistakeState.puzzle, afterMistake))
 
@@ -424,5 +426,245 @@ class KlondikeSolverAndGeneratorTest {
         )
         val endState = solution.fold(state) { current, move -> engine.applyAction(current, move) }
         assertTrue(engine.isWon(puzzle, endState))
+    }
+
+    @Test
+    fun budgetHitGivesUnknownAndIsNeverLostWithForwardProgressHint() {
+        val puzzle = engine.generate(SplitMix64(1L), Pack.MEDIUM)
+        val initial = engine.initialState(puzzle)
+        val afterDraw = engine.applyAction(initial, CardMove.DrawStock)
+
+        val tinyBudget = KlondikeSolver.SearchBudget(
+            exactEndgameMaxNodes = 1,
+            beamWidth = 1,
+            beamMaxDepth = 1,
+            dfsMaxNodes = 1,
+            weightedMaxNodes = 1,
+            foundationRescueMaxNodes = 1,
+            exactProofMaxNodes = 1,
+        )
+
+        val verdict = KlondikeSolver.solveVerdict(afterDraw, tinyBudget)
+        assertEquals(KlondikeSolver.SolveVerdict.Unknown, verdict)
+        assertFalse(engine.isLost(puzzle, afterDraw, tinyBudget), "Unknown verdict must never be reported as a loss")
+
+        val fallbackHint = engine.hintAction(puzzle, afterDraw, tinyBudget)
+        assertNotNull(fallbackHint, "hintAction must fall back to a forward-progress move on Unknown")
+        val nextState = engine.applyAction(afterDraw, fallbackHint!!)
+        assertFalse(engine.isLost(puzzle, nextState, tinyBudget))
+    }
+
+    @Test
+    fun unknownHintPrefersFoundationThenRevealFaceDownThenStockAdvance() {
+        val tinyBudget = KlondikeSolver.SearchBudget(
+            exactEndgameMaxNodes = 1,
+            beamWidth = 1,
+            beamMaxDepth = 1,
+            dfsMaxNodes = 1,
+            weightedMaxNodes = 1,
+            foundationRescueMaxNodes = 1,
+            exactProofMaxNodes = 1,
+        )
+        val puzzle = KlondikePuzzle("kl-hint-priority", Pack.MEDIUM, "d2", seed = 55L)
+
+        // Case 1: Both a foundation move (1C on col 2) and a face-down-revealing move (11H on col 0 -> 12S on col 1) exist.
+        // Fill remaining cards in stock/tableau so the state has 52 cards and cannot collapse to a win in 1 node.
+        val used = HashSet<Pair<Int, Suit>>()
+        fun take(rank: Int, suit: Suit, faceUp: Boolean): Card {
+            assertTrue(used.add(rank to suit))
+            return Card(rank, suit, faceUp)
+        }
+        val foundationsEmpty = Suit.entries.associateWith { emptyList<Card>() }
+
+        val tableauWithFoundationAndReveal = listOf(
+            listOf(take(5, Suit.CLUBS, false), take(11, Suit.HEARTS, true)),
+            listOf(take(6, Suit.DIAMONDS, false), take(12, Suit.SPADES, true)),
+            listOf(take(7, Suit.HEARTS, false), take(1, Suit.CLUBS, true)),
+            listOf(take(8, Suit.SPADES, false), take(13, Suit.DIAMONDS, true)),
+            listOf(take(9, Suit.CLUBS, false), take(10, Suit.DIAMONDS, true)),
+            listOf(take(4, Suit.DIAMONDS, false), take(8, Suit.CLUBS, true)),
+            listOf(take(3, Suit.HEARTS, false), take(7, Suit.SPADES, true)),
+        )
+        val stock1 = KlondikeDeal.createStandardDeck()
+            .filter { (it.rank to it.suit) !in used }
+            .map { it.copy(faceUp = false) }
+        val state1 = KlondikeState(puzzle, tableauWithFoundationAndReveal, foundationsEmpty, stock1, emptyList(), moveCount = 1)
+        assertEquals(KlondikeSolver.SolveVerdict.Unknown, KlondikeSolver.solveVerdict(state1, tinyBudget))
+        assertEquals(CardMove.TableauToFoundation(2), engine.hintAction(puzzle, state1, tinyBudget))
+
+        // Case 2: No foundation move exists, and both a face-down-revealing move (11H col 0 -> 12S col 1)
+        // and a playable stock/waste move exist. Must prefer revealing the face-down card.
+        used.clear()
+        val tableauWithRevealAndWaste = listOf(
+            listOf(take(5, Suit.CLUBS, false), take(11, Suit.HEARTS, true)),
+            listOf(take(6, Suit.DIAMONDS, false), take(12, Suit.SPADES, true)),
+            listOf(take(7, Suit.HEARTS, false), take(9, Suit.DIAMONDS, true)),
+            listOf(take(8, Suit.SPADES, false), take(13, Suit.DIAMONDS, true)),
+            listOf(take(9, Suit.CLUBS, false), take(10, Suit.DIAMONDS, true)),
+            listOf(take(4, Suit.DIAMONDS, false), take(8, Suit.CLUBS, true)),
+            listOf(take(3, Suit.HEARTS, false), take(7, Suit.SPADES, true)),
+        )
+        val wasteTop = take(12, Suit.CLUBS, true) // Could play onto 13D in col 3
+        val stock2 = KlondikeDeal.createStandardDeck()
+            .filter { (it.rank to it.suit) !in used }
+            .map { it.copy(faceUp = false) }
+        val state2 = KlondikeState(puzzle, tableauWithRevealAndWaste, foundationsEmpty, stock2, listOf(wasteTop), moveCount = 1)
+        assertEquals(KlondikeSolver.SolveVerdict.Unknown, KlondikeSolver.solveVerdict(state2, tinyBudget))
+        assertEquals(CardMove.TableauToTableau(0, 1, 1), engine.hintAction(puzzle, state2, tinyBudget))
+
+        // Case 3: Only a buried waste card (12C) is playable (no tableau/top-waste/foundation plays).
+        used.clear()
+        val tableauLockedExceptWaste = listOf(
+            listOf(take(5, Suit.CLUBS, false), take(13, Suit.CLUBS, true)),
+            listOf(take(6, Suit.DIAMONDS, false), take(13, Suit.DIAMONDS, true)),
+            listOf(take(7, Suit.HEARTS, false), take(13, Suit.HEARTS, true)),
+            listOf(take(8, Suit.SPADES, false), take(13, Suit.SPADES, true)),
+            listOf(take(9, Suit.CLUBS, false), take(10, Suit.DIAMONDS, true)),
+            listOf(take(4, Suit.DIAMONDS, false), take(10, Suit.HEARTS, true)),
+            listOf(take(3, Suit.HEARTS, false), take(10, Suit.SPADES, true)),
+        )
+        val buriedPlayable = take(12, Suit.CLUBS, true)
+        val blockingWasteTop = take(6, Suit.CLUBS, true)
+        val stock3 = KlondikeDeal.createStandardDeck()
+            .filter { (it.rank to it.suit) !in used }
+            .map { it.copy(faceUp = false) }
+        val state3 = KlondikeState(
+            puzzle,
+            tableauLockedExceptWaste,
+            foundationsEmpty,
+            stock3,
+            listOf(buriedPlayable, blockingWasteTop),
+            moveCount = 1,
+        )
+        assertEquals(KlondikeSolver.SolveVerdict.Unknown, KlondikeSolver.solveVerdict(state3, tinyBudget))
+        assertEquals(CardMove.DrawStock, engine.hintAction(puzzle, state3, tinyBudget))
+    }
+
+    @Test
+    fun completeSearchProvesLossOnSmallEndgameWithForwardProgressMoves() {
+        val puzzle = KlondikePuzzle("kl-proven-loss-endgame", Pack.MEDIUM, "d2", seed = 101L)
+        val foundations = mapOf(
+            Suit.CLUBS to (1..7).map { Card(it, Suit.CLUBS, true) },
+            Suit.DIAMONDS to (1..7).map { Card(it, Suit.DIAMONDS, true) },
+            Suit.HEARTS to (1..7).map { Card(it, Suit.HEARTS, true) },
+            Suit.SPADES to (1..7).map { Card(it, Suit.SPADES, true) },
+        )
+        // All 8s and 10s are locked face-down beneath the 4 Kings, and 9s sit at the base of cols 4..6,
+        // so even though all four Queens have legal forward moves onto Kings, no column can empty and
+        // no 9..13 card can ever reach foundations.
+        val tableau = listOf(
+            listOf(Card(8, Suit.CLUBS, false), Card(10, Suit.CLUBS, false), Card(11, Suit.CLUBS, false), Card(13, Suit.CLUBS, true)),
+            listOf(Card(8, Suit.DIAMONDS, false), Card(10, Suit.DIAMONDS, false), Card(11, Suit.DIAMONDS, false), Card(13, Suit.DIAMONDS, true)),
+            listOf(Card(8, Suit.HEARTS, false), Card(10, Suit.HEARTS, false), Card(11, Suit.HEARTS, false), Card(13, Suit.HEARTS, true)),
+            listOf(Card(8, Suit.SPADES, false), Card(10, Suit.SPADES, false), Card(11, Suit.SPADES, false), Card(13, Suit.SPADES, true)),
+            listOf(Card(9, Suit.CLUBS, false), Card(12, Suit.CLUBS, true)),
+            listOf(Card(9, Suit.DIAMONDS, false), Card(12, Suit.DIAMONDS, true)),
+            listOf(Card(9, Suit.HEARTS, false), Card(12, Suit.HEARTS, true)),
+        )
+        val stock = listOf(Card(9, Suit.SPADES, false), Card(12, Suit.SPADES, false))
+        val state = KlondikeState(puzzle, tableau, foundations, stock, emptyList(), moveCount = 5)
+
+        assertEquals(52, KlondikeRules.totalCardCount(state))
+        assertTrue(KlondikeRules.hasForwardProgressMove(state))
+        assertEquals(KlondikeSolver.SolveVerdict.ProvenLoss, KlondikeSolver.solveVerdict(state))
+        assertTrue(engine.isLost(puzzle, state))
+        assertNull(engine.hintAction(puzzle, state))
+    }
+
+    @Test
+    fun solverAllowsFoundationToTableauWhenFoundationsStartBelowThree() {
+        val puzzle = KlondikePuzzle("kl-rescue-from-low-foundations", Pack.HARD, "d3", seed = 102L)
+        val foundations = mapOf(
+            Suit.CLUBS to listOf(Card(1, Suit.CLUBS, true)),
+            Suit.DIAMONDS to listOf(Card(1, Suit.DIAMONDS, true)),
+            Suit.HEARTS to (1..2).map { Card(it, Suit.HEARTS, true) },
+            Suit.SPADES to (1..2).map { Card(it, Suit.SPADES, true) },
+        )
+        // All initial foundations start below 3. 3S (col 6) unlocks 4S (col 0) -> foundation,
+        // flipping 2C -> foundation, which lets 3C and 4C (col 1) -> foundation and exposes 3H -> F
+        // and 5H. Moving 3D onto 4C before 4C reaches foundation deadlocks 3H beneath 4C (blocking
+        // 4H and 2D), so both Black 4s must enter foundations and one must be pulled back onto 5H
+        // via FoundationToTableau to free 4H and 2D.
+        val tableau = listOf(
+            listOf(
+                Card(2, Suit.DIAMONDS, false),
+                Card(4, Suit.HEARTS, false),
+                Card(3, Suit.DIAMONDS, false),
+                Card(2, Suit.CLUBS, false),
+                Card(4, Suit.SPADES, true),
+            ),
+            listOf(
+                Card(5, Suit.DIAMONDS, false),
+                Card(5, Suit.SPADES, false),
+                Card(5, Suit.CLUBS, false),
+                Card(4, Suit.DIAMONDS, false),
+                Card(5, Suit.HEARTS, false),
+                Card(3, Suit.HEARTS, false),
+                Card(4, Suit.CLUBS, false),
+                Card(3, Suit.CLUBS, true),
+            ),
+            listOf(
+                Card(13, Suit.DIAMONDS, true),
+                Card(12, Suit.SPADES, true),
+                Card(11, Suit.DIAMONDS, true),
+                Card(10, Suit.SPADES, true),
+                Card(9, Suit.DIAMONDS, true),
+                Card(8, Suit.SPADES, true),
+                Card(7, Suit.DIAMONDS, true),
+                Card(6, Suit.SPADES, true),
+            ),
+            listOf(
+                Card(13, Suit.HEARTS, true),
+                Card(12, Suit.CLUBS, true),
+                Card(11, Suit.HEARTS, true),
+                Card(10, Suit.CLUBS, true),
+                Card(9, Suit.HEARTS, true),
+                Card(8, Suit.CLUBS, true),
+                Card(7, Suit.HEARTS, true),
+                Card(6, Suit.CLUBS, true),
+            ),
+            listOf(
+                Card(13, Suit.SPADES, true),
+                Card(12, Suit.HEARTS, true),
+                Card(11, Suit.SPADES, true),
+                Card(10, Suit.HEARTS, true),
+                Card(9, Suit.SPADES, true),
+                Card(8, Suit.HEARTS, true),
+                Card(7, Suit.SPADES, true),
+                Card(6, Suit.HEARTS, true),
+            ),
+            listOf(
+                Card(13, Suit.CLUBS, true),
+                Card(12, Suit.DIAMONDS, true),
+                Card(11, Suit.CLUBS, true),
+                Card(10, Suit.DIAMONDS, true),
+                Card(9, Suit.CLUBS, true),
+                Card(8, Suit.DIAMONDS, true),
+                Card(7, Suit.CLUBS, true),
+                Card(6, Suit.DIAMONDS, true),
+            ),
+            listOf(Card(3, Suit.SPADES, true)),
+        )
+        val state = KlondikeState(puzzle, tableau, foundations, emptyList(), emptyList(), moveCount = 3)
+
+        assertEquals(52, KlondikeRules.totalCardCount(state))
+        assertFalse(engine.isLost(puzzle, state))
+        val verdict = KlondikeSolver.solveVerdict(state)
+        assertTrue(verdict is KlondikeSolver.SolveVerdict.Win, "Expected Win via FoundationToTableau rescue, got $verdict")
+        val moves = (verdict as KlondikeSolver.SolveVerdict.Win).moves
+        assertTrue(moves.any { it is CardMove.FoundationToTableau }, "Expected FoundationToTableau in $moves")
+        val endState = moves.fold(state) { current, move -> engine.applyAction(current, move) }
+        assertTrue(engine.isWon(puzzle, endState))
+    }
+
+    @Test
+    fun hardSeedRegressionNeverFalseLossesAndFollowsHintsToWin() {
+        val puzzle = KlondikePuzzle(
+            bankId = "KL-HARD-regression",
+            pack = Pack.HARD,
+            difficulty = "d3",
+            seed = -2548818271126279034L,
+        )
+        assertFollowsHintsToWin(puzzle, "HARD regression seed=-2548818271126279034", maxSteps = 320)
     }
 }

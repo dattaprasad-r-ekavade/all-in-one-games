@@ -214,62 +214,161 @@ object KlondikeRules {
             state.stock.size +
             state.waste.size
 
+    fun isSafeFoundationRank(
+        clubsRank: Int,
+        diamondsRank: Int,
+        heartsRank: Int,
+        spadesRank: Int,
+        rank: Int,
+        suit: Suit,
+    ): Boolean {
+        if (rank <= 2) return true
+        return if (suit.isRed) {
+            val minBlack = minOf(clubsRank, spadesRank)
+            val otherRed = if (suit == Suit.DIAMONDS) heartsRank else diamondsRank
+            minBlack >= rank - 1 && otherRed >= rank - 2
+        } else {
+            val minRed = minOf(diamondsRank, heartsRank)
+            val otherBlack = if (suit == Suit.CLUBS) spadesRank else clubsRank
+            minRed >= rank - 1 && otherBlack >= rank - 2
+        }
+    }
+
     /**
      * True when at least one non-oscillating forward move exists: playing to foundation,
      * playing a stock/waste card onto tableau or foundation, moving a complete face-up run
      * to another column (excluding King-to-empty permutations), or splitting a run only to
      * uncover a card that can immediately move to foundation.
      */
-    fun hasForwardProgressMove(state: KlondikeState): Boolean {
+    fun hasForwardProgressMove(state: KlondikeState): Boolean =
+        bestForwardProgressHint(state) != null
+
+    /**
+     * True when a non-safe card of rank >= 3 on a foundation can legally move back onto
+     * a tableau column (for example, to rescue a blocked low-rank card).
+     */
+    fun hasRescueFoundationToTableauMove(state: KlondikeState): Boolean {
         if (isWon(state)) return false
-
-        for (col in 0 until TABLEAU_COLUMNS) {
-            val card = state.tableau[col].lastOrNull() ?: continue
-            if (card.faceUp && isFoundationPlacementLegal(state.foundations, card)) {
-                return true
-            }
-        }
-
-        val availableCards = state.stock + state.waste
-        for (card in availableCards) {
-            if (isFoundationPlacementLegal(state.foundations, card)) {
-                return true
-            }
+        val clubsRank = state.foundations[Suit.CLUBS]?.size ?: 0
+        val diamondsRank = state.foundations[Suit.DIAMONDS]?.size ?: 0
+        val heartsRank = state.foundations[Suit.HEARTS]?.size ?: 0
+        val spadesRank = state.foundations[Suit.SPADES]?.size ?: 0
+        for (suit in Suit.entries) {
+            val card = state.foundations[suit]?.lastOrNull() ?: continue
+            if (card.rank < 3) continue
+            if (isSafeFoundationRank(clubsRank, diamondsRank, heartsRank, spadesRank, card.rank, suit)) continue
             for (to in 0 until TABLEAU_COLUMNS) {
                 if (isTableauPlacementLegal(state.tableau[to], card)) {
                     return true
                 }
             }
         }
+        return false
+    }
 
-        for (from in 0 until TABLEAU_COLUMNS) {
-            val pile = state.tableau[from]
-            if (pile.isEmpty()) continue
-            val firstFaceUp = pile.indexOfFirst { it.faceUp }
-            if (firstFaceUp == -1) continue
+    /**
+     * Returns one legal forward-progress [CardMove] for [state], or `null` if none exists.
+     * Prefers foundation plays (revealing face-down cards first), then tableau moves that reveal
+     * a face-down card, then other forward tableau/waste/split moves, then drawing or recycling
+     * toward a playable stock/waste card.
+     */
+    fun bestForwardProgressHint(state: KlondikeState): CardMove? {
+        if (isWon(state)) return null
 
-            var runBase = pile.lastIndex
-            while (runBase > firstFaceUp) {
-                val upper = pile[runBase - 1]
-                val lower = pile[runBase]
-                if (upper.isRed != lower.isRed && upper.rank == lower.rank + 1) {
-                    runBase--
-                } else {
-                    break
+        // 1. Prefer foundation moves, prioritizing tableau plays that reveal a face-down card.
+        var fallbackFoundationCol = -1
+        for (col in 0 until TABLEAU_COLUMNS) {
+            val pile = state.tableau[col]
+            val card = pile.lastOrNull() ?: continue
+            if (card.faceUp && isFoundationPlacementLegal(state.foundations, card)) {
+                val revealsFaceDown = pile.size >= 2 && !pile[pile.lastIndex - 1].faceUp
+                if (revealsFaceDown) {
+                    return CardMove.TableauToFoundation(col)
+                }
+                if (fallbackFoundationCol == -1) {
+                    fallbackFoundationCol = col
                 }
             }
+        }
+        if (fallbackFoundationCol != -1) {
+            return CardMove.TableauToFoundation(fallbackFoundationCol)
+        }
+        if (state.waste.isNotEmpty() && isFoundationPlacementLegal(state.foundations, state.waste.last())) {
+            return CardMove.WasteToFoundation
+        }
 
+        val runBases = IntArray(TABLEAU_COLUMNS) { col -> findRunBase(state.tableau[col]) }
+
+        // 2. Prefer tableau moves that reveal a face-down card.
+        for (from in 0 until TABLEAU_COLUMNS) {
+            val runBase = runBases[from]
+            if (runBase <= 0) continue
+            val pile = state.tableau[from]
+            if (pile[runBase - 1].faceUp) continue
             val baseCard = pile[runBase]
             for (to in 0 until TABLEAU_COLUMNS) {
-                if (to == from) continue
-                if (isTableauPlacementLegal(state.tableau[to], baseCard)) {
-                    val isRedundantKingMove = runBase == 0 && baseCard.rank == KING_RANK && state.tableau[to].isEmpty()
-                    if (!isRedundantKingMove) {
-                        return true
-                    }
+                if (to != from && isTableauPlacementLegal(state.tableau[to], baseCard)) {
+                    return CardMove.TableauToTableau(from, runBase, to)
                 }
             }
+        }
+        // Splitting immediately below runBase when runBase covers a face-down card and can go to foundation.
+        for (from in 0 until TABLEAU_COLUMNS) {
+            val runBase = runBases[from]
+            if (runBase <= 0) continue
+            val pile = state.tableau[from]
+            if (pile[runBase - 1].faceUp) continue
+            if (runBase + 1 >= pile.size) continue
+            val exposed = pile[runBase]
+            if (!isFoundationPlacementLegal(state.foundations, exposed)) continue
+            val splitCard = pile[runBase + 1]
+            for (to in 0 until TABLEAU_COLUMNS) {
+                if (to == from || state.tableau[to].isEmpty()) continue
+                if (isTableauPlacementLegal(state.tableau[to], splitCard)) {
+                    return CardMove.TableauToTableau(from, runBase + 1, to)
+                }
+            }
+        }
 
+        // 3. Other non-redundant tableau run moves (uncovering face-up cards or freeing a column).
+        for (from in 0 until TABLEAU_COLUMNS) {
+            val runBase = runBases[from]
+            if (runBase <= 0) continue
+            val baseCard = state.tableau[from][runBase]
+            for (to in 0 until TABLEAU_COLUMNS) {
+                if (to != from && isTableauPlacementLegal(state.tableau[to], baseCard)) {
+                    return CardMove.TableauToTableau(from, runBase, to)
+                }
+            }
+        }
+        for (from in 0 until TABLEAU_COLUMNS) {
+            val runBase = runBases[from]
+            if (runBase != 0) continue
+            val baseCard = state.tableau[from][0]
+            for (to in 0 until TABLEAU_COLUMNS) {
+                if (to == from) continue
+                val isRedundantKingMove = baseCard.rank == KING_RANK && state.tableau[to].isEmpty()
+                if (!isRedundantKingMove && isTableauPlacementLegal(state.tableau[to], baseCard)) {
+                    return CardMove.TableauToTableau(from, 0, to)
+                }
+            }
+        }
+
+        // Top of waste -> tableau.
+        if (state.waste.isNotEmpty()) {
+            val topWaste = state.waste.last()
+            for (to in 0 until TABLEAU_COLUMNS) {
+                if (isTableauPlacementLegal(state.tableau[to], topWaste)) {
+                    return CardMove.WasteToTableau(to)
+                }
+            }
+        }
+
+        // Split a run onto a non-empty column when the newly exposed card can go to foundation.
+        for (from in 0 until TABLEAU_COLUMNS) {
+            val runBase = runBases[from]
+            if (runBase == -1) continue
+            val pile = state.tableau[from]
             for (splitIndex in (runBase + 1) until pile.size) {
                 val exposed = pile[splitIndex - 1]
                 if (!isFoundationPlacementLegal(state.foundations, exposed)) continue
@@ -277,13 +376,50 @@ object KlondikeRules {
                 for (to in 0 until TABLEAU_COLUMNS) {
                     if (to == from || state.tableau[to].isEmpty()) continue
                     if (isTableauPlacementLegal(state.tableau[to], splitCard)) {
-                        return true
+                        return CardMove.TableauToTableau(from, splitIndex, to)
                     }
                 }
             }
         }
 
+        // 4. Advance stock or recycle waste toward a playable card in stock or waste.
+        for (card in state.stock) {
+            if (isPlayableCard(state, card)) {
+                return CardMove.DrawStock
+            }
+        }
+        for (card in state.waste) {
+            if (isPlayableCard(state, card)) {
+                return if (state.stock.isNotEmpty()) CardMove.DrawStock else CardMove.RecycleWaste
+            }
+        }
+
+        return null
+    }
+
+    private fun isPlayableCard(state: KlondikeState, card: Card): Boolean {
+        if (isFoundationPlacementLegal(state.foundations, card)) return true
+        for (to in 0 until TABLEAU_COLUMNS) {
+            if (isTableauPlacementLegal(state.tableau[to], card)) return true
+        }
         return false
+    }
+
+    private fun findRunBase(pile: List<Card>): Int {
+        if (pile.isEmpty()) return -1
+        val top = pile.last()
+        if (!top.faceUp) return -1
+        var runBase = pile.lastIndex
+        while (runBase > 0) {
+            val upper = pile[runBase - 1]
+            val lower = pile[runBase]
+            if (upper.faceUp && upper.isRed != lower.isRed && upper.rank == lower.rank + 1) {
+                runBase--
+            } else {
+                break
+            }
+        }
+        return runBase
     }
 
     /**

@@ -15,19 +15,46 @@ object KlondikeSolver {
     private const val SUIT_COUNT = 4
     private const val KING_RANK = KlondikeRules.KING_RANK
 
-    private const val TIER1_MAX_NODES = 2_000
-    private const val ENDGAME_EXACT_THRESHOLD_FACEDOWN = 6
-    private const val ENDGAME_EXACT_THRESHOLD_STOCK_WASTE = 12
+    private const val TIER1_MAX_NODES = 500
+    private const val ENDGAME_EXACT_THRESHOLD_FACEDOWN = 5
+    private const val ENDGAME_EXACT_THRESHOLD_STOCK_WASTE = 10
     private const val FAST_BEAM_WIDTH = 220
     private const val BEAM_MAX_DEPTH = 140
     private const val TIER2_DFS_MAX_NODES = 25_000
     private const val TIER2B_RESCUE_MAX_NODES = 15_000
     private const val TIER3_MAX_NODES = 10_000
+    private const val EXACT_PROOF_MAX_NODES = 10_000
+    private const val VERDICT_CACHE_CAPACITY = 16
 
     private const val FACE_UP_FLAG = 64
     private const val RANK_MASK = 0x0F
     private const val SUIT_SHIFT = 4
     private const val SUIT_MASK = 0x03
+
+    internal val DEFAULT_BUDGET = SearchBudget()
+
+    internal data class SearchBudget(
+        val exactEndgameMaxNodes: Int = TIER1_MAX_NODES,
+        val beamWidth: Int = FAST_BEAM_WIDTH,
+        val beamMaxDepth: Int = BEAM_MAX_DEPTH,
+        val dfsMaxNodes: Int = TIER2_DFS_MAX_NODES,
+        val weightedMaxNodes: Int = TIER2B_RESCUE_MAX_NODES,
+        val foundationRescueMaxNodes: Int = TIER3_MAX_NODES,
+        val exactProofMaxNodes: Int = EXACT_PROOF_MAX_NODES,
+    )
+
+    private data class VerdictCacheKey(
+        val stateKey: StateKey,
+        val budget: SearchBudget,
+    )
+
+    private val threadVerdictCache: ThreadLocal<LinkedHashMap<VerdictCacheKey, SolveVerdict>> =
+        ThreadLocal.withInitial {
+            object : LinkedHashMap<VerdictCacheKey, SolveVerdict>(VERDICT_CACHE_CAPACITY + 1, 0.75f, true) {
+                override fun removeEldestEntry(eldest: MutableMap.MutableEntry<VerdictCacheKey, SolveVerdict>?): Boolean =
+                    size > VERDICT_CACHE_CAPACITY
+            }
+        }
 
     data class SolveResult(
         val moves: List<CardMove>,
@@ -37,13 +64,31 @@ object KlondikeSolver {
     )
 
     /**
+     * Three-way search verdict distinguishing a proven winning line ([Win]), a mathematically
+     * complete exhaustion of all reachable states ([ProvenLoss]), and budget exhaustion ([Unknown]).
+     */
+    sealed interface SolveVerdict {
+        data class Win(
+            val moves: List<CardMove>,
+            val result: SolveResult = buildResult(moves, exploredNodes = 0),
+        ) : SolveVerdict
+
+        data object ProvenLoss : SolveVerdict
+
+        data object Unknown : SolveVerdict
+    }
+
+    /**
      * Returns a winning sequence of [CardMove]s starting from [state], or `null` if no winning line
-     * is found. Prioritizes shortest winning paths on the acyclic primary move graph.
+     * is found within the solver budget.
      */
     fun solve(state: KlondikeState): List<CardMove>? = solveDetailed(state)?.moves
 
-    /** Returns `true` when [solveDetailed] finds a winning sequence from [state]. */
-    fun isWinnable(state: KlondikeState): Boolean = solveDetailed(state) != null
+    /**
+     * Returns `true` when [solveVerdict] finds a winning sequence from [state]; `false` indicates
+     * either [SolveVerdict.ProvenLoss] or [SolveVerdict.Unknown] (search budget reached).
+     */
+    fun isWinnable(state: KlondikeState): Boolean = solveVerdict(state) is SolveVerdict.Win
 
     /**
      * Fast solver pass used by [KlondikeGenerator] to filter candidate deals without spending
@@ -64,98 +109,136 @@ object KlondikeSolver {
             beamWidth = FAST_BEAM_WIDTH,
             maxDepth = BEAM_MAX_DEPTH,
             allowFoundationToTableau = false,
+            allowAllSplits = false,
         )
         return fast.result
     }
 
-    /** Solves [state] and reports the winning moves alongside path and search metrics. */
-    fun solveDetailed(state: KlondikeState): SolveResult? {
+    /** Solves [state] and reports the winning moves alongside path and search metrics, or `null` if not won. */
+    fun solveDetailed(state: KlondikeState): SolveResult? =
+        (solveVerdict(state) as? SolveVerdict.Win)?.result
+
+    /**
+     * Evaluates [state] with a three-way verdict: [SolveVerdict.Win] when a winning line is found,
+     * [SolveVerdict.ProvenLoss] only when a complete search (no beam pruning, no node cap reached,
+     * `FoundationToTableau` allowed whenever it could matter, and all run splits allowed) exhausts
+     * all reachable states, or [SolveVerdict.Unknown] when the search budget is reached.
+     */
+    fun solveVerdict(state: KlondikeState): SolveVerdict = solveVerdict(state, DEFAULT_BUDGET)
+
+    internal fun solveVerdict(state: KlondikeState, budget: SearchBudget): SolveVerdict {
         if (KlondikeRules.isWon(state)) {
-            return SolveResult(
+            return SolveVerdict.Win(
                 moves = emptyList(),
-                exploredNodes = 0,
-                nonDrawMoves = 0,
-                recycleCount = 0,
+                result = SolveResult(
+                    moves = emptyList(),
+                    exploredNodes = 0,
+                    nonDrawMoves = 0,
+                    recycleCount = 0,
+                ),
             )
         }
 
         val initialPacked = packState(state)
+        val cacheKey = VerdictCacheKey(initialPacked.toKey(), budget)
+        val cache = threadVerdictCache.get()
+        cache[cacheKey]?.let { return it }
+
+        val verdict = computeSolveVerdict(initialPacked, budget)
+        cache[cacheKey] = verdict
+        return verdict
+    }
+
+    private fun computeSolveVerdict(initialPacked: PackedState, budget: SearchBudget): SolveVerdict {
         val initialSafe = collapseSafeMoves(initialPacked)
         if (initialSafe.state.isWon()) {
-            return buildResult(initialSafe.safeMoves, exploredNodes = 0)
+            val result = buildResult(initialSafe.safeMoves, exploredNodes = 0)
+            return SolveVerdict.Win(result.moves, result)
         }
-
-        val canUseFoundationRescue = initialSafe.state.foundations.any { it >= 3 }
 
         val tryExactFirst = countFaceDown(initialSafe.state) <= ENDGAME_EXACT_THRESHOLD_FACEDOWN &&
             (initialSafe.state.stock.size + initialSafe.state.waste.size) <= ENDGAME_EXACT_THRESHOLD_STOCK_WASTE
+        var primaryExhausted = false
         if (tryExactFirst) {
             val tier1 = runSearch(
                 startState = initialSafe.state,
                 initialSafeMoves = initialSafe.safeMoves,
                 useProgressScore = false,
-                maxNodes = TIER1_MAX_NODES,
+                maxNodes = budget.exactEndgameMaxNodes,
                 allowFoundationToTableau = false,
+                allowAllSplits = false,
             )
-            if (tier1.result != null) return tier1.result
-            if (tier1.exhausted && !canUseFoundationRescue) {
-                return null
+            if (tier1.result != null) return SolveVerdict.Win(tier1.result.moves, tier1.result)
+            primaryExhausted = tier1.exhausted
+        }
+
+        if (!primaryExhausted) {
+            // Tier 2A: Fast beam search on the cycle-free primary graph.
+            val tier2Fast = runBeamSearch(
+                startState = initialSafe.state,
+                initialSafeMoves = initialSafe.safeMoves,
+                beamWidth = budget.beamWidth,
+                maxDepth = budget.beamMaxDepth,
+                allowFoundationToTableau = false,
+                allowAllSplits = false,
+            )
+            if (tier2Fast.result != null) return SolveVerdict.Win(tier2Fast.result.moves, tier2Fast.result)
+
+            // Tier 2B & 2C: DFS and weighted A* rescue when beam search truncated or hit depth limit.
+            if (!tier2Fast.exhausted) {
+                val tier2Dfs = runDfsSearch(
+                    startState = initialSafe.state,
+                    initialSafeMoves = initialSafe.safeMoves,
+                    maxNodes = budget.dfsMaxNodes,
+                    allowFoundationToTableau = false,
+                    allowAllSplits = false,
+                )
+                if (tier2Dfs.result != null) return SolveVerdict.Win(tier2Dfs.result.moves, tier2Dfs.result)
+
+                if (!tier2Dfs.exhausted) {
+                    val tier2Weighted = runSearch(
+                        startState = initialSafe.state,
+                        initialSafeMoves = initialSafe.safeMoves,
+                        useProgressScore = true,
+                        maxNodes = budget.weightedMaxNodes,
+                        allowFoundationToTableau = false,
+                        allowAllSplits = false,
+                    )
+                    if (tier2Weighted.result != null) {
+                        return SolveVerdict.Win(tier2Weighted.result.moves, tier2Weighted.result)
+                    }
+                }
             }
         }
 
-        // Tier 2A: Fast beam search on the cycle-free primary graph.
-        val tier2Fast = runBeamSearch(
+        // Tier 3: Bounded rescue search allowing FoundationToTableau whenever foundations reach rank >= 3.
+        val tier3 = runSearch(
             startState = initialSafe.state,
             initialSafeMoves = initialSafe.safeMoves,
-            beamWidth = FAST_BEAM_WIDTH,
-            maxDepth = BEAM_MAX_DEPTH,
-            allowFoundationToTableau = false,
+            useProgressScore = true,
+            maxNodes = budget.foundationRescueMaxNodes,
+            allowFoundationToTableau = true,
+            allowAllSplits = false,
         )
-        if (tier2Fast.result != null) return tier2Fast.result
-        if (tier2Fast.exhausted && !canUseFoundationRescue) {
-            return null
-        }
+        if (tier3.result != null) return SolveVerdict.Win(tier3.result.moves, tier3.result)
 
-        // Tier 2B: Heuristic-guided DFS rescue (backtracks out of beam-search traps).
-        if (!tier2Fast.exhausted) {
-            val tier2Dfs = runDfsSearch(
+        // Complete proof pass: run only when Tier 3 (which explores a subset of all-splits states)
+        // exhausted without hitting its node cap, so ProvenLoss requires exhausting all reachable
+        // states with FoundationToTableau and all run splits enabled.
+        if (tier3.exhausted) {
+            val exactProof = runSearch(
                 startState = initialSafe.state,
                 initialSafeMoves = initialSafe.safeMoves,
-                maxNodes = TIER2_DFS_MAX_NODES,
-                allowFoundationToTableau = false,
-            )
-            if (tier2Dfs.result != null) return tier2Dfs.result
-            if (tier2Dfs.exhausted && !canUseFoundationRescue) {
-                return null
-            }
-
-            // Tier 2C: Balanced weighted A* rescue when DFS explores a deep non-winning subtree.
-            val tier2Weighted = runSearch(
-                startState = initialSafe.state,
-                initialSafeMoves = initialSafe.safeMoves,
-                useProgressScore = true,
-                maxNodes = TIER2B_RESCUE_MAX_NODES,
-                allowFoundationToTableau = false,
-            )
-            if (tier2Weighted.result != null) return tier2Weighted.result
-            if (tier2Weighted.exhausted && !canUseFoundationRescue) {
-                return null
-            }
-        }
-
-        // Tier 3: Bounded rescue search allowing FoundationToTableau when ranks >= 3 are on foundations.
-        if (canUseFoundationRescue) {
-            val tier3 = runSearch(
-                startState = initialSafe.state,
-                initialSafeMoves = initialSafe.safeMoves,
-                useProgressScore = true,
-                maxNodes = TIER3_MAX_NODES,
+                useProgressScore = false,
+                maxNodes = budget.exactProofMaxNodes,
                 allowFoundationToTableau = true,
+                allowAllSplits = true,
             )
-            if (tier3.result != null) return tier3.result
+            if (exactProof.result != null) return SolveVerdict.Win(exactProof.result.moves, exactProof.result)
+            if (exactProof.exhausted) return SolveVerdict.ProvenLoss
         }
 
-        return null
+        return SolveVerdict.Unknown
     }
 
     private data class SearchOutcome(
@@ -296,6 +379,7 @@ object KlondikeSolver {
         initialSafeMoves: List<CardMove>,
         maxNodes: Int,
         allowFoundationToTableau: Boolean,
+        allowAllSplits: Boolean,
     ): SearchOutcome {
         val visited = HashSet<StateKey>()
         val stack = ArrayDeque<SearchNode>()
@@ -327,7 +411,14 @@ object KlondikeSolver {
         visited.add(startKey)
 
         var explored = 0
-        while (stack.isNotEmpty() && explored < maxNodes) {
+        while (stack.isNotEmpty()) {
+            if (explored >= maxNodes) {
+                return SearchOutcome(
+                    result = null,
+                    exhausted = false,
+                    explored = explored,
+                )
+            }
             val current = stack.removeLast()
             explored++
             if (current.state.isWon()) {
@@ -338,7 +429,7 @@ object KlondikeSolver {
                 )
             }
 
-            val candidates = generateCandidates(current.state, allowFoundationToTableau)
+            val candidates = generateCandidates(current.state, allowFoundationToTableau, allowAllSplits)
             if (candidates.isEmpty()) continue
 
             val children = ArrayList<SearchNode>(candidates.size)
@@ -404,7 +495,7 @@ object KlondikeSolver {
 
         return SearchOutcome(
             result = null,
-            exhausted = stack.isEmpty(),
+            exhausted = true,
             explored = explored,
         )
     }
@@ -415,6 +506,7 @@ object KlondikeSolver {
         useProgressScore: Boolean,
         maxNodes: Int,
         allowFoundationToTableau: Boolean,
+        allowAllSplits: Boolean,
     ): SearchOutcome {
         val openSet = PriorityQueue<SearchNode>()
         val bestG = HashMap<StateKey, Int>()
@@ -449,11 +541,18 @@ object KlondikeSolver {
         bestG[startKey] = startNode.g
 
         var explored = 0
-        while (openSet.isNotEmpty() && explored < maxNodes) {
+        while (openSet.isNotEmpty()) {
             val current = openSet.poll() ?: break
             val recordedG = bestG[current.key]
             if (recordedG != null && current.g > recordedG) {
                 continue
+            }
+            if (explored >= maxNodes) {
+                return SearchOutcome(
+                    result = null,
+                    exhausted = false,
+                    explored = explored,
+                )
             }
 
             explored++
@@ -465,7 +564,7 @@ object KlondikeSolver {
                 )
             }
 
-            val candidates = generateCandidates(current.state, allowFoundationToTableau)
+            val candidates = generateCandidates(current.state, allowFoundationToTableau, allowAllSplits)
             for (candidate in candidates) {
                 val collapsed = collapseSafeMoves(candidate.state)
                 val edge = EdgeStep(
@@ -508,7 +607,7 @@ object KlondikeSolver {
 
         return SearchOutcome(
             result = null,
-            exhausted = openSet.isEmpty(),
+            exhausted = true,
             explored = explored,
         )
     }
@@ -519,6 +618,7 @@ object KlondikeSolver {
         beamWidth: Int,
         maxDepth: Int,
         allowFoundationToTableau: Boolean,
+        allowAllSplits: Boolean,
     ): SearchOutcome {
         val bestG = HashMap<StateKey, Int>()
         var insertionCounter = 0L
@@ -566,7 +666,7 @@ object KlondikeSolver {
                     )
                 }
 
-                val candidates = generateCandidates(current.state, allowFoundationToTableau)
+                val candidates = generateCandidates(current.state, allowFoundationToTableau, allowAllSplits)
                 for (candidate in candidates) {
                     val collapsed = collapseSafeMoves(candidate.state)
                     val edge = EdgeStep(
@@ -731,27 +831,20 @@ object KlondikeSolver {
      * A card of [rank] and [suit] can move safely to foundation whenever all opposite-color cards
      * of rank - 1 and the sibling same-color card of rank - 2 are already on foundations.
      */
-    private fun isSafeToFoundation(foundations: IntArray, rank: Int, suit: Int): Boolean {
-        if (rank <= 2) return true
-        val red = isSuitRed(suit)
-        val minOpposite = if (red) {
-            minOf(foundations[0], foundations[3])
-        } else {
-            minOf(foundations[1], foundations[2])
-        }
-        if (minOpposite < rank - 1) return false
-
-        val otherSame = if (red) {
-            if (suit == 1) foundations[2] else foundations[1]
-        } else {
-            if (suit == 0) foundations[3] else foundations[0]
-        }
-        return otherSame >= rank - 2
-    }
+    private fun isSafeToFoundation(foundations: IntArray, rank: Int, suit: Int): Boolean =
+        KlondikeRules.isSafeFoundationRank(
+            clubsRank = foundations[0],
+            diamondsRank = foundations[1],
+            heartsRank = foundations[2],
+            spadesRank = foundations[3],
+            rank = rank,
+            suit = Suit.entries[suit],
+        )
 
     private fun generateCandidates(
         state: PackedState,
         allowFoundationToTableau: Boolean,
+        allowAllSplits: Boolean,
     ): List<CandidateTransition> {
         val candidates = ArrayList<CandidateTransition>(16)
         val firstEmptyColumn = firstEmptyTableauColumn(state.tableau)
@@ -835,10 +928,10 @@ object KlondikeSolver {
                 }
             }
 
-            // Splitting a valid run is useful only when the newly exposed card immediately goes to foundation.
             for (cardIndex in (runBase + 1) until pile.size) {
                 val exposedCard = pile[cardIndex - 1]
-                if (!canPlaceOnFoundation(state.foundations, exposedCard)) continue
+                val exposedCanGoFoundation = canPlaceOnFoundation(state.foundations, exposedCard)
+                if (!allowAllSplits && !exposedCanGoFoundation) continue
                 val splitCard = pile[cardIndex]
                 for (toColumn in 0 until TABLEAU_COLUMNS) {
                     if (toColumn == fromColumn) continue
@@ -846,17 +939,29 @@ object KlondikeSolver {
                     if (targetPile.isEmpty()) continue
                     if (canPlaceOnTableau(targetPile, splitCard)) {
                         val afterRunMove = moveTableauRun(state, fromColumn, cardIndex, toColumn)
-                        val afterFoundation = moveTableauTopToFoundation(afterRunMove, fromColumn)
-                        candidates.add(
-                            CandidateTransition(
-                                state = afterFoundation,
-                                drawsBeforeRecycle = 0,
-                                doRecycle = false,
-                                drawsAfterRecycle = 0,
-                                primaryMove = CardMove.TableauToTableau(fromColumn, cardIndex, toColumn),
-                                secondaryMove = CardMove.TableauToFoundation(fromColumn),
-                            ),
-                        )
+                        if (exposedCanGoFoundation) {
+                            val afterFoundation = moveTableauTopToFoundation(afterRunMove, fromColumn)
+                            candidates.add(
+                                CandidateTransition(
+                                    state = afterFoundation,
+                                    drawsBeforeRecycle = 0,
+                                    doRecycle = false,
+                                    drawsAfterRecycle = 0,
+                                    primaryMove = CardMove.TableauToTableau(fromColumn, cardIndex, toColumn),
+                                    secondaryMove = CardMove.TableauToFoundation(fromColumn),
+                                ),
+                            )
+                        } else {
+                            candidates.add(
+                                CandidateTransition(
+                                    state = afterRunMove,
+                                    drawsBeforeRecycle = 0,
+                                    doRecycle = false,
+                                    drawsAfterRecycle = 0,
+                                    primaryMove = CardMove.TableauToTableau(fromColumn, cardIndex, toColumn),
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -865,11 +970,11 @@ object KlondikeSolver {
         // 4. Macro stock-cycle moves for cards currently in stock.
         for (stockIndex in state.stock.indices) {
             val drawnCard = makeFaceUp(state.stock[stockIndex])
-            val drawsNeeded = state.stock.size - stockIndex
             val canGoFoundation = canPlaceOnFoundation(state.foundations, drawnCard)
-            val tableauTargets = legalTableauTargets(state.tableau, drawnCard, firstEmptyColumn)
-            if (!canGoFoundation && tableauTargets.isEmpty()) continue
+            val targetMask = legalTableauTargetMask(state.tableau, drawnCard, firstEmptyColumn)
+            if (!canGoFoundation && targetMask == 0) continue
 
+            val drawsNeeded = state.stock.size - stockIndex
             val nextStock = state.stock.copyOfRange(0, stockIndex)
             val skippedCount = state.stock.size - 1 - stockIndex
             val nextWaste = IntArray(state.waste.size + skippedCount)
@@ -892,7 +997,8 @@ object KlondikeSolver {
                     ),
                 )
             }
-            for (toColumn in tableauTargets) {
+            for (toColumn in 0 until TABLEAU_COLUMNS) {
+                if ((targetMask and (1 shl toColumn)) == 0) continue
                 val nextTableau = state.tableau.copyOf()
                 nextTableau[toColumn] = appendCard(state.tableau[toColumn], drawnCard)
                 candidates.add(
@@ -912,8 +1018,8 @@ object KlondikeSolver {
             for (wasteIndex in 0 until state.waste.size - 1) {
                 val targetCard = state.waste[wasteIndex]
                 val canGoFoundation = canPlaceOnFoundation(state.foundations, targetCard)
-                val tableauTargets = legalTableauTargets(state.tableau, targetCard, firstEmptyColumn)
-                if (!canGoFoundation && tableauTargets.isEmpty()) continue
+                val targetMask = legalTableauTargetMask(state.tableau, targetCard, firstEmptyColumn)
+                if (!canGoFoundation && targetMask == 0) continue
 
                 val remainingAfterIndex = state.waste.size - 1 - wasteIndex
                 val nextStock = IntArray(state.stock.size + remainingAfterIndex)
@@ -937,7 +1043,8 @@ object KlondikeSolver {
                         ),
                     )
                 }
-                for (toColumn in tableauTargets) {
+                for (toColumn in 0 until TABLEAU_COLUMNS) {
+                    if ((targetMask and (1 shl toColumn)) == 0) continue
                     val nextTableau = state.tableau.copyOf()
                     nextTableau[toColumn] = appendCard(state.tableau[toColumn], targetCard)
                     candidates.add(
@@ -1040,23 +1147,23 @@ object KlondikeSolver {
         return false
     }
 
-    private fun legalTableauTargets(
+    private fun legalTableauTargetMask(
         tableau: Array<IntArray>,
         card: Int,
         firstEmptyColumn: Int,
-    ): List<Int> {
-        val targets = ArrayList<Int>(2)
+    ): Int {
+        var mask = 0
         for (column in 0 until TABLEAU_COLUMNS) {
             val pile = tableau[column]
             if (pile.isEmpty()) {
                 if (column == firstEmptyColumn && cardRank(card) == KING_RANK) {
-                    targets.add(column)
+                    mask = mask or (1 shl column)
                 }
             } else if (canPlaceOnTableau(pile, card)) {
-                targets.add(column)
+                mask = mask or (1 shl column)
             }
         }
-        return targets
+        return mask
     }
 
     private fun moveTableauTopToFoundation(state: PackedState, column: Int): PackedState {
