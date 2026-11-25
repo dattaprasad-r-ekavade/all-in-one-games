@@ -2,7 +2,6 @@ package com.datathecodie.witgrid.engine.arrows
 
 import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Pack
-import com.datathecodie.witgrid.engine.core.SplitMix64
 import com.datathecodie.witgrid.engine.core.VersionedStateCodec
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -417,17 +416,6 @@ class ArrowsEngineTest {
         }
         assertThrows(IllegalArgumentException::class.java) {
             engine.decodeState(illegalTransitionBytes)
-        }
-    }
-
-    @Test
-    fun deferredFeaturesThrow() {
-        val start = engine.initialState(easyFixture)
-        assertThrows(NotImplementedError::class.java) {
-            engine.hintAction(easyFixture, start)
-        }
-        assertThrows(NotImplementedError::class.java) {
-            engine.generate(SplitMix64(1), Pack.EASY)
         }
     }
 
