@@ -85,10 +85,10 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 done, SU4 active (Haiku) |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 done, SU4 review (committed; not compiled; batch not run) |
 | SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | done |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | done |
-| SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | active (Codex luna) |
+| SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | review (lead fixes 1babb1d; batch not run) |
 | CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 done, CS3 todo |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | done |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
