@@ -152,8 +152,13 @@ if ($Agent -eq 'codex') {
     $grokPrompt = $prompt + "`nYou cannot run Gradle or git in this mode. Write the code and tests carefully, then stop. The lead compiles and commits.`n"
     $promptFile = Join-Path $logDir "$Task.prompt.md"
     Set-Content -Path $promptFile -Value $grokPrompt -Encoding UTF8
-    grok --prompt-file $promptFile --cwd $wt -m $model --permission-mode acceptEdits --no-memory --max-turns 200 2>&1 |
+    # Headless acceptEdits still asks before Edit/Write, so allow only those two tools (no shell).
+    # Grok writes notices to stderr; with 'Stop' PowerShell 5.1 would treat them as a fatal error.
+    $ErrorActionPreference = 'Continue'
+    grok --prompt-file $promptFile --cwd $wt -m $model --permission-mode acceptEdits --allow Edit --allow Write `
+        --no-memory --max-turns 200 2>&1 |
         Tee-Object -Variable agentOutput
+    $ErrorActionPreference = 'Stop'
     $agentOutput | Out-File -FilePath $handoff -Encoding utf8
 } else {
     $model = @{ L = 'haiku'; M = 'sonnet'; H = 'sonnet' }[$Tier]
