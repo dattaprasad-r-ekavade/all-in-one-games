@@ -89,7 +89,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | done |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | done |
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | review (lead fixes 1babb1d; batch not run) |
-| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 done, CS3 active |
+| CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | done |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | done |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
@@ -714,6 +714,7 @@ Three engine cards (no unique-technique x2). **Owns:** `engine/…/<game>/**` an
 
 **Done when:** `./gradlew :engine:test` passes. x2: seed 1 gives 10 winnable levels per pack, same seed same output. x3: fixtures cover win, lose, illegal action, hint on a mid-game state.
 **Lead completion note (22 Nov 2026):** CS1 squash-merged as `d716a8d`. Capacity 4; pour moves the whole top run that fits; `isLost` false at deal start. `hintAction`/`generate` still throw (CS2). Review suggestions for CS2: reach deadlock through `applyAction` rather than a fake `pourCount`; test a top run that only partly fits.
+**Lead completion note (25 Nov 2026):** CS3 squash-merged as `94d3d97`. 21 spec tests; deadlock via real pours. CSB unblocked. Suggestion: mid-game hint test should `assertNotNull`.
 
 ### SUA — Sudoku 9x9 board
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
