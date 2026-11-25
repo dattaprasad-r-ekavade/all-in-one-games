@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.futoshiki.FutoshikiState
 import com.datathecodie.witgrid.games.EngineGameModule
 import com.datathecodie.witgrid.games.GameModule
 
-/** Futoshiki bank behaviour and its digit/notes board with inequality signs. Registration lives in FUC. */
+/** Futoshiki bank behaviour and its digit/notes board with inequality signs. */
 object FutoshikiGameModule : GameModule<FutoshikiPuzzle, FutoshikiState> by EngineGameModule(
     engine = FutoshikiEngine,
     puzzleOf = FutoshikiState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable

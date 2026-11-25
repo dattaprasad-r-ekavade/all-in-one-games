@@ -46,6 +46,7 @@ class PlayScreenLayoutTest {
         assertEquals(R.string.game_binary, gameNameResource("binary"))
         assertEquals(R.string.game_nonogram, gameNameResource("nonogram"))
         assertEquals(R.string.game_minisudoku, gameNameResource("minisudoku"))
+        assertEquals(R.string.game_futoshiki, gameNameResource("futoshiki"))
         assertEquals(R.string.game_unknown, gameNameResource("unknown"))
 
         assertEquals(R.string.pack_easy, packNameResource(Pack.EASY))
@@ -59,6 +60,7 @@ class PlayScreenLayoutTest {
         assertEquals(R.string.play_rules_minisudoku, playRulesResource("minisudoku"))
         assertEquals(R.string.play_rules_sudoku, playRulesResource("sudoku"))
         assertEquals(R.string.play_rules_skyscrapers, playRulesResource("skyscrapers"))
+        assertEquals(R.string.play_rules_futoshiki, playRulesResource("futoshiki"))
         assertEquals(R.string.play_rules_minisudoku, playRulesResource("unknown"))
     }
 }
