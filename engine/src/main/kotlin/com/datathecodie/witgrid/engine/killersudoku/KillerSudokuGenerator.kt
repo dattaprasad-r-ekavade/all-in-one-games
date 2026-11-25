@@ -53,7 +53,7 @@ object KillerSudokuGenerator {
         val groups = grow(solution, rng, preferLoose = false) { easyTargetSize(it) }
         val givens = noGivens()
         val ceiling = maxRank(Pack.EASY)
-        repeat(KILLER_SUDOKU_CELL_COUNT) {
+        for (step in 0 until KILLER_SUDOKU_CELL_COUNT) {
             val grade = tryGrade(groups, givens, solution, Pack.EASY, ceiling)
             val mixed = groups.any { it.size > 1 }
             if (grade != null && mixed && KillerSudokuPackBands.isGradeInPackBand(Pack.EASY, grade)) {
@@ -658,7 +658,5 @@ object KillerSudokuGenerator {
         val protectedCells: Set<Int>,
     )
 
-    private companion object {
-        val EVEN_COLUMNS = intArrayOf(0, 2, 4, 6, 8)
-    }
+    private val EVEN_COLUMNS = intArrayOf(0, 2, 4, 6, 8)
 }
