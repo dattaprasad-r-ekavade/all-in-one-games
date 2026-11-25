@@ -9,34 +9,34 @@ This plan replaces the game design document (the GDD PDF in this folder) where t
 <!-- progress:start -->
 ## Progress
 
-Updated 23 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `python scripts/progress.py`.
+Updated 25 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `python scripts/progress.py`.
 
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ████████████▒▒░░░░░░  60 %  (87 of 145 done, 12 in progress)
+All tasks                         ██████████████░░░░░░  70 %  (101 of 145 done, 2 in progress)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
 Phase 2 — Core app                ████████████████████ 100 %  (14 of 14 done)
 Phase 3 — Retention               ████████████████████ 100 %  (6 of 6 done)
 Phase 4 — Monetisation and data   ████████████░░░░░░░░  62 %  (5 of 8 done)
-UI cleanup                        ██████████████████░░  91 %  (10 of 11 done)
+UI cleanup                        ████████████████████ 100 %  (11 of 11 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          ██████▒▒▒░░░░░░░░░░░  30 %  (21 of 70 done, 12 in progress)
+Phase 7 — Launch catalog          ██████████░░░░░░░░░░  49 %  (34 of 70 done, 2 in progress)
 
 Launch catalog, by game
-  Sudoku 9x9                      ██████▒▒▒▒▒░░░░░░░░░  29 %  (2 of 7 done, 2 in progress)
+  Sudoku 9x9                      ███████████░░░░░░░░░  57 %  (4 of 7 done)
   Killer Sudoku                   ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done)
-  Futoshiki                       ███████████▒▒▒░░░░░░  57 %  (4 of 7 done, 1 in progress)
-  Skyscrapers                     ██████████████▒▒▒░░░  71 %  (5 of 7 done, 1 in progress)
-  Mosaic                          █████████▒▒▒▒▒░░░░░░  43 %  (3 of 7 done, 2 in progress)
-  Colour Sort                     ███▒▒▒▒░░░░░░░░░░░░░  17 %  (1 of 6 done, 1 in progress)
-  Path                            ███████████░░░░░░░░░  57 %  (4 of 7 done)
-  Arrows                          ▒▒▒░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done, 1 in progress)
-  Klondike                        ▒▒▒░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done, 1 in progress)
-  Chess tactics                   ▒▒▒▒▒▒▒▒▒░░░░░░░░░░░   0 %  (0 of 7 done, 3 in progress)
+  Futoshiki                       ██████████████▒▒▒░░░  71 %  (5 of 7 done, 1 in progress)
+  Skyscrapers                     █████████████████░░░  86 %  (6 of 7 done)
+  Mosaic                          ██████████████▒▒▒░░░  71 %  (5 of 7 done, 1 in progress)
+  Colour Sort                     ███████░░░░░░░░░░░░░  33 %  (2 of 6 done)
+  Path                            █████████████████░░░  86 %  (6 of 7 done)
+  Arrows                          ███░░░░░░░░░░░░░░░░░  17 %  (1 of 6 done)
+  Klondike                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Chess tactics                   █████████░░░░░░░░░░░  43 %  (3 of 7 done)
   Shared (B6, E3, H7)             █████████████░░░░░░░  67 %  (2 of 3 done)
 
 Launch games playable             ██████░░░░░░░░░░░░░░  29 %  (4 of 14 ready)

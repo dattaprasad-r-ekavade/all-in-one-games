@@ -12,8 +12,8 @@
   Tier -> model:
     codex : L = gpt-6-luna (medium), M = gpt-6.2-sol (medium), H = gpt-6.2-sol (high)
     claude: L = haiku,               M = sonnet,               H = sonnet
-    gemini: L = gemini-3.8-flash-medium, M = gemini-3.8-flash-high, H = gemini-3.8-flash-high
-            (Antigravity CLI 'agy'. Flash only; prefer codex for H cards.)
+    gemini: L = gemini-4-hydrogen-medium, M = gemini-4-hydrogen-high, H = gemini-4-hydrogen-xhigh
+            (Antigravity CLI 'agy'.)
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Task,
@@ -91,7 +91,7 @@ if ($Agent -eq 'codex') {
         -o $handoff `
         -
 } elseif ($Agent -eq 'gemini') {
-    $model = @{ L = 'gemini-3.8-flash-medium'; M = 'gemini-3.8-flash-high'; H = 'gemini-3.8-flash-high' }[$Tier]
+    $model = @{ L = 'gemini-4-hydrogen-medium'; M = 'gemini-4-hydrogen-high'; H = 'gemini-4-hydrogen-xhigh' }[$Tier]
     # Windows PowerShell 5.1 breaks quotes inside long native arguments, so the prompt goes in a file.
     $promptFile = Join-Path $logDir "$Task.prompt.md"
     Set-Content -Path $promptFile -Value $prompt -Encoding UTF8
