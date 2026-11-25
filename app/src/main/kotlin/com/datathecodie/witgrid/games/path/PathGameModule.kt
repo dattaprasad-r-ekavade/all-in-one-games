@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.path.PathState
 import com.datathecodie.witgrid.games.EngineGameModule
 import com.datathecodie.witgrid.games.GameModule
 
-/** Path bank behaviour and its drag-paint board. Registration lives in PAC. */
+/** Path bank behaviour and its drag-paint board. */
 object PathGameModule : GameModule<PathPuzzle, PathState> by EngineGameModule(
     engine = PathEngine,
     puzzleOf = PathState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable
