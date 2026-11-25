@@ -344,4 +344,14 @@
     <string name="coloursort_tube_accessibility">Tube %1$d, colours from bottom to top: %2$s</string>
     <string name="coloursort_tube_empty_accessibility">Tube %1$d, empty</string>
     <string name="coloursort_tube_selected_accessibility">%1$s, selected</string>
+    <string name="arrows_lives_left">Lives left: %1$d of %2$d</string>
+    <string name="arrows_lives_accessibility">Lives left: %1$d of %2$d. %2$d mistakes fail the level.</string>
+    <string name="arrows_cell_empty_accessibility">Row %1$d, column %2$d, empty, cannot slide</string>
+    <string name="arrows_cell_arrow_accessibility">Row %1$d, column %2$d, arrow %3$s, %4$s</string>
+    <string name="arrows_direction_up">up</string>
+    <string name="arrows_direction_down">down</string>
+    <string name="arrows_direction_left">left</string>
+    <string name="arrows_direction_right">right</string>
+    <string name="arrows_can_slide">can slide</string>
+    <string name="arrows_cannot_slide">cannot slide</string>
 </resources>
