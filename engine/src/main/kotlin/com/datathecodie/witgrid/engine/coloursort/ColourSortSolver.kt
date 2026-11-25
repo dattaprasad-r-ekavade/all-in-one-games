@@ -69,7 +69,7 @@ object ColourSortSolver {
                 return reconstructPath(current)
             }
 
-            val moves = legalMoves(current.tubes, current.action)
+            val moves = legalMoves(current.tubes)
             val nextG = current.g + 1
 
             for (action in moves) {
@@ -160,10 +160,7 @@ object ColourSortSolver {
         return maxOf(boundaries, spread)
     }
 
-    internal fun legalMoves(
-        tubes: List<List<Int>>,
-        lastAction: ColourSortAction? = null,
-    ): List<ColourSortAction> {
+    internal fun legalMoves(tubes: List<List<Int>>): List<ColourSortAction> {
         val actions = ArrayList<ColourSortAction>()
         val firstEmptyTube = tubes.indexOfFirst { it.isEmpty() }
 
@@ -179,8 +176,6 @@ object ColourSortSolver {
 
             for (to in tubes.indices) {
                 if (from == to) continue
-                // Don't immediately undo the previous pour
-                if (lastAction != null && from == lastAction.to && to == lastAction.from) continue
 
                 val dest = tubes[to]
                 if (dest.size == ColourSortRules.TUBE_CAPACITY) continue
@@ -222,24 +217,20 @@ object ColourSortSolver {
         }
     }
 
-    internal data class CanonicalStateKey(val hi: Long, val mid: Long, val lo: Long)
+    /** Sorted tube codes; sorting makes tube order irrelevant. Holds any number of tubes, because Continue adds tubes. */
+    internal class CanonicalStateKey(private val codes: IntArray) {
+        private val hash = codes.contentHashCode()
+
+        override fun equals(other: Any?): Boolean =
+            other is CanonicalStateKey && codes.contentEquals(other.codes)
+
+        override fun hashCode(): Int = hash
+    }
 
     internal fun canonicalKey(tubes: List<List<Int>>): CanonicalStateKey {
         val codes = IntArray(tubes.size) { encodeTube(tubes[it]) }
         codes.sort()
-        var hi = 0L
-        var mid = 0L
-        var lo = 0L
-        for (i in 0 until minOf(4, codes.size)) {
-            hi = (hi shl 16) or (codes[i].toLong() and 0xFFFFL)
-        }
-        for (i in 4 until minOf(8, codes.size)) {
-            mid = (mid shl 16) or (codes[i].toLong() and 0xFFFFL)
-        }
-        for (i in 8 until minOf(12, codes.size)) {
-            lo = (lo shl 16) or (codes[i].toLong() and 0xFFFFL)
-        }
-        return CanonicalStateKey(hi, mid, lo)
+        return CanonicalStateKey(codes)
     }
 
     private fun encodeTube(tube: List<Int>): Int {
