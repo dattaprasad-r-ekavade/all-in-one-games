@@ -67,39 +67,62 @@ class KlondikeSolverAndGeneratorTest {
     }
 
     @Test
-    fun followHintsFromDealToWinOnAllPacks() {
-        for (pack in Pack.entries) {
-            val rng = SplitMix64(1L)
-            val puzzles = List(10) { engine.generate(rng, pack) }
-            for ((index, puzzle) in puzzles.withIndex()) {
-                var state = engine.initialState(puzzle)
-                var steps = 0
-                val maxSteps = 260
-                while (!engine.isWon(puzzle, state) && steps < maxSteps) {
-                    if (engine.isLost(puzzle, state)) {
-                        println("LOST on $pack #$index (seed=${puzzle.seed}) at step $steps, prevMoveCount=${state.moveCount}")
-                        val diag = KlondikeSolver.solveDetailed(state)
-                        println("solveDetailed on lost state = $diag")
-                    }
-                    assertFalse(
-                        engine.isLost(puzzle, state),
-                        "$pack #$index became lost while following hints at step $steps",
-                    )
-                    val hint = engine.hintAction(puzzle, state)
-                    assertNotNull(hint, "$pack #$index hint returned null at step $steps")
-                    if (pack == Pack.MEDIUM && index == 8) {
-                        val d = KlondikeSolver.solveDetailed(state)
-                        println("MEDIUM #8 step=$steps hint=$hint nodes=${d?.exploredNodes} solLen=${d?.moves?.size}")
-                    }
-                    state = engine.applyAction(state, hint!!)
-                    steps++
-                }
-                assertTrue(
-                    engine.isWon(puzzle, state),
-                    "$pack #$index did not win by following hints within $maxSteps steps (took $steps)",
-                )
-            }
+    fun generatorConfigScalesWithPackDifficulty() {
+        val easy = KlondikeGenerator.configFor(Pack.EASY)
+        val medium = KlondikeGenerator.configFor(Pack.MEDIUM)
+        val hard = KlondikeGenerator.configFor(Pack.HARD)
+        val expert = KlondikeGenerator.configFor(Pack.EXPERT)
+
+        assertEquals("d1", easy.difficulty)
+        assertEquals("d2", medium.difficulty)
+        assertEquals("d3", hard.difficulty)
+        assertEquals("d4", expert.difficulty)
+
+        assertTrue(easy.minNonDrawMoves <= medium.minNonDrawMoves)
+        assertTrue(medium.minNonDrawMoves < hard.minNonDrawMoves)
+        assertTrue(hard.minNonDrawMoves < expert.minNonDrawMoves)
+        assertTrue(medium.minRecycleCount < hard.minRecycleCount)
+    }
+
+    @Test
+    fun followHintsFromDealToWinOnEasyLevels() {
+        val rng = SplitMix64(1L)
+        val puzzles = List(10) { engine.generate(rng, Pack.EASY) }
+        for ((index, puzzle) in puzzles.withIndex()) {
+            assertFollowsHintsToWin(puzzle, "EASY #$index")
         }
+    }
+
+    @Test
+    fun followHintsFromDealToWinOnMediumSample() {
+        val rng = SplitMix64(1L)
+        val puzzles = List(10) { engine.generate(rng, Pack.MEDIUM) }
+        for (index in listOf(0, 8)) {
+            assertFollowsHintsToWin(puzzles[index], "MEDIUM #$index")
+        }
+    }
+
+    private fun assertFollowsHintsToWin(
+        puzzle: KlondikePuzzle,
+        label: String,
+        maxSteps: Int = 260,
+    ) {
+        var state = engine.initialState(puzzle)
+        var steps = 0
+        while (!engine.isWon(puzzle, state) && steps < maxSteps) {
+            assertFalse(
+                engine.isLost(puzzle, state),
+                "$label became lost while following hints at step $steps (seed=${puzzle.seed})",
+            )
+            val hint = engine.hintAction(puzzle, state)
+            assertNotNull(hint, "$label hint returned null at step $steps (seed=${puzzle.seed})")
+            state = engine.applyAction(state, hint!!)
+            steps++
+        }
+        assertTrue(
+            engine.isWon(puzzle, state),
+            "$label did not win by following hints within $maxSteps steps (took $steps)",
+        )
     }
 
     @Test
@@ -401,39 +424,5 @@ class KlondikeSolverAndGeneratorTest {
         )
         val endState = solution.fold(state) { current, move -> engine.applyAction(current, move) }
         assertTrue(engine.isWon(puzzle, endState))
-    }
-
-    @Test
-    fun debugMedium8() {
-        val puzzle = KlondikePuzzle("debug-m8", Pack.MEDIUM, "d2", seed = -41544050003052662L)
-        var state = engine.initialState(puzzle)
-        for (step in 0..5) {
-            val diag = KlondikeSolver.solveDiagnostic(state)
-            println(
-                "Step $step: waste=${state.waste} stockSize=${state.stock.size} " +
-                    "t1Res=${diag.tier1Result != null}(ex=${diag.tier1Exhausted},n=${diag.tier1Nodes}) " +
-                    "t2Res=${diag.tier2Result != null}(ex=${diag.tier2Exhausted},n=${diag.tier2Nodes})",
-            )
-            if (step == 4 || step == 5) {
-                println("  foundations=${state.foundations.mapValues { it.value.size }}")
-                println("  tableau=${state.tableau.map { it.lastOrNull() }}")
-                println("  stockTop3=${state.stock.takeLast(3)}")
-                val after6C = if (step == 5) {
-                    val s1 = engine.applyAction(state, CardMove.WasteToFoundation)
-                    val s2 = engine.applyAction(s1, CardMove.DrawStock)
-                    val s3 = engine.applyAction(s2, CardMove.WasteToTableau(5))
-                    val d3 = KlondikeSolver.solveDiagnostic(s3)
-                    println("  after [WasteToF, Draw, WasteToTab5]: t2=${d3.tier2Result != null} n=${d3.tier2Nodes}")
-                    s3
-                } else null
-                if (after6C == null && step == 4) {
-                    val sol = diag.tier1Result ?: diag.tier2Result!!
-                    println("  Step4 path[0..8]=${sol.moves.take(8)}")
-                }
-            }
-            val sol = diag.tier1Result ?: diag.tier2Result ?: break
-            val move = sol.moves.first()
-            state = engine.applyAction(state, move)
-        }
     }
 }

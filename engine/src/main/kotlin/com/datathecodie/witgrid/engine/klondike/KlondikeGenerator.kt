@@ -65,7 +65,7 @@ object KlondikeGenerator {
                 size = KlondikeCodec.DECK_SIZE,
             )
             val initial = KlondikeDeal.deal(candidate)
-            val solved = KlondikeSolver.solveDetailed(initial)
+            val solved = KlondikeSolver.solveForGeneration(initial)
             if (solved != null && matchesPackDifficulty(config, solved)) {
                 val hex = rng.nextLong().toULong().toString(16).padStart(16, '0')
                 return candidate.copy(bankId = "KL-${pack.name}-$hex")

@@ -15,11 +15,13 @@ object KlondikeSolver {
     private const val SUIT_COUNT = 4
     private const val KING_RANK = KlondikeRules.KING_RANK
 
-    private const val TIER1_MAX_NODES = 1_500
+    private const val TIER1_MAX_NODES = 2_000
     private const val ENDGAME_EXACT_THRESHOLD_FACEDOWN = 6
     private const val ENDGAME_EXACT_THRESHOLD_STOCK_WASTE = 12
-    private const val BEAM_WIDTH = 220
+    private const val FAST_BEAM_WIDTH = 220
     private const val BEAM_MAX_DEPTH = 140
+    private const val TIER2_DFS_MAX_NODES = 25_000
+    private const val TIER2B_RESCUE_MAX_NODES = 15_000
     private const val TIER3_MAX_NODES = 10_000
 
     private const val FACE_UP_FLAG = 64
@@ -34,56 +36,20 @@ object KlondikeSolver {
         val recycleCount: Int,
     )
 
-    internal data class DiagnosticTrace(
-        val tier1Result: SolveResult?,
-        val tier1Exhausted: Boolean,
-        val tier1Nodes: Int,
-        val tier2Result: SolveResult?,
-        val tier2Exhausted: Boolean,
-        val tier2Nodes: Int,
-    )
-
-    internal fun solveDiagnostic(state: KlondikeState): DiagnosticTrace {
-        val initialPacked = packState(state)
-        val initialSafe = collapseSafeMoves(initialPacked)
-        val tier1 = runSearch(
-            startState = initialSafe.state,
-            initialSafeMoves = initialSafe.safeMoves,
-            useProgressScore = false,
-            maxNodes = TIER1_MAX_NODES,
-            allowFoundationToTableau = false,
-        )
-        val tier2 = runBeamSearch(
-            startState = initialSafe.state,
-            initialSafeMoves = initialSafe.safeMoves,
-            beamWidth = BEAM_WIDTH,
-            maxDepth = BEAM_MAX_DEPTH,
-            allowFoundationToTableau = false,
-        )
-        return DiagnosticTrace(
-            tier1Result = tier1.result,
-            tier1Exhausted = tier1.exhausted,
-            tier1Nodes = tier1.explored,
-            tier2Result = tier2.result,
-            tier2Exhausted = tier2.exhausted,
-            tier2Nodes = tier2.explored,
-        )
-    }
-
     /**
      * Returns a winning sequence of [CardMove]s starting from [state], or `null` if no winning line
      * is found. Prioritizes shortest winning paths on the acyclic primary move graph.
      */
     fun solve(state: KlondikeState): List<CardMove>? = solveDetailed(state)?.moves
 
-    /** Returns `true` when [solve] finds a winning sequence from [state]. */
-    fun isWinnable(state: KlondikeState): Boolean = solveFast(state) != null
+    /** Returns `true` when [solveDetailed] finds a winning sequence from [state]. */
+    fun isWinnable(state: KlondikeState): Boolean = solveDetailed(state) != null
 
     /**
-     * Fast winnability check using beam search directly (skipping early-game exact A*),
-     * falling back to Tier 3 rescue if needed.
+     * Fast solver pass used by [KlondikeGenerator] to filter candidate deals without spending
+     * heavy rescue-search budgets on rejected random seeds.
      */
-    private fun solveFast(state: KlondikeState): SolveResult? {
+    internal fun solveForGeneration(state: KlondikeState): SolveResult? {
         if (KlondikeRules.isWon(state)) {
             return SolveResult(emptyList(), 0, 0, 0)
         }
@@ -95,22 +61,11 @@ object KlondikeSolver {
         val fast = runBeamSearch(
             startState = initialSafe.state,
             initialSafeMoves = initialSafe.safeMoves,
-            beamWidth = BEAM_WIDTH,
+            beamWidth = FAST_BEAM_WIDTH,
             maxDepth = BEAM_MAX_DEPTH,
             allowFoundationToTableau = false,
         )
-        if (fast.result != null) return fast.result
-        if (initialSafe.state.foundations.any { it >= 3 }) {
-            val tier3 = runSearch(
-                startState = initialSafe.state,
-                initialSafeMoves = initialSafe.safeMoves,
-                useProgressScore = true,
-                maxNodes = TIER3_MAX_NODES,
-                allowFoundationToTableau = true,
-            )
-            if (tier3.result != null) return tier3.result
-        }
-        return null
+        return fast.result
     }
 
     /** Solves [state] and reports the winning moves alongside path and search metrics. */
@@ -130,6 +85,8 @@ object KlondikeSolver {
             return buildResult(initialSafe.safeMoves, exploredNodes = 0)
         }
 
+        val canUseFoundationRescue = initialSafe.state.foundations.any { it >= 3 }
+
         val tryExactFirst = countFaceDown(initialSafe.state) <= ENDGAME_EXACT_THRESHOLD_FACEDOWN &&
             (initialSafe.state.stock.size + initialSafe.state.waste.size) <= ENDGAME_EXACT_THRESHOLD_STOCK_WASTE
         if (tryExactFirst) {
@@ -141,23 +98,53 @@ object KlondikeSolver {
                 allowFoundationToTableau = false,
             )
             if (tier1.result != null) return tier1.result
-            if (tier1.exhausted && initialSafe.state.foundations.none { it >= 3 }) {
+            if (tier1.exhausted && !canUseFoundationRescue) {
                 return null
             }
         }
 
-        // Tier 2: Beam search on the cycle-free primary graph (never stalls in one dead-end subtree).
-        val tier2 = runBeamSearch(
+        // Tier 2A: Fast beam search on the cycle-free primary graph.
+        val tier2Fast = runBeamSearch(
             startState = initialSafe.state,
             initialSafeMoves = initialSafe.safeMoves,
-            beamWidth = BEAM_WIDTH,
+            beamWidth = FAST_BEAM_WIDTH,
             maxDepth = BEAM_MAX_DEPTH,
             allowFoundationToTableau = false,
         )
-        if (tier2.result != null) return tier2.result
+        if (tier2Fast.result != null) return tier2Fast.result
+        if (tier2Fast.exhausted && !canUseFoundationRescue) {
+            return null
+        }
+
+        // Tier 2B: Heuristic-guided DFS rescue (backtracks out of beam-search traps).
+        if (!tier2Fast.exhausted) {
+            val tier2Dfs = runDfsSearch(
+                startState = initialSafe.state,
+                initialSafeMoves = initialSafe.safeMoves,
+                maxNodes = TIER2_DFS_MAX_NODES,
+                allowFoundationToTableau = false,
+            )
+            if (tier2Dfs.result != null) return tier2Dfs.result
+            if (tier2Dfs.exhausted && !canUseFoundationRescue) {
+                return null
+            }
+
+            // Tier 2C: Balanced weighted A* rescue when DFS explores a deep non-winning subtree.
+            val tier2Weighted = runSearch(
+                startState = initialSafe.state,
+                initialSafeMoves = initialSafe.safeMoves,
+                useProgressScore = true,
+                maxNodes = TIER2B_RESCUE_MAX_NODES,
+                allowFoundationToTableau = false,
+            )
+            if (tier2Weighted.result != null) return tier2Weighted.result
+            if (tier2Weighted.exhausted && !canUseFoundationRescue) {
+                return null
+            }
+        }
 
         // Tier 3: Bounded rescue search allowing FoundationToTableau when ranks >= 3 are on foundations.
-        if (initialSafe.state.foundations.any { it >= 3 }) {
+        if (canUseFoundationRescue) {
             val tier3 = runSearch(
                 startState = initialSafe.state,
                 initialSafeMoves = initialSafe.safeMoves,
@@ -193,6 +180,12 @@ object KlondikeSolver {
                 (if (secondaryMove != null) 1 else 0) +
                 safeMoves.size
 
+        val nonDrawCost: Int =
+            (if (doRecycle) 1 else 0) +
+                (if (primaryMove != null) 1 else 0) +
+                (if (secondaryMove != null) 1 else 0) +
+                safeMoves.size
+
         fun appendTo(target: MutableList<CardMove>) {
             repeat(drawsBeforeRecycle) { target.add(CardMove.DrawStock) }
             if (doRecycle) target.add(CardMove.RecycleWaste)
@@ -209,6 +202,7 @@ object KlondikeSolver {
         val parent: SearchNode?,
         val edge: EdgeStep,
         val g: Int,
+        val nonDrawG: Int,
         val h: Int,
         val score: Int,
         val insertionOrder: Long,
@@ -218,6 +212,8 @@ object KlondikeSolver {
             if (scoreCompare != 0) return scoreCompare
             val hCompare = h.compareTo(other.h)
             if (hCompare != 0) return hCompare
+            val gCompare = g.compareTo(other.g)
+            if (gCompare != 0) return gCompare
             val stockWasteCompare = (state.stock.size + state.waste.size)
                 .compareTo(other.state.stock.size + other.state.waste.size)
             if (stockWasteCompare != 0) return stockWasteCompare
@@ -289,6 +285,130 @@ object KlondikeSolver {
         val secondaryMove: CardMove? = null,
     )
 
+    private fun progressScore(g: Int, nonDrawG: Int, h: Int): Int =
+        nonDrawG + (g / 8) + 6 * h
+
+    private fun balancedScore(g: Int, nonDrawG: Int, h: Int): Int =
+        nonDrawG + (g / 6) + 2 * h
+
+    private fun runDfsSearch(
+        startState: PackedState,
+        initialSafeMoves: List<CardMove>,
+        maxNodes: Int,
+        allowFoundationToTableau: Boolean,
+    ): SearchOutcome {
+        val visited = HashSet<StateKey>()
+        val stack = ArrayDeque<SearchNode>()
+        var insertionCounter = 0L
+
+        val startEdge = EdgeStep(
+            drawsBeforeRecycle = 0,
+            doRecycle = false,
+            drawsAfterRecycle = 0,
+            primaryMove = null,
+            secondaryMove = null,
+            safeMoves = initialSafeMoves,
+        )
+        val startKey = startState.toKey()
+        val startH = progressHeuristic(startState)
+        stack.addLast(
+            SearchNode(
+                state = startState,
+                key = startKey,
+                parent = null,
+                edge = startEdge,
+                g = startEdge.totalMoves,
+                nonDrawG = startEdge.nonDrawCost,
+                h = startH,
+                score = startH,
+                insertionOrder = insertionCounter++,
+            ),
+        )
+        visited.add(startKey)
+
+        var explored = 0
+        while (stack.isNotEmpty() && explored < maxNodes) {
+            val current = stack.removeLast()
+            explored++
+            if (current.state.isWon()) {
+                return SearchOutcome(
+                    result = buildResult(reconstructMoves(current), explored),
+                    exhausted = false,
+                    explored = explored,
+                )
+            }
+
+            val candidates = generateCandidates(current.state, allowFoundationToTableau)
+            if (candidates.isEmpty()) continue
+
+            val children = ArrayList<SearchNode>(candidates.size)
+            for (candidate in candidates) {
+                val collapsed = collapseSafeMoves(candidate.state)
+                val nextKey = collapsed.state.toKey()
+                if (!visited.add(nextKey)) continue
+
+                val edge = EdgeStep(
+                    drawsBeforeRecycle = candidate.drawsBeforeRecycle,
+                    doRecycle = candidate.doRecycle,
+                    drawsAfterRecycle = candidate.drawsAfterRecycle,
+                    primaryMove = candidate.primaryMove,
+                    secondaryMove = candidate.secondaryMove,
+                    safeMoves = collapsed.safeMoves,
+                )
+                val nextG = current.g + edge.totalMoves
+                val nextNonDrawG = current.nonDrawG + edge.nonDrawCost
+
+                if (collapsed.state.isWon()) {
+                    val goalNode = SearchNode(
+                        state = collapsed.state,
+                        key = nextKey,
+                        parent = current,
+                        edge = edge,
+                        g = nextG,
+                        nonDrawG = nextNonDrawG,
+                        h = 0,
+                        score = 0,
+                        insertionOrder = insertionCounter++,
+                    )
+                    return SearchOutcome(
+                        result = buildResult(reconstructMoves(goalNode), explored),
+                        exhausted = false,
+                        explored = explored,
+                    )
+                }
+
+                val nextH = progressHeuristic(collapsed.state)
+                children.add(
+                    SearchNode(
+                        state = collapsed.state,
+                        key = nextKey,
+                        parent = current,
+                        edge = edge,
+                        g = nextG,
+                        nonDrawG = nextNonDrawG,
+                        h = nextH,
+                        score = nextH * 8 + edge.totalMoves,
+                        insertionOrder = insertionCounter++,
+                    ),
+                )
+            }
+
+            if (children.isNotEmpty()) {
+                // Push worst child first so the best-scored child is popped first from the LIFO stack.
+                children.sortDescending()
+                for (child in children) {
+                    stack.addLast(child)
+                }
+            }
+        }
+
+        return SearchOutcome(
+            result = null,
+            exhausted = stack.isEmpty(),
+            explored = explored,
+        )
+    }
+
     private fun runSearch(
         startState: PackedState,
         initialSafeMoves: List<CardMove>,
@@ -316,8 +436,13 @@ object KlondikeSolver {
             parent = null,
             edge = startEdge,
             g = startEdge.totalMoves,
+            nonDrawG = startEdge.nonDrawCost,
             h = startH,
-            score = if (useProgressScore) startEdge.totalMoves + 2 * startH else startEdge.totalMoves + startH,
+            score = if (useProgressScore) {
+                balancedScore(startEdge.totalMoves, startEdge.nonDrawCost, startH)
+            } else {
+                startEdge.totalMoves + startH
+            },
             insertionOrder = insertionCounter++,
         )
         openSet.add(startNode)
@@ -352,6 +477,7 @@ object KlondikeSolver {
                     safeMoves = collapsed.safeMoves,
                 )
                 val nextG = current.g + edge.totalMoves
+                val nextNonDrawG = current.nonDrawG + edge.nonDrawCost
                 val nextKey = collapsed.state.toKey()
 
                 val previousG = bestG[nextKey]
@@ -367,8 +493,13 @@ object KlondikeSolver {
                     parent = current,
                     edge = edge,
                     g = nextG,
+                    nonDrawG = nextNonDrawG,
                     h = nextH,
-                    score = if (useProgressScore) nextG + 2 * nextH else nextG + nextH,
+                    score = if (useProgressScore) {
+                        balancedScore(nextG, nextNonDrawG, nextH)
+                    } else {
+                        nextG + nextH
+                    },
                     insertionOrder = insertionCounter++,
                 )
                 openSet.add(nextNode)
@@ -408,8 +539,9 @@ object KlondikeSolver {
             parent = null,
             edge = startEdge,
             g = startEdge.totalMoves,
+            nonDrawG = startEdge.nonDrawCost,
             h = startH,
-            score = startEdge.totalMoves + 4 * startH,
+            score = progressScore(startEdge.totalMoves, startEdge.nonDrawCost, startH),
             insertionOrder = insertionCounter++,
         )
         bestG[startKey] = startNode.g
@@ -446,6 +578,7 @@ object KlondikeSolver {
                         safeMoves = collapsed.safeMoves,
                     )
                     val nextG = current.g + edge.totalMoves
+                    val nextNonDrawG = current.nonDrawG + edge.nonDrawCost
                     val nextKey = collapsed.state.toKey()
 
                     val previousG = bestG[nextKey]
@@ -461,6 +594,7 @@ object KlondikeSolver {
                             parent = current,
                             edge = edge,
                             g = nextG,
+                            nonDrawG = nextNonDrawG,
                             h = 0,
                             score = nextG,
                             insertionOrder = insertionCounter++,
@@ -479,8 +613,9 @@ object KlondikeSolver {
                             parent = current,
                             edge = edge,
                             g = nextG,
+                            nonDrawG = nextNonDrawG,
                             h = nextH,
-                            score = nextG + 4 * nextH,
+                            score = progressScore(nextG, nextNonDrawG, nextH),
                             insertionOrder = insertionCounter++,
                         ),
                     )
@@ -868,13 +1003,13 @@ object KlondikeSolver {
 
     /**
      * Progress-guided heuristic for Tier 2/3 weighted search.
-     * Avoids rewarding deep stock burns; prioritizes uncovering face-down cards and building foundations.
+     * Prioritizes uncovering face-down cards and building foundations without starving stock cycles.
      */
     private fun progressHeuristic(state: PackedState): Int {
         val foundationTotal =
             state.foundations[0] + state.foundations[1] + state.foundations[2] + state.foundations[3]
         return 2 * (TOTAL_CARDS - foundationTotal) +
-            3 * countFaceDown(state) +
+            4 * countFaceDown(state) +
             (state.stock.size + state.waste.size)
     }
 
