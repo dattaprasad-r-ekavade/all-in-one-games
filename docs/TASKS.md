@@ -85,10 +85,10 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | **Phase 7 — Launch catalog** |||||||
 | B6 | bankgen any engine; Family B validate | M | Codex | Claude | B1 | done |
 | E3 | Family B `PlayEngine` contract | H | Codex | Claude + human | E1, A3 | done |
-| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 done, SU4 todo |
+| SU1–SU4 | Sudoku 9x9 lane | see hub lane table | | | E1, MS4 | SU1 done, SU2 done, SU3 done, SU4 active (Haiku) |
 | SUA | Sudoku 9x9 board | M | Gemini | Claude | A4, SU2 | done |
 | SUB | Sudoku 9x9 bank | L | Claude | Codex | SU3, B6 | done |
-| SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | todo |
+| SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | active (Codex luna) |
 | CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | CS1 done, CS2 done, CS3 todo |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | done |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
@@ -101,7 +101,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
-| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 todo |
+| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 active (Gemini Hydrogen) |
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
@@ -109,7 +109,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | todo |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
-| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 todo |
+| KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | KS1 done, KS2 active (Gemini Hydrogen) |
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | todo |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
@@ -120,7 +120,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SK1–SK4 | Skyscrapers lane | see hub lane table | | | E1 | SK1 done, SK2 done, SK3 done, SK4 done |
 | SKA | Skyscrapers board | M | Gemini | Claude | A4, SK2 | done |
 | SKB | Skyscrapers bank | L | Codex (luna) | Claude | SK3, B6 | done |
-| SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | todo |
+| SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | active (Codex luna) |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done, MO4 done |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | done |
 | MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | active (paused; Codex luna run stopped) |
