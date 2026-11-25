@@ -238,18 +238,16 @@ private fun TubeItem(
 @Composable
 private fun describeTube(tubeIndex: Int, tube: List<Int>, isSelected: Boolean): String {
     val number = tubeIndex + 1
-    val contents = if (tube.isEmpty()) {
-        stringResource(R.string.crowns_cell_empty)
+    val base = if (tube.isEmpty()) {
+        stringResource(R.string.coloursort_tube_empty_accessibility, number)
     } else {
-        tube.joinToString(separator = " ") { colour ->
+        // Bottom-to-top order matches how pours work: only the top run moves.
+        val colours = tube.joinToString(separator = " ") { colour ->
             ColourSortBoardInput.colourLetter(colour).toString()
         }
+        stringResource(R.string.coloursort_tube_accessibility, number, colours)
     }
-    return if (isSelected) {
-        "$number, $contents, ${stringResource(R.string.minisudoku_cell_selected)}"
-    } else {
-        "$number, $contents"
-    }
+    return if (isSelected) stringResource(R.string.coloursort_tube_selected_accessibility, base) else base
 }
 
 private fun DrawScope.drawTube(

@@ -266,6 +266,9 @@
     <string name="play_marked_count">%1$d of %2$d cells marked</string>
     <string name="play_status_with_mistakes">%1$s \u00b7 %2$s</string>
     <string name="play_digit_left">%1$d left</string>
+    <string name="coloursort_tube_accessibility">Tube %1$d, colours from bottom to top: %2$s</string>
+    <string name="coloursort_tube_empty_accessibility">Tube %1$d, empty</string>
+    <string name="coloursort_tube_selected_accessibility">%1$s, selected</string>
     <string name="play_erase">Erase</string>
     <string name="result_solved">Solved</string>
     <string name="result_time_label">Time</string>
