@@ -101,7 +101,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | ARA | Arrows board | M | Claude | Codex | AR2 | todo |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
-| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 fix round (lead review: false loss from bounded solver) |
+| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 review (fix ok; batch running) |
 | KLA | Klondike board | H | Codex | Claude | KL2 | todo |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
