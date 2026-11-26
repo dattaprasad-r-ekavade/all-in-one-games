@@ -92,7 +92,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | done |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | done |
 | CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | done |
-| CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
+| CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | done |
 | PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done, PA4 done |
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | done |
@@ -758,6 +758,8 @@ Tier L · Build Claude (`chore`) · Review Codex
 Plan: 12.2, 8.4.
 **Owns:** intro, strings, `levelsPerInterstitial` 2, Continue = extra empty tube (uses M5 continue flow, new reward kind).
 **Done when:** `./gradlew check` passes. A unit test shows Continue adds one empty tube.
+
+**Lead completion note (26 Nov 2026):** Squash-merged as `ce80267`. Colour Sort is playable (11/14). Intro `CS-INTRO-01`, `PlayRegistry`, `EXTRA_TUBE` Continue credit, interstitial 2. `./gradlew check` 10,626 puzzles in 66 files.
 
 ### PAA — Path board
 Tier M · Build Codex (`gpt-6.1-sol`) · Review Claude
