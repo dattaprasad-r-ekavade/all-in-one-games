@@ -97,12 +97,12 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
 | PAB | Path bank | L | Claude | Codex | PA3, B6 | done |
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | done |
-| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | AR1 done, AR2 done, AR3 active (Grok 4.7) |
+| AR1–AR3 | Arrows engine | see hub lane table | | | E3 | done |
 | ARA | Arrows board | M | Claude | Codex | AR2 | done |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
 | KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 done, KL3 todo |
-| KLA | Klondike board | H | Codex | Claude | KL2 | active (Grok 4.7) |
+| KLA | Klondike board | H | Codex | Claude | KL2 | done |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
 | CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 done |
