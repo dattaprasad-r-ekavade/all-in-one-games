@@ -91,7 +91,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SUC | Sudoku 9x9 intro, config, strings | L | Claude | Codex | SUA, SUB | done |
 | CS1–CS3 | Colour Sort engine | see hub lane table | | | E3 | done |
 | CSA | Colour Sort board | M | Claude | Codex | CS2, A4 | done |
-| CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | todo |
+| CSB | Colour Sort bank | L | Codex | Claude | CS3, B6 | done |
 | CSC | Colour Sort intro, extra tube, config | L | Claude | Codex | CSA, CSB, M5 | todo |
 | PA1–PA4 | Path lane | see hub lane table | | | E1, B6 | PA1 done, PA2 done, PA3 done, PA4 done |
 | PAA | Path board | M | Codex | Claude | A4, PA2 | done |
@@ -750,6 +750,8 @@ Plan: 12.2.
 **Owns:** `app/src/main/assets/bank/coloursort-*.txt.gz`, `docs/reports/bank-coloursort.md`.
 **Do:** 4×150 + 365 daily layouts. Winnable, not unique.
 **Done when:** Family B `validate --all` passes.
+
+**Lead completion note (26 Nov 2026):** Squash-merged as `228366f`. 4×150 + 365 daily, seeds 271011–271015, 965/965 distinct, `validate --all` 10,625 in 65 files. Owns exception: `FamilyBRegistry` + `ColourSortBankValidatorTest` (ARB pattern) and `BankgenService` unique-retry so Easy pack vs daily do not collide. Generator attempt cap 500→2000. CSC unblocked.
 
 ### CSC — Colour Sort intro, extra tube, config
 Tier L · Build Claude (`chore`) · Review Codex
