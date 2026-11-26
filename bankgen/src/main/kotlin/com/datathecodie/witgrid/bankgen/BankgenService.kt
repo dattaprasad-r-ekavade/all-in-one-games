@@ -172,17 +172,66 @@ internal class BankgenService(
             executor.shutdownNow()
         }
 
-        val seenIds = HashSet<String>()
-        val seenPuzzles = HashSet<String>()
-        lines.forEachIndexed { index, line ->
-            val entry = game.validateLine(line, packs[index])
-            require(seenIds.add(entry.id)) { "Generator returned duplicate puzzle ID '${entry.id}'" }
-            require(seenPuzzles.add(entry.fingerprint)) { "Generator returned a duplicate puzzle" }
-        }
         Files.createDirectories(bankDirectory)
         val output = bankDirectory.resolve("$fileStem$BANK_FILE_SUFFIX")
-        writeGzipLinesAtomically(output, lines)
+        val existing = loadExistingUniqueness(gameId, output.fileName.toString())
+        val seenIds = HashSet(existing.ids)
+        val seenPuzzles = HashSet(existing.fingerprints)
+        val uniqueLines = ArrayList<String>(lines.size)
+        lines.forEachIndexed { index, generatedLine ->
+            var attempt = 0
+            var line = generatedLine
+            while (true) {
+                val entry = game.validateLine(line, packs[index])
+                if (entry.id !in seenIds && entry.fingerprint !in seenPuzzles) {
+                    seenIds.add(entry.id)
+                    seenPuzzles.add(entry.fingerprint)
+                    uniqueLines.add(line)
+                    break
+                }
+                attempt += 1
+                require(attempt <= UNIQUE_RETRY_LIMIT) {
+                    "Could not generate a unique ${game.id} ${packs[index]} puzzle after $attempt retries"
+                }
+                line = game.generateLine(retrySeed(puzzleSeeds[index], attempt), packs[index])
+            }
+        }
+        writeGzipLinesAtomically(output, uniqueLines)
         return output
+    }
+
+    private fun retrySeed(base: Long, attempt: Int): Long {
+        val rng = SplitMix64(base)
+        repeat(attempt) { rng.nextLong() }
+        return rng.nextLong()
+    }
+
+    private fun loadExistingUniqueness(gameId: String, outputFileName: String): ExistingUniqueness {
+        if (!Files.isDirectory(bankDirectory)) {
+            return ExistingUniqueness(emptySet(), emptySet())
+        }
+        val game = gamesById[gameId] ?: return ExistingUniqueness(emptySet(), emptySet())
+        val ids = HashSet<String>()
+        val fingerprints = HashSet<String>()
+        Files.list(bankDirectory).use { paths ->
+            paths.filter { Files.isRegularFile(it) }.forEach { path ->
+                val name = path.fileName.toString()
+                if (name == outputFileName) return@forEach
+                val info = try {
+                    bankFileInfo(name)
+                } catch (_: IllegalArgumentException) {
+                    return@forEach
+                }
+                if (info.gameId != gameId) return@forEach
+                val fileLines = if (info.isIntro) readTextLines(path) else readGzipLines(path)
+                fileLines.forEach { line ->
+                    val entry = game.validateLine(line, info.pack)
+                    ids.add(entry.id)
+                    fingerprints.add(entry.fingerprint)
+                }
+            }
+        }
+        return ExistingUniqueness(ids, fingerprints)
     }
 
     private fun bankFileInfo(fileName: String): BankFileInfo {
@@ -242,10 +291,13 @@ internal class BankgenService(
 
     private data class BankFileInfo(val gameId: String, val pack: Pack?, val isIntro: Boolean)
 
+    private data class ExistingUniqueness(val ids: Set<String>, val fingerprints: Set<String>)
+
     companion object {
         const val DAILY_PUZZLE_COUNT: Int = 365
         private const val BANK_FILE_SUFFIX = ".txt.gz"
         private const val INTRO_FILE_SUFFIX = "-intro.txt"
+        private const val UNIQUE_RETRY_LIMIT = 200
     }
 }
 

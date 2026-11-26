@@ -4,7 +4,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.SplitMix64
 
 object ColourSortGenerator {
-    private const val MAX_ATTEMPTS = 500
+    private const val MAX_ATTEMPTS = 2000
 
     data class PackConfig(
         val tubeCount: Int,
