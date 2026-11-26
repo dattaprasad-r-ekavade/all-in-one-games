@@ -1,6 +1,7 @@
 package com.datathecodie.witgrid.bankgen
 
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.core.PlayBankLine
 import com.datathecodie.witgrid.engine.core.SplitMix64
 
 internal class PlayEngineBankGame<P : Any>(
