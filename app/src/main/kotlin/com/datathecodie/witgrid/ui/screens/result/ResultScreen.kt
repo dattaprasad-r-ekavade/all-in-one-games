@@ -39,6 +39,7 @@ import com.datathecodie.witgrid.data.progress.LevelProgress
 import com.datathecodie.witgrid.data.progress.ProgressRepository
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.games.PlayRegistry
 import com.datathecodie.witgrid.ui.components.IconActionButton
 import com.datathecodie.witgrid.ui.components.PrimaryButton
 import com.datathecodie.witgrid.ui.components.SecondaryButton
@@ -64,7 +65,10 @@ fun ResultScreenRoute(
         withContext(Dispatchers.IO) {
             progress = progressRepository.getAttemptProgress(levelRef.gameId, levelRef.levelId, levelRef.levelNumber ?: 0)
             boardState = progress?.let { saved ->
-                runCatching { GameRegistry.find(levelRef.gameId)?.decodeState(saved.stateBytes) }.getOrNull()
+                runCatching {
+                    GameRegistry.find(levelRef.gameId)?.decodeState(saved.stateBytes)
+                        ?: PlayRegistry.find(levelRef.gameId)?.decodeState(saved.stateBytes)
+                }.getOrNull()
             }
         }
         loaded = true

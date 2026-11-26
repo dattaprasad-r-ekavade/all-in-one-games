@@ -57,6 +57,9 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.games.PlayRegistry
+import com.datathecodie.witgrid.games.arrows.ArrowsBoardOptions
+import com.datathecodie.witgrid.games.arrows.LocalArrowsBoardOptions
 import com.datathecodie.witgrid.games.binary.BinaryBoardOptions
 import com.datathecodie.witgrid.games.binary.LocalBinaryBoardOptions
 import com.datathecodie.witgrid.games.crowns.CrownsBoardOptions
@@ -242,11 +245,16 @@ fun WitgridNavigation(navigator: AppNavigator) {
         mutableStateOf<suspend () -> Unit>({ navigator.goBack() })
     }
     var resultNextInProgress by remember { mutableStateOf(false) }
+    val allGameIds = remember { GameRegistry.games.map { it.id } + PlayRegistry.games.map { it.id } }
     val catalog by produceState<Map<String, List<LevelRef>>?>(null, bankSource) {
         value = withContext(Dispatchers.IO) {
-            GameRegistry.games.associate { module ->
+            val familyA = GameRegistry.games.associate { module ->
                 module.id to Pack.entries.flatMap { pack -> module.levelRefs(pack, bankSource) }
             }
+            val familyB = PlayRegistry.games.associate { module ->
+                module.id to Pack.entries.flatMap { pack -> module.levelRefs(pack, bankSource) }
+            }
+            familyA + familyB
         }
     }
 
@@ -338,7 +346,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     )
                 },
             ) { HomeScreenRoute(
-                gameIds = GameRegistry.games.map { it.id },
+                gameIds = allGameIds,
                 levelRefsByGame = levelRefsByGame,
                 progressRepository = progressRepository,
                 streak = dailyProgress?.streak ?: playerData.streak,
@@ -349,9 +357,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 onSelectGame = { navigator.navigate(AppDestination.Game(it)) },
                 onPlayDaily = { gameId ->
                     scope.launch {
-                        val module = requireNotNull(GameRegistry.find(gameId))
                         val dailyRef = withContext(Dispatchers.IO) {
-                            module.dailyRef(dailyProgressCoordinator.today().bankIndex, bankSource)
+                            dailyRefFor(gameId, dailyProgressCoordinator.today().bankIndex, bankSource)
                         }
                         if (navigator.destination.value == currentDestination) {
                             navigator.navigate(AppDestination.Play(dailyRef))
@@ -361,7 +368,6 @@ fun WitgridNavigation(navigator: AppNavigator) {
             ) }
 
             is AppDestination.Game -> {
-                val module = requireNotNull(GameRegistry.find(currentDestination.gameId))
                 var showGameRules by rememberSaveable(currentDestination.gameId) { mutableStateOf(false) }
                 val levelRefsByPack = remember(currentDestination.gameId, levelRefsByGame) {
                     Pack.entries.associateWith { pack ->
@@ -401,7 +407,11 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     onOpenDaily = {
                         scope.launch {
                             val dailyRef = withContext(Dispatchers.IO) {
-                                module.dailyRef(dailyProgressCoordinator.today().bankIndex, bankSource)
+                                dailyRefFor(
+                                    currentDestination.gameId,
+                                    dailyProgressCoordinator.today().bankIndex,
+                                    bankSource,
+                                )
                             }
                             if (navigator.destination.value == currentDestination) {
                                 navigator.navigate(AppDestination.Play(dailyRef))
@@ -418,7 +428,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
 
             is AppDestination.Play -> {
                 val levelRef = currentDestination.levelRef
-                val module = requireNotNull(GameRegistry.find(levelRef.gameId))
+                val module = GameRegistry.find(levelRef.gameId)
+                val playModule = PlayRegistry.find(levelRef.gameId)
                 val allowance = remember(
                     levelRef,
                     playerDataRepository,
@@ -436,6 +447,29 @@ fun WitgridNavigation(navigator: AppNavigator) {
                 }
                 val matchingRestartRequest = restartRequest?.takeIf { it.levelRef == levelRef }
                 val matchingContinueRequest = continueRequest?.takeIf { it.levelRef == levelRef }
+                val onPlaySolved: (com.datathecodie.witgrid.play.LevelSolvedEvent) -> Unit = { solved ->
+                    if (solved.levelRef.daily) {
+                        persistence.scope.launch {
+                            dailyProgress = dailyProgressCoordinator.completeDailyPuzzle(
+                                gameId = solved.levelRef.gameId,
+                                levelId = solved.levelRef.levelId,
+                            )
+                            interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
+                            if (navigator.destination.value == currentDestination) {
+                                navigator.goBack()
+                                navigator.navigate(AppDestination.Result(solved.levelRef))
+                            }
+                        }
+                    } else {
+                        persistence.scope.launch {
+                            interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
+                            if (navigator.destination.value == currentDestination) {
+                                navigator.goBack()
+                                navigator.navigate(AppDestination.Result(solved.levelRef))
+                            }
+                        }
+                    }
+                }
                 CompositionLocalProvider(
                     LocalCrownsBoardOptions provides CrownsBoardOptions(
                         showRegionAids = playerData.settings.crownsShowRegionAids,
@@ -456,58 +490,71 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         hapticsEnabled = playerData.settings.hapticsEnabled,
                         reduceMotion = playerData.settings.reduceMotion,
                     ),
+                    LocalArrowsBoardOptions provides ArrowsBoardOptions(
+                        hapticsEnabled = playerData.settings.hapticsEnabled,
+                        reduceMotion = playerData.settings.reduceMotion,
+                    ),
                 ) {
-                    PlayScreenRoute(
-                        levelRef = levelRef,
-                        gameModule = module,
-                        bankSource = bankSource,
-                        progressRepository = progressRepository,
-                        persistence = persistence,
-                        allowance = allowance,
-                        hintCredits = (playerData.rewardBalances[RewardType.HINT] ?: 0).toString(),
-                        mistakeLimitEnabled = playerData.settings.mistakeLimitEnabled,
-                        restartRequestId = matchingRestartRequest?.id,
-                        onRestartRequestConsumed = { requestId ->
-                            if (restartRequest?.id == requestId) restartRequest = null
-                        },
-                        continueRequestId = matchingContinueRequest?.transactionId,
-                        onContinueRequestConsumed = { transactionId ->
-                            if (continueRequest?.transactionId == transactionId) continueRequest = null
-                        },
-                        onConsumeContinueTransaction = { transactionId ->
-                            rewardLedger.allowContinue(transactionId)
-                        },
-                        onRegisterBackAction = { action -> activeBackAction = action },
-                        onSolved = { solved ->
-                            if (solved.levelRef.daily) {
-                                persistence.scope.launch {
-                                    dailyProgress = dailyProgressCoordinator.completeDailyPuzzle(
-                                        gameId = solved.levelRef.gameId,
-                                        levelId = solved.levelRef.levelId,
-                                    )
-                                    interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
-                                    if (navigator.destination.value == currentDestination) {
-                                        navigator.goBack()
-                                        navigator.navigate(AppDestination.Result(solved.levelRef))
-                                    }
+                    if (module != null) {
+                        PlayScreenRoute(
+                            levelRef = levelRef,
+                            gameModule = module,
+                            bankSource = bankSource,
+                            progressRepository = progressRepository,
+                            persistence = persistence,
+                            allowance = allowance,
+                            hintCredits = (playerData.rewardBalances[RewardType.HINT] ?: 0).toString(),
+                            mistakeLimitEnabled = playerData.settings.mistakeLimitEnabled,
+                            restartRequestId = matchingRestartRequest?.id,
+                            onRestartRequestConsumed = { requestId ->
+                                if (restartRequest?.id == requestId) restartRequest = null
+                            },
+                            continueRequestId = matchingContinueRequest?.transactionId,
+                            onContinueRequestConsumed = { transactionId ->
+                                if (continueRequest?.transactionId == transactionId) continueRequest = null
+                            },
+                            onConsumeContinueTransaction = { transactionId ->
+                                rewardLedger.allowContinue(transactionId)
+                            },
+                            onRegisterBackAction = { action -> activeBackAction = action },
+                            onSolved = onPlaySolved,
+                            onFailed = {
+                                if (navigator.destination.value == currentDestination) {
+                                    navigator.navigate(AppDestination.LevelFailed(levelRef))
                                 }
-                            } else {
-                                persistence.scope.launch {
-                                    interstitialTracker.recordLevelCompleted(solved.levelRef.gameId)
-                                    if (navigator.destination.value == currentDestination) {
-                                        navigator.goBack()
-                                        navigator.navigate(AppDestination.Result(solved.levelRef))
-                                    }
+                            },
+                            onBack = { navigator.goBack() },
+                        )
+                    } else {
+                        PlayScreenRoute(
+                            levelRef = levelRef,
+                            playModule = requireNotNull(playModule) { "Unknown game: ${levelRef.gameId}" },
+                            bankSource = bankSource,
+                            progressRepository = progressRepository,
+                            persistence = persistence,
+                            allowance = allowance,
+                            hintCredits = (playerData.rewardBalances[RewardType.HINT] ?: 0).toString(),
+                            restartRequestId = matchingRestartRequest?.id,
+                            onRestartRequestConsumed = { requestId ->
+                                if (restartRequest?.id == requestId) restartRequest = null
+                            },
+                            continueRequestId = matchingContinueRequest?.transactionId,
+                            onContinueRequestConsumed = { transactionId ->
+                                if (continueRequest?.transactionId == transactionId) continueRequest = null
+                            },
+                            onConsumeContinueTransaction = { transactionId ->
+                                rewardLedger.allowContinue(transactionId)
+                            },
+                            onRegisterBackAction = { action -> activeBackAction = action },
+                            onSolved = onPlaySolved,
+                            onFailed = {
+                                if (navigator.destination.value == currentDestination) {
+                                    navigator.navigate(AppDestination.LevelFailed(levelRef))
                                 }
-                            }
-                        },
-                        onFailed = {
-                            if (navigator.destination.value == currentDestination) {
-                                navigator.navigate(AppDestination.LevelFailed(levelRef))
-                            }
-                        },
-                        onBack = { navigator.goBack() },
-                    )
+                            },
+                            onBack = { navigator.goBack() },
+                        )
+                    }
                 }
             }
 
@@ -528,9 +575,8 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                 val firstSession = firstSessionAfterInstall
                                 try {
                                     if (next != null && currentActivity != null && firstSession != null) {
-                                        val module = requireNotNull(GameRegistry.find(levelRef.gameId))
                                         val boardSize = withContext(Dispatchers.IO) {
-                                            module.loadLevel(levelRef, bankSource).size
+                                            loadLevelSize(levelRef, bankSource)
                                         }
                                         interstitialAdFlow.afterResultNext(
                                             activity = currentActivity,
@@ -570,7 +616,12 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     value = withContext(Dispatchers.IO) {
                         val ref = currentDestination.levelRef
                         val saved = progressRepository.getAttemptProgress(ref.gameId, ref.levelId, ref.levelNumber ?: 0)
-                        saved?.let { runCatching { GameRegistry.find(ref.gameId)?.decodeState(it.stateBytes) }.getOrNull() }
+                        saved?.let {
+                            runCatching {
+                                GameRegistry.find(ref.gameId)?.decodeState(it.stateBytes)
+                                    ?: PlayRegistry.find(ref.gameId)?.decodeState(it.stateBytes)
+                            }.getOrNull()
+                        }
                     }
                 }
                 LevelFailedScreen(
@@ -610,7 +661,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
             ) { CalendarScreenRoute(
                 dailyProgress = dailyProgress,
                 completionRepository = dailyCompletionRepository,
-                gameIds = GameRegistry.games.map { it.id },
+                gameIds = allGameIds,
                 premiumEnabled = playerData.premiumEnabled,
                 streakRepairCreditAvailable =
                     (playerData.rewardBalances[RewardType.STREAK_REPAIR] ?: 0) > 0,
@@ -672,10 +723,9 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     }
                 },
                 onOpenDailyPuzzle = { gameId ->
-                    val module = requireNotNull(GameRegistry.find(gameId))
                     scope.launch {
                         val dailyRef = withContext(Dispatchers.IO) {
-                            module.dailyRef(dailyProgressCoordinator.today().bankIndex, bankSource)
+                            dailyRefFor(gameId, dailyProgressCoordinator.today().bankIndex, bankSource)
                         }
                         if (navigator.destination.value == AppDestination.Calendar) {
                             navigator.navigate(AppDestination.Play(dailyRef))
@@ -686,7 +736,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
             AppDestination.Statistics -> WitgridScreenFrame(
                 topBar = { WitgridTopBar(title = stringResource(R.string.screen_statistics), onBack = goBack) },
             ) { StatisticsScreenRoute(
-                gameIds = GameRegistry.games.map { it.id },
+                gameIds = allGameIds,
                 levelRefsByGame = levelRefsByGame,
                 progressRepository = progressRepository,
                 dailyPuzzleCompletionRepository = dailyCompletionRepository,
@@ -732,6 +782,16 @@ fun WitgridNavigation(navigator: AppNavigator) {
     }
 }
 
+private fun dailyRefFor(gameId: String, dayIndex: Int, bankSource: AssetBankSource): LevelRef =
+    GameRegistry.find(gameId)?.dailyRef(dayIndex, bankSource)
+        ?: requireNotNull(PlayRegistry.find(gameId)) { "Unknown game: $gameId" }
+            .dailyRef(dayIndex, bankSource)
+
+private fun loadLevelSize(levelRef: LevelRef, bankSource: AssetBankSource): Int =
+    GameRegistry.find(levelRef.gameId)?.loadLevel(levelRef, bankSource)?.size
+        ?: requireNotNull(PlayRegistry.find(levelRef.gameId)) { "Unknown game: ${levelRef.gameId}" }
+            .loadLevel(levelRef, bankSource).size
+
 private fun gameTitleResource(gameId: String): Int = when (gameId) {
     "crowns" -> R.string.game_crowns
     "binary" -> R.string.game_binary
@@ -741,6 +801,7 @@ private fun gameTitleResource(gameId: String): Int = when (gameId) {
     "skyscrapers" -> R.string.game_skyscrapers
     "futoshiki" -> R.string.game_futoshiki
     "path" -> R.string.game_path
+    "arrows" -> R.string.game_arrows
     else -> R.string.game_unknown
 }
 

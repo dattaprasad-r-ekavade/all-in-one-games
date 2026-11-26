@@ -6,9 +6,11 @@ import com.datathecodie.witgrid.data.progress.nextGameLevel
 import com.datathecodie.witgrid.data.progress.nextPackLevel
 import com.datathecodie.witgrid.engine.core.BankLine
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.core.PlayBankLine
 import com.datathecodie.witgrid.games.BankSource
 import com.datathecodie.witgrid.games.GameRegistry
 import com.datathecodie.witgrid.games.LevelRef
+import com.datathecodie.witgrid.games.PlayRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,11 +53,14 @@ class GameViewModel(
             }
         }
         val module = GameRegistry.find(gameId)
+        val playModule = PlayRegistry.find(gameId)
         val packs = Pack.entries.map { pack ->
             val refs = levelRefsByPack[pack].orEmpty()
             val sizes = if (bankSource != null && refs.any { !it.isIntro }) {
                 bankSource.open(bankAssetPath(gameId, pack)).bufferedReader(Charsets.UTF_8).useLines { lines ->
-                    lines.map { BankLine.decode(it).size }.toList()
+                    lines.map { line ->
+                        if (playModule != null) PlayBankLine.decode(line).size else BankLine.decode(line).size
+                    }.toList()
                 }
             } else emptyList()
             PackProgress(pack, nextPackLevel(refs, progress),
@@ -67,7 +72,11 @@ class GameViewModel(
             continueLevelRef = continueLevelRef,
             isLoading = false,
             continueProgress = saved,
-            continueState = saved?.let { runCatching { module?.decodeState(it.stateBytes) }.getOrNull() },
+            continueState = saved?.let {
+                runCatching {
+                    module?.decodeState(it.stateBytes) ?: playModule?.decodeState(it.stateBytes)
+                }.getOrNull()
+            },
         )
     }
 

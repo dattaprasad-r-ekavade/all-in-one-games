@@ -17,12 +17,12 @@ class ArrowsGameModuleTest {
 
     @Test
     fun tapsHintArrowFromFixtureUntilClearWithZeroMistakes() {
-        val bank = FakeBankSource(
-            mapOf(
-                "bank/arrows-easy.txt.gz" to ArrowsCodec.encodePuzzle(ArrowsBoardFixtures.easyPuzzle),
-            ),
-        )
-        val levelRef = module.firstLevelRef(Pack.EASY, bank)
+        val bank = fakeBank()
+        val introRef = module.firstLevelRef(Pack.EASY, bank)
+        assertTrue(introRef.isIntro)
+        assertEquals("AR-INTRO-01", introRef.levelId)
+
+        val levelRef = module.levelRefs(Pack.EASY, bank)[1]
         val level = module.loadLevel(levelRef, bank)
         assertEquals("ar-easy-1", level.ref.levelId)
         assertEquals(2, module.levelsPerInterstitial(level))
@@ -57,12 +57,8 @@ class ArrowsGameModuleTest {
 
     @Test
     fun blockedTapAddsMistakeThroughGameModule() {
-        val bank = FakeBankSource(
-            mapOf(
-                "bank/arrows-easy.txt.gz" to ArrowsCodec.encodePuzzle(ArrowsBoardFixtures.easyPuzzle),
-            ),
-        )
-        val level = module.loadLevel(module.firstLevelRef(Pack.EASY, bank), bank)
+        val bank = fakeBank()
+        val level = module.loadLevel(module.levelRefs(Pack.EASY, bank)[1], bank)
         val start = module.newState(level)
         val tap = ArrowsBoardInput.tapCell(start, ArrowsBoardFixtures.BLOCKED_CELL)
 
@@ -72,6 +68,16 @@ class ArrowsGameModuleTest {
         assertEquals(2, ArrowsBoardInput.livesLeft(next))
         assertEquals(start.arrows, next.arrows)
         assertFalse(module.isLost(level, next))
+    }
+
+    private fun fakeBank(): FakeBankSource {
+        val introPuzzle = ArrowsBoardFixtures.easyPuzzle.copy(bankId = "AR-INTRO-01")
+        return FakeBankSource(
+            mapOf(
+                "bank/arrows-intro.txt" to ArrowsCodec.encodePuzzle(introPuzzle),
+                "bank/arrows-easy.txt.gz" to ArrowsCodec.encodePuzzle(ArrowsBoardFixtures.easyPuzzle),
+            ),
+        )
     }
 
     private class FakeBankSource(private val files: Map<String, String>) : BankSource {

@@ -4,6 +4,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.PlayBankLine
 import com.datathecodie.witgrid.engine.core.PlayEngine
 import com.datathecodie.witgrid.engine.core.SplitMix64
+import com.datathecodie.witgrid.games.arrows.ArrowsGameModule
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -59,9 +60,10 @@ class PlayGameModuleTest {
     }
 
     @Test
-    fun playRegistryFindsNothingUntilLanesRegister() {
+    fun playRegistryFindsRegisteredLanes() {
         assertEquals(null, PlayRegistry.find("not-registered"))
-        assertTrue(PlayRegistry.games.isEmpty())
+        assertEquals(ArrowsGameModule, PlayRegistry.find("arrows"))
+        assertTrue(PlayRegistry.games.contains(ArrowsGameModule))
     }
 
     private fun testModule() = EnginePlayGameModule(
