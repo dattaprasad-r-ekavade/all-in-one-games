@@ -137,6 +137,9 @@
     <string name="button_check">Check</string>
     <string name="hint_mistake_title">Review the highlighted cells</string>
     <string name="hint_mistake_body">The highlighted cells contain a mistake.</string>
+    <string name="hint_action_title">Suggested move</string>
+    <string name="hint_arrows_body">Tap the highlighted arrow at row %1$d, column %2$d to slide it off the board.</string>
+    <string name="hint_play_action_body">Apply the highlighted move to make progress.</string>
     <string name="hint_unavailable">No hint is available for this position.</string>
     <string name="hint_allowance_unavailable">A hint is not available right now.</string>
     <string name="check_allowance_unavailable">A check is not available right now.</string>
@@ -173,6 +176,7 @@
     <string name="game_futoshiki">Futoshiki</string>
     <string name="game_path">Path</string>
     <string name="game_killersudoku">Killer Sudoku</string>
+    <string name="game_arrows">Arrows</string>
     <string name="game_unknown">Game</string>
     <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally.</string>
     <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
@@ -183,6 +187,7 @@
     <string name="intro_coach_futoshiki">Fill each row and column with 1 to N once. Follow the inequality signs between neighbouring cells.</string>
     <string name="intro_coach_path">Connect each matching numbered pair, filling every cell without crossing or touching another part of the same path.</string>
     <string name="intro_coach_killersudoku">Each row, column, and 3 by 3 box uses digits 1 through 9 once; digits in each dashed cage cannot repeat and must add up to the cage sum.</string>
+    <string name="intro_coach_arrows">Tap an arrow with a clear path to the edge to slide it off the board; three blocked taps end the level.</string>
     <string name="reminder_notification_channel_name">Daily puzzle reminder</string>
     <string name="reminder_notification_channel_description">A reminder at the time you choose.</string>
     <string name="reminder_notification_title">Your daily puzzle is ready</string>
@@ -287,6 +292,7 @@
     <string name="play_rules_futoshiki">Fill each row and column with the digits 1 to N exactly once. The inequality sign between two neighbouring cells shows which digit must be smaller. Select a cell, then choose a digit. Notes toggles pencil marks.</string>
     <string name="play_rules_path">Join each equal-number pair with a path. Paths cannot branch, cross, or touch themselves, and every cell must be filled. Drag along empty cells to draw a path; each path joins the matching numbered endpoints.</string>
     <string name="play_rules_killersudoku">Fill each row, column, and 3 by 3 box with digits 1 through 9 exactly once. Digits inside each dashed cage must not repeat and must add up to the cage sum shown in its corner. Select a cell, then choose a digit. Notes toggles pencil marks; Erase clears the selected cell.</string>
+    <string name="play_rules_arrows">Each cell holds one arrow or is empty. Tap an arrow to slide it off the board in its direction if every cell on its path is empty. Win when the board is empty. Tapping an arrow that cannot slide is a mistake and costs one life; three mistakes fail the level.</string>
     <string name="play_restart_message">Clear your entries and start this puzzle again?</string>
     <string name="play_cancel">Cancel</string>
     <string name="play_crowns_count">%1$d of %2$d crowns placed</string>

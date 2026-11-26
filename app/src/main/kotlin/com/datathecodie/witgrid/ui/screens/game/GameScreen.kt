@@ -65,6 +65,7 @@ import com.datathecodie.witgrid.ui.screens.home.GameBoardPreview
 import com.datathecodie.witgrid.ui.screens.home.gameNameResource
 import com.datathecodie.witgrid.ui.screens.home.packNameResource
 import com.datathecodie.witgrid.ui.screens.play.playPuzzleStatus
+import com.datathecodie.witgrid.ui.screens.play.playRulesResource
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 
 @Composable
@@ -341,17 +342,10 @@ fun GameRulesSheet(gameId: String, onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.titleLarge,
             )
             Text(
-                stringResource(gameRulesResource(gameId)),
+                stringResource(playRulesResource(gameId)),
                 Modifier.padding(top = 16.dp, bottom = 32.dp),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
     }
-}
-
-private fun gameRulesResource(gameId: String): Int = when (gameId) {
-    "crowns" -> R.string.play_rules_crowns
-    "binary" -> R.string.play_rules_binary
-    "nonogram" -> R.string.play_rules_nonogram
-    else -> R.string.play_rules_minisudoku
 }

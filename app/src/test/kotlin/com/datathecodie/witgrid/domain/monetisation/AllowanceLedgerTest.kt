@@ -12,6 +12,8 @@ import com.datathecodie.witgrid.domain.config.ConfigKeys
 import com.datathecodie.witgrid.domain.config.DefaultConfig
 import com.datathecodie.witgrid.domain.daily.RepairableStreakMiss
 import com.datathecodie.witgrid.domain.monetisation.InterstitialPolicy.shouldShow
+import com.datathecodie.witgrid.games.GameRegistry
+import com.datathecodie.witgrid.games.PlayRegistry
 import com.datathecodie.witgrid.play.HintAllowanceDecision
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.async
@@ -245,7 +247,19 @@ class AllowanceLedgerTest {
         assertEquals(2, DefaultConfig.int(ConfigKeys.interstitialLevelsKey("nonogram", 5)))
         assertEquals(1, DefaultConfig.int(ConfigKeys.interstitialLevelsKey("nonogram", 10)))
         assertEquals(2, DefaultConfig.int(ConfigKeys.interstitialLevelsKey("minisudoku", 6)))
-        assertEquals(14, ConfigKeys.allDefaults().size)
+        assertEquals(24, ConfigKeys.allDefaults().size)
+    }
+
+    @Test
+    fun everyRegisteredGameHasAnInterstitialDefault() {
+        // An unknown key throws, and the caller then shows no interstitial for that game.
+        val gameIds = GameRegistry.games.map { it.id } + PlayRegistry.games.map { it.id }
+        gameIds.forEach { gameId ->
+            assertTrue(DefaultConfig.int(ConfigKeys.interstitialLevelsKey(gameId, 9)) >= 1, gameId)
+        }
+        assertEquals(1, DefaultConfig.int(ConfigKeys.interstitialLevelsKey("sudoku", 9)))
+        assertEquals(2, DefaultConfig.int(ConfigKeys.interstitialLevelsKey("arrows", 5)))
+        assertEquals(1, DefaultConfig.int(ConfigKeys.interstitialLevelsKey("klondike", 7)))
     }
 
     @Test

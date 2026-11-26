@@ -7,6 +7,7 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.PlayBankLine
 import com.datathecodie.witgrid.engine.core.PlayEngine
+import com.datathecodie.witgrid.games.arrows.ArrowsGameModule
 import java.io.InputStream
 
 /**
@@ -62,7 +63,9 @@ interface PlayGameModule<P : Any, S : Any, A : Any> {
  * not hard-code how many games exist.
  */
 object PlayRegistry {
-    val games: List<PlayGameModule<*, *, *>> = emptyList()
+    val games: List<PlayGameModule<*, *, *>> = listOf(
+        ArrowsGameModule,
+    )
 
     private val gamesById = games.associateBy { it.id }
 

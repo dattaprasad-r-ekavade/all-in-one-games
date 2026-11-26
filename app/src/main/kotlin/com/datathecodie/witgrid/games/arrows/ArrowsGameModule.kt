@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.arrows.ArrowsState
 import com.datathecodie.witgrid.games.EnginePlayGameModule
 import com.datathecodie.witgrid.games.PlayGameModule
 
-/** Arrows bank behaviour and its tap-to-slide board. Registration lives in ARC. */
+/** Arrows bank behaviour and its tap-to-slide board. */
 object ArrowsGameModule : PlayGameModule<ArrowsPuzzle, ArrowsState, ArrowsAction> by EnginePlayGameModule(
     engine = ArrowsEngine,
     puzzleOf = ArrowsState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable

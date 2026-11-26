@@ -402,5 +402,6 @@ internal fun playRulesResource(gameId: String): Int = when (gameId) {
     "futoshiki" -> R.string.play_rules_futoshiki
     "path" -> R.string.play_rules_path
     "killersudoku" -> R.string.play_rules_killersudoku
+    "arrows" -> R.string.play_rules_arrows
     else -> R.string.play_rules_minisudoku
 }

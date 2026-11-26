@@ -335,6 +335,6 @@ class DataStorePlayerDataRepository(
             androidx.datastore.preferences.core.stringSetPreferencesKey("processed_continue_transaction_ids")
         val LAST_INTERSTITIAL_SHOWN_EPOCH_MILLIS = longPreferencesKey("last_interstitial_shown_epoch_millis")
         val HAS_STARTED_APP_SESSION = booleanPreferencesKey("has_started_app_session")
-        val INTERSTITIAL_GAME_IDS = listOf("crowns", "binary", "nonogram", "minisudoku", "sudoku", "skyscrapers", "futoshiki", "path", "killersudoku")
+        val INTERSTITIAL_GAME_IDS = listOf("crowns", "binary", "nonogram", "minisudoku", "sudoku", "skyscrapers", "futoshiki", "path", "killersudoku", "arrows")
     }
 }
