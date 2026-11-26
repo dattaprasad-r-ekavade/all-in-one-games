@@ -3,6 +3,7 @@ package com.datathecodie.witgrid.games
 import com.datathecodie.witgrid.games.binary.BinaryGameModule
 import com.datathecodie.witgrid.games.crowns.CrownsGameModule
 import com.datathecodie.witgrid.games.futoshiki.FutoshikiGameModule
+import com.datathecodie.witgrid.games.killersudoku.KillerSudokuGameModule
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
 import com.datathecodie.witgrid.games.nonogram.NonogramGameModule
 import com.datathecodie.witgrid.games.path.PathGameModule
@@ -19,6 +20,7 @@ object GameRegistry {
         SkyscrapersGameModule,
         FutoshikiGameModule,
         PathGameModule,
+        KillerSudokuGameModule,
     )
 
     private val gamesById = games.associateBy { it.id }
