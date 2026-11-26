@@ -103,7 +103,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | done |
 | KL1–KL3 | Klondike engine | see hub lane table | | | E3 | done |
 | KLA | Klondike board | H | Codex | Claude | KL2 | done |
-| KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
+| KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | active |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
 | CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 done |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | done |
@@ -123,8 +123,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | SKC | Skyscrapers intro, config, strings | L | Claude | Codex | SKA, SKB | done |
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done, MO4 done |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | done |
-| MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | active (paused; Codex luna run stopped) |
-| MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | todo |
+| MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | done |
+| MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | ready |
 | H7 | Hand-test the launch catalog | Human | — | — | All Phase 7 bank cards | todo |
 
 ---
@@ -848,6 +848,7 @@ Plan: 12.6, 8.1.
 ### KS, FU, SK, MO board, bank and intro cards (KSA…MOC)
 Same shape as SUA, SUB and SUC. Board owns `app/…/games/<package>/**`; reuse the Mini Sudoku digit pad (KS, FU, SK) or the Nonogram Fill/Cross tools (MO). Bank: 4×150 + 365 daily, report `docs/reports/bank-<package>.md`. Intro card: guided first level, register in `GameRegistry` and `engine.Registry`, `levelsPerInterstitial` from plan 12 (KS 1, FU 2, SK 2, MO 2), new string keys only. User-visible names: "Killer Sudoku", "Futoshiki", "Skyscrapers", "Mosaic". No game count in any string.
 **Done when:** the same commands as SUA, SUB and SUC pass.
+**Lead completion note (27 Nov 2026):** MOB squash-merged as `99d7d5f`. 4×150 + 365 daily, Expert seed 251204, daily 251205. Easy/Medium/Hard reused from 23 Nov (seeds not recorded). `MosaicEngine` in `Registry`. `./gradlew check` 11,591 puzzles in 71 files. All 965 Mosaic grades are `clue-overlap`. MOC unblocked.
 
 ### H7 — Hand-test the launch catalog (Human)
 **Owns:** `docs/reports/catalog-hand-test.md`.
