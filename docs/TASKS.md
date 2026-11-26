@@ -99,9 +99,9 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | PAC | Path intro, config, strings | L | Claude | Codex | PAA, PAB | done |
 | AR1–AR3 | Arrows engine | see hub lane table | | | E3 | done |
 | ARA | Arrows board | M | Claude | Codex | AR2 | done |
-| ARB | Arrows bank | L | Codex | Claude | AR3, B6 | todo |
+| ARB | Arrows bank | L | Codex | Claude | AR3, B6 | active (Gemini Hydrogen; wires Family B into bankgen) |
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
-| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 done, KL3 todo |
+| KL1–KL3 | Klondike engine | see hub lane table | | | E3 | KL1 done, KL2 done, KL3 active (Haiku) |
 | KLA | Klondike board | H | Codex | Claude | KL2 | done |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
 | KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
@@ -111,7 +111,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
 | KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | done |
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | done |
-| KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | todo |
+| KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | active (Gemini Hydrogen) |
 | KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done, FU4 done |
 | FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | done |
