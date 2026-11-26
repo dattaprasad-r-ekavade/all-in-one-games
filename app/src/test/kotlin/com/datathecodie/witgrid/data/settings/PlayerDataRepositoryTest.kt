@@ -196,6 +196,7 @@ class PlayerDataRepositoryTest {
                     RewardType.HINT to 3,
                     RewardType.CHECK to 0,
                     RewardType.EXTRA_LIFE to 0,
+                    RewardType.EXTRA_TUBE to 0,
                     RewardType.STREAK_REPAIR to 0,
                 ),
                 allowanceUsage = AllowanceUsage(

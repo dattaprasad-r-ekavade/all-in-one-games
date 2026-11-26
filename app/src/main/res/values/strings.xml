@@ -177,6 +177,7 @@
     <string name="game_path">Path</string>
     <string name="game_killersudoku">Killer Sudoku</string>
     <string name="game_arrows">Arrows</string>
+    <string name="game_coloursort">Colour Sort</string>
     <string name="game_unknown">Game</string>
     <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally.</string>
     <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
@@ -188,6 +189,7 @@
     <string name="intro_coach_path">Connect each matching numbered pair, filling every cell without crossing or touching another part of the same path.</string>
     <string name="intro_coach_killersudoku">Each row, column, and 3 by 3 box uses digits 1 through 9 once; digits in each dashed cage cannot repeat and must add up to the cage sum.</string>
     <string name="intro_coach_arrows">Tap an arrow with a clear path to the edge to slide it off the board; three blocked taps end the level.</string>
+    <string name="intro_coach_coloursort">Tap a tube, then tap another to pour. Matching colours stack, and an empty tube takes any colour. Fill each tube with one colour.</string>
     <string name="reminder_notification_channel_name">Daily puzzle reminder</string>
     <string name="reminder_notification_channel_description">A reminder at the time you choose.</string>
     <string name="reminder_notification_title">Your daily puzzle is ready</string>
@@ -254,9 +256,12 @@
     <string name="premium_restore_empty">No Premium purchase was found for this Google Play account.</string>
     <string name="premium_restore_failed">Purchases could not be restored. Check Google Play and try again.</string>
     <string name="ads_continue_rewarded">Watch an ad to continue with one extra mistake</string>
+    <string name="ads_continue_rewarded_tube">Watch an ad to continue with one extra empty tube</string>
     <string name="ads_continue_granted">Continue is ready.</string>
     <string name="failed_continue_premium">Continue with Premium and one extra mistake</string>
+    <string name="failed_continue_premium_tube">Continue with Premium and one extra empty tube</string>
     <string name="failed_continue_credit">Continue with a saved credit and one extra mistake</string>
+    <string name="failed_continue_credit_tube">Continue with a saved credit and one extra empty tube</string>
     <string name="calendar_repair_streak_watch_ad">Watch an ad to repair your streak</string>
     <string name="calendar_repair_streak_credit">Repair your streak with a saved credit</string>
     <string name="calendar_repair_streak_premium">Repair your streak with Premium</string>
@@ -293,6 +298,7 @@
     <string name="play_rules_path">Join each equal-number pair with a path. Paths cannot branch, cross, or touch themselves, and every cell must be filled. Drag along empty cells to draw a path; each path joins the matching numbered endpoints.</string>
     <string name="play_rules_killersudoku">Fill each row, column, and 3 by 3 box with digits 1 through 9 exactly once. Digits inside each dashed cage must not repeat and must add up to the cage sum shown in its corner. Select a cell, then choose a digit. Notes toggles pencil marks; Erase clears the selected cell.</string>
     <string name="play_rules_arrows">Each cell holds one arrow or is empty. Tap an arrow to slide it off the board in its direction if every cell on its path is empty. Win when the board is empty. Tapping an arrow that cannot slide is a mistake and costs one life; three mistakes fail the level.</string>
+    <string name="play_rules_coloursort">Pour from one tube onto another when the destination is empty or its top colour matches, and there is space. Win when every tube is empty or a single colour. If you get stuck, Continue adds one extra empty tube.</string>
     <string name="play_restart_message">Clear your entries and start this puzzle again?</string>
     <string name="play_cancel">Cancel</string>
     <string name="play_crowns_count">%1$d of %2$d crowns placed</string>

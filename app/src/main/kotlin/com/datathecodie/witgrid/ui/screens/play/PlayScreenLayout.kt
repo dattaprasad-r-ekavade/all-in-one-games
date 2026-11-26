@@ -403,5 +403,6 @@ internal fun playRulesResource(gameId: String): Int = when (gameId) {
     "path" -> R.string.play_rules_path
     "killersudoku" -> R.string.play_rules_killersudoku
     "arrows" -> R.string.play_rules_arrows
+    "coloursort" -> R.string.play_rules_coloursort
     else -> R.string.play_rules_minisudoku
 }

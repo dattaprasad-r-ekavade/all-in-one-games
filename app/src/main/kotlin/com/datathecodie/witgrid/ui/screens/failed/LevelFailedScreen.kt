@@ -54,11 +54,11 @@ fun LevelFailedScreen(
         Text(stringResource(R.string.failed_explanation), style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.weight(1f))
         RewardedActionButton(
-            titleResource = when {
-                premiumEnabled -> R.string.failed_continue_premium
-                continueCreditAvailable -> R.string.failed_continue_credit
-                else -> R.string.ads_continue_rewarded
-            },
+            titleResource = continueTitleResource(
+                gameId = levelRef?.gameId,
+                premiumEnabled = premiumEnabled,
+                continueCreditAvailable = continueCreditAvailable,
+            ),
             successResource = R.string.ads_continue_granted,
             onReward = {
                 if (premiumEnabled || continueCreditAvailable) {
@@ -75,5 +75,21 @@ fun LevelFailedScreen(
             primaryStyle = true,
         )
         SecondaryButton(stringResource(R.string.button_restart), onRestart, Modifier.fillMaxWidth())
+    }
+}
+
+private fun continueTitleResource(
+    gameId: String?,
+    premiumEnabled: Boolean,
+    continueCreditAvailable: Boolean,
+): Int {
+    val extraTube = gameId == "coloursort"
+    return when {
+        premiumEnabled && extraTube -> R.string.failed_continue_premium_tube
+        premiumEnabled -> R.string.failed_continue_premium
+        continueCreditAvailable && extraTube -> R.string.failed_continue_credit_tube
+        continueCreditAvailable -> R.string.failed_continue_credit
+        extraTube -> R.string.ads_continue_rewarded_tube
+        else -> R.string.ads_continue_rewarded
     }
 }

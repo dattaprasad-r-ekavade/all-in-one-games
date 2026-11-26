@@ -215,6 +215,26 @@ class AllowanceLedgerTest {
     }
 
     @Test
+    fun colourSortContinueConsumesExtraTubeNotExtraLife() = runBlocking {
+        val repository = FakePlayerDataRepository(
+            PlayerData(
+                rewardBalances = RewardType.entries.associateWith { type ->
+                    if (type == RewardType.EXTRA_TUBE) 1 else 0
+                },
+            ),
+        )
+        val ledger = ledger(repository, AtomicLong(100), isOnline = { true })
+
+        assertEquals(RewardType.EXTRA_TUBE, ContinueReward.typeFor("coloursort"))
+        assertEquals(RewardType.EXTRA_LIFE, ContinueReward.typeFor("arrows"))
+        assertFalse(ledger.allowContinue("tube-transaction", RewardType.EXTRA_LIFE))
+        assertTrue(ledger.allowContinue("tube-transaction", ContinueReward.typeFor("coloursort")))
+        assertEquals(0, repository.current.rewardBalances[RewardType.EXTRA_TUBE])
+        assertEquals(0, repository.current.rewardBalances[RewardType.EXTRA_LIFE])
+        assertTrue(ledger.allowContinue("tube-transaction", RewardType.EXTRA_TUBE))
+    }
+
+    @Test
     fun concurrentRewardGrantsDoNotOverwriteEachOther() = runBlocking {
         val repository = FakePlayerDataRepository()
         val ledger = ledger(repository, AtomicLong(100), isOnline = { true })

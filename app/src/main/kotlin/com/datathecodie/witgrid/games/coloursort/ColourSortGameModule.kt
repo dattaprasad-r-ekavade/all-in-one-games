@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.coloursort.ColourSortState
 import com.datathecodie.witgrid.games.EnginePlayGameModule
 import com.datathecodie.witgrid.games.PlayGameModule
 
-/** Colour Sort bank behaviour and its tube board. Registration lives in CSC. */
+/** Colour Sort bank behaviour and its tube board. */
 object ColourSortGameModule : PlayGameModule<ColourSortPuzzle, ColourSortState, ColourSortAction> by EnginePlayGameModule(
     engine = ColourSortEngine,
     puzzleOf = ColourSortState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable

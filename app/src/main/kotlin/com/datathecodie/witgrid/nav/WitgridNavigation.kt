@@ -52,6 +52,7 @@ import com.datathecodie.witgrid.domain.daily.DailyProgressSnapshot
 import com.datathecodie.witgrid.domain.daily.DailyStreakPolicy
 import com.datathecodie.witgrid.domain.config.DefaultConfig
 import com.datathecodie.witgrid.domain.monetisation.AllowanceLedger
+import com.datathecodie.witgrid.domain.monetisation.ContinueReward
 import com.datathecodie.witgrid.domain.monetisation.InterstitialTracker
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.games.AssetBankSource
@@ -60,6 +61,8 @@ import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.PlayRegistry
 import com.datathecodie.witgrid.games.arrows.ArrowsBoardOptions
 import com.datathecodie.witgrid.games.arrows.LocalArrowsBoardOptions
+import com.datathecodie.witgrid.games.coloursort.ColourSortBoardOptions
+import com.datathecodie.witgrid.games.coloursort.LocalColourSortBoardOptions
 import com.datathecodie.witgrid.games.binary.BinaryBoardOptions
 import com.datathecodie.witgrid.games.binary.LocalBinaryBoardOptions
 import com.datathecodie.witgrid.games.crowns.CrownsBoardOptions
@@ -494,6 +497,11 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         hapticsEnabled = playerData.settings.hapticsEnabled,
                         reduceMotion = playerData.settings.reduceMotion,
                     ),
+                    LocalColourSortBoardOptions provides ColourSortBoardOptions(
+                        showColourAids = playerData.settings.crownsShowRegionAids,
+                        hapticsEnabled = playerData.settings.hapticsEnabled,
+                        reduceMotion = playerData.settings.reduceMotion,
+                    ),
                 ) {
                     if (module != null) {
                         PlayScreenRoute(
@@ -514,7 +522,10 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                 if (continueRequest?.transactionId == transactionId) continueRequest = null
                             },
                             onConsumeContinueTransaction = { transactionId ->
-                                rewardLedger.allowContinue(transactionId)
+                                rewardLedger.allowContinue(
+                                    transactionId,
+                                    ContinueReward.typeFor(levelRef.gameId),
+                                )
                             },
                             onRegisterBackAction = { action -> activeBackAction = action },
                             onSolved = onPlaySolved,
@@ -543,7 +554,10 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                 if (continueRequest?.transactionId == transactionId) continueRequest = null
                             },
                             onConsumeContinueTransaction = { transactionId ->
-                                rewardLedger.allowContinue(transactionId)
+                                rewardLedger.allowContinue(
+                                    transactionId,
+                                    ContinueReward.typeFor(levelRef.gameId),
+                                )
                             },
                             onRegisterBackAction = { action -> activeBackAction = action },
                             onSolved = onPlaySolved,
@@ -645,12 +659,16 @@ fun WitgridNavigation(navigator: AppNavigator) {
                     boardState = failedBoardState,
                     premiumEnabled = playerData.premiumEnabled,
                     continueCreditAvailable =
-                        (playerData.rewardBalances[RewardType.EXTRA_LIFE] ?: 0) > 0,
+                        (playerData.rewardBalances[ContinueReward.typeFor(currentDestination.levelRef.gameId)] ?: 0) > 0,
                     billingState = billingState,
                     onPurchasePremium = { activity?.let(billingService::launchPurchase) },
                     onRewardedContinue = {
-                        activity?.let { rewardedAdFlow.grantReward(it, RewardType.EXTRA_LIFE) }
-                            ?: AdShowResult.Unavailable
+                        activity?.let {
+                            rewardedAdFlow.grantReward(
+                                it,
+                                ContinueReward.typeFor(currentDestination.levelRef.gameId),
+                            )
+                        } ?: AdShowResult.Unavailable
                     },
                 )
 
@@ -803,6 +821,7 @@ private fun gameTitleResource(gameId: String): Int = when (gameId) {
     "path" -> R.string.game_path
     "killersudoku" -> R.string.game_killersudoku
     "arrows" -> R.string.game_arrows
+    "coloursort" -> R.string.game_coloursort
     else -> R.string.game_unknown
 }
 

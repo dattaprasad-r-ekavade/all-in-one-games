@@ -8,6 +8,7 @@ import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.core.PlayBankLine
 import com.datathecodie.witgrid.engine.core.PlayEngine
 import com.datathecodie.witgrid.games.arrows.ArrowsGameModule
+import com.datathecodie.witgrid.games.coloursort.ColourSortGameModule
 import java.io.InputStream
 
 /**
@@ -64,6 +65,7 @@ interface PlayGameModule<P : Any, S : Any, A : Any> {
  */
 object PlayRegistry {
     val games: List<PlayGameModule<*, *, *>> = listOf(
+        ColourSortGameModule,
         ArrowsGameModule,
     )
 

@@ -34,13 +34,15 @@ class ColourSortGameModuleTest {
                 emptyList(),
             ),
         )
+        val introPuzzle = fixture.copy(bankId = "CS-INTRO-01")
         val bank = FakeBankSource(
             mapOf(
+                "bank/coloursort-intro.txt" to ColourSortCodec.encodePuzzle(introPuzzle),
                 "bank/coloursort-easy.txt.gz" to ColourSortCodec.encodePuzzle(fixture),
             ),
         )
 
-        val levelRef = module.firstLevelRef(Pack.EASY, bank)
+        val levelRef = module.levelRefs(Pack.EASY, bank)[1]
         val level = module.loadLevel(levelRef, bank)
         assertEquals(2, module.levelsPerInterstitial(level))
 

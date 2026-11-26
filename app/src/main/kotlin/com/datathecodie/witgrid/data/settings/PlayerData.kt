@@ -50,6 +50,7 @@ enum class RewardType(val storageKey: String) {
     HINT("hint"),
     CHECK("check"),
     EXTRA_LIFE("extra_life"),
+    EXTRA_TUBE("extra_tube"),
     STREAK_REPAIR("streak_repair"),
 }
 

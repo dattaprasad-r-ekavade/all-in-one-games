@@ -81,8 +81,14 @@ class AllowanceLedger(
     }
 
     /** Consumes at most one Continue credit for [transactionId], safely across retries. */
-    suspend fun allowContinue(transactionId: String): Boolean {
+    suspend fun allowContinue(
+        transactionId: String,
+        rewardType: RewardType = RewardType.EXTRA_LIFE,
+    ): Boolean {
         require(transactionId.isNotBlank()) { "Continue transaction ID must not be blank" }
+        require(rewardType == RewardType.EXTRA_LIFE || rewardType == RewardType.EXTRA_TUBE) {
+            "Continue must consume EXTRA_LIFE or EXTRA_TUBE"
+        }
         var allowed = false
         playerDataRepository.updateMonetisationData { current ->
             val processedIds = current.processedContinueTransactionIds
@@ -90,7 +96,7 @@ class AllowanceLedger(
                 allowed = true
                 current
             } else {
-                val balance = current.rewardBalances[RewardType.EXTRA_LIFE] ?: 0
+                val balance = current.rewardBalances[rewardType] ?: 0
                 allowed = current.premiumEnabled || balance > 0
                 if (!allowed) {
                     current
@@ -99,7 +105,7 @@ class AllowanceLedger(
                         rewardBalances = if (current.premiumEnabled) {
                             current.rewardBalances
                         } else {
-                            current.rewardBalances + (RewardType.EXTRA_LIFE to balance - 1)
+                            current.rewardBalances + (rewardType to balance - 1)
                         },
                         processedContinueTransactionIds = processedIds + transactionId,
                     )
