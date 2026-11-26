@@ -6,6 +6,7 @@ import com.datathecodie.witgrid.engine.crowns.CrownsEngine
 import com.datathecodie.witgrid.engine.futoshiki.FutoshikiEngine
 import com.datathecodie.witgrid.engine.killersudoku.KillerSudokuEngine
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuEngine
+import com.datathecodie.witgrid.engine.mosaic.MosaicEngine
 import com.datathecodie.witgrid.engine.nonogram.NonogramEngine
 import com.datathecodie.witgrid.engine.path.PathEngine
 import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersEngine
@@ -27,5 +28,6 @@ object Registry {
         PathEngine,
         SudokuEngine,
         KillerSudokuEngine,
+        MosaicEngine,
     )
 }
