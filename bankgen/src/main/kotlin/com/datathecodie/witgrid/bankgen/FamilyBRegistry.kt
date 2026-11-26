@@ -6,6 +6,10 @@ import com.datathecodie.witgrid.engine.arrows.ArrowsRules
 import com.datathecodie.witgrid.engine.coloursort.ColourSortEngine
 import com.datathecodie.witgrid.engine.coloursort.ColourSortGenerator
 import com.datathecodie.witgrid.engine.coloursort.ColourSortSolver
+import com.datathecodie.witgrid.engine.klondike.KlondikeDeal
+import com.datathecodie.witgrid.engine.klondike.KlondikeEngine
+import com.datathecodie.witgrid.engine.klondike.KlondikeGenerator
+import com.datathecodie.witgrid.engine.klondike.KlondikeSolver
 
 internal val defaultFamilyBValidators: List<PlayBankValidator<*>> = listOf(
     PlayEngineValidator(
@@ -16,6 +20,10 @@ internal val defaultFamilyBValidators: List<PlayBankValidator<*>> = listOf(
         ColourSortEngine,
         { ColourSortGenerator.configFor(it.pack).difficulty },
     ) { ColourSortSolver.isWinnable(it.initialTubes) },
+    PlayEngineValidator(
+        KlondikeEngine,
+        { KlondikeGenerator.configFor(it.pack).difficulty },
+    ) { KlondikeSolver.isWinnable(KlondikeDeal.deal(it)) },
 )
 
 /**
