@@ -7,12 +7,14 @@ import com.datathecodie.witgrid.engine.core.Grade
 import com.datathecodie.witgrid.engine.core.HintStep
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.core.PlayBankLine
 import com.datathecodie.witgrid.engine.core.SplitMix64
 import com.datathecodie.witgrid.engine.core.Technique
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
@@ -23,9 +25,16 @@ class FamilyEngineBankTest {
     @TempDir
     lateinit var temporaryDirectory: Path
 
+    private lateinit var savedFamilyBRegistry: () -> List<PlayBankValidator<*>>
+
+    @BeforeEach
+    fun saveFamilyBRegistry() {
+        savedFamilyBRegistry = familyBRegistry
+    }
+
     @AfterEach
     fun resetFamilyBRegistry() {
-        familyBRegistry = { emptyList() }
+        familyBRegistry = savedFamilyBRegistry
     }
 
     @Test
