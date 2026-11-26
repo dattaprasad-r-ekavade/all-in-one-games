@@ -63,6 +63,8 @@ class PlayScreenLayoutTest {
         assertEquals(R.string.play_rules_futoshiki, playRulesResource("futoshiki"))
         assertEquals(R.string.game_path, gameNameResource("path"))
         assertEquals(R.string.play_rules_path, playRulesResource("path"))
+        assertEquals(R.string.game_killersudoku, gameNameResource("killersudoku"))
+        assertEquals(R.string.play_rules_killersudoku, playRulesResource("killersudoku"))
         assertEquals(R.string.game_arrows, gameNameResource("arrows"))
         assertEquals(R.string.play_rules_arrows, playRulesResource("arrows"))
         assertEquals(R.string.play_rules_minisudoku, playRulesResource("unknown"))
