@@ -2,7 +2,7 @@
 
 > **Keep the progress bars current.** The "Progress" section below is generated from the Status column in `docs/TASKS.md`. Do not edit the bars by hand. After you change any status in `docs/TASKS.md`, run `python scripts/progress.py` from the repo root, and commit `DEVELOPMENT_PLAN.md` together with `docs/TASKS.md`.
 
-Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14). Launch-catalog engine status and rule decisions from review added 22 Nov 2026 (sections 12, 12.3, 12.6, 12.8, 12.10, 14, 16). Engine status, generator-quality lessons and machine-load rule updated 23 Nov 2026 (sections 12, 14, 16.3).
+Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14). Launch-catalog engine status and rule decisions from review added 22 Nov 2026 (sections 12, 12.3, 12.6, 12.8, 12.10, 14, 16). Engine status, generator-quality lessons and machine-load rule updated 23 Nov 2026 (sections 12, 14, 16.3). Catalog snapshot and GitHub CI gap updated 26 Nov 2026 (section 12).
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
 
@@ -493,24 +493,30 @@ Open-source references with the MIT licence: Simon Tatham's Portable Puzzle Coll
 
 The production launch ships 14 games: the 4 built games plus the 10 below. Minimum 12. If the build runs late, cut Chess tactics first, then Klondike. Do not cut a cheap Family A game to save time. After launch, keep adding games from 12.11. Phase 7 in `docs/TASKS.md` has the cards. Research: `docs/reports/extra-launch-games.md`. Decision: `docs/decisions/prototype-catalog.md`.
 
-**Engine and app status (23 Nov 2026).** Each lane has x1 (rules and counter), x2 (technique solver and hints), x3 (generator) and x4 (independent spec tests). The app cards are A (board), B (bank) and C (intro, config, registration). "Lead review" means the Claude lead reads the diff; the batch gate is `scripts/check-batch.ps1`.
+**Engine and app status (26 Nov 2026).** Each lane has x1 (rules and counter), x2 (technique solver and hints), x3 (generator) and x4 (independent spec tests). The app cards are A (board), B (bank) and C (intro, config, registration). Local `./gradlew check` on CSC passed (10,626 puzzles in 66 files). **Finish remaining bank tests before new intro cards:** Mosaic (MOB, paused), then Klondike (KLB) or Tactics (CTB). Do not run two bankgens at once.
 
-| Game | Engine | Board (A) | Bank (B) | Intro (C) | State and next step |
-|---|---|---|---|---|---|
-| Sudoku 9x9 | x1, x2 done; x3 built | built | — | — | SU3: templates removed after lead review (random grid, random clue digging; Expert about 0.6 s per puzzle). Lead review ok, batch not run. SUA: batch pass, lead review next. SUB after SU3. |
-| Futoshiki | done | built | **done** | — | FUB merged 23 Nov (`b8b2717`): sign rule met (Hard 10–16 signs, Expert 4–8). FUA: batch pass, lead review next. Then FUC. |
-| Skyscrapers | **done** (x1–x4) | **done** | built | — | SK4 spec tests merged 23 Nov (`947d968`). SKB: Expert duplicates fixed in the generator; lead review ok, batch not run. Then SKC. |
-| Mosaic | done | built | paused | — | MOA: batch pass, lead review next. MOB run stopped on 23 Nov to free the PC; restart it alone. |
-| Path | done | **done** | — | — | PAB and PAC next. |
-| Colour Sort | x1 done; x2 built | — | — | — | CS2 round 2: hint must give the first move of a shortest path, because the first DFS hint looped on Medium level 6. Lead review next. |
-| Arrows | x1 built | — | — | — | AR1: batch pass, lead review next. Blocked tap = mistake; 3 mistakes fail; Continue = extra life. |
-| Klondike | x1 built | — | — | — | KL1: batch pass, lead review next. Check: `isLost` is false whenever `moveCount` is 0. |
-| Chess tactics | x1–x3 built | — | — | — | CT3: 4 blockers fixed, batch pass, lead review next. First game to cut. |
-| Killer Sudoku | — | — | — | — | Waits for SU3 and SUA. |
+| Game | Engine | Board (A) | Bank (B) | Intro (C) | Playable | State and next step |
+|---|---|---|---|---|---|---|
+| Sudoku 9x9 | **done** | **done** | **done** | **done** | yes | Complete. |
+| Killer Sudoku | **done** | **done** | **done** | **done** | yes | Complete. |
+| Futoshiki | **done** | **done** | **done** | **done** | yes | Complete. |
+| Skyscrapers | **done** | **done** | **done** | **done** | yes | Complete. |
+| Path | **done** | **done** | **done** | **done** | yes | Complete. |
+| Colour Sort | **done** | **done** | **done** | **done** | yes | Complete 26 Nov (`ce80267`). Continue = extra empty tube (`EXTRA_TUBE`). |
+| Arrows | **done** | **done** | **done** | **done** | yes | Complete. Continue = extra life. |
+| Mosaic | **done** | **done** | paused | — | no | **MOB first.** Worktree `task/MOB` has Easy/Medium/Hard gz from 23 Nov; Expert (~2 h) and daily not generated. Rebase onto current `main` before finishing. Then MOC. |
+| Klondike | **done** | **done** | — | — | no | After MOB: KLB then KLC. Continue = extra undo. |
+| Chess tactics | **done** | **done** | — | — | no | First cut if late. CTB then CTC. Unique mate volume still a risk (12.6). |
 
-Engines in `engine.Registry` on main: Crowns, Binary, Nonogram, Mini Sudoku, Futoshiki. Each bank card adds its own engine (bankgen finds games through the registry), so the lead resolves the `Registry.kt` and `RegistryTest.kt` merge for SKB and MOB.
+**Playable on local `main` (11 of 14):** Crowns, Binary, Nonogram, Mini Sudoku, plus the seven complete hub games above. Mosaic, Klondike and Tactics have engines and boards but no bank/intro, so they are not on Home.
 
-Build order (dependencies, not calendar): Sudoku 9x9 → Killer Sudoku, with Futoshiki, Skyscrapers and Mosaic in parallel; E3 → Colour Sort → Arrows → Klondike; then Path → Chess tactics. Killer Sudoku, Futoshiki, Skyscrapers and Mosaic reuse the existing Family A input (`SetDigit`, `SetMark`), so they are the cheapest.
+Family A `engine.Registry` on main (9): Crowns, Binary, Nonogram, Mini Sudoku, Futoshiki, Skyscrapers, Path, Sudoku, Killer Sudoku. Mosaic joins on MOB. Tactics joins on CTC. Family B `PlayRegistry`: Colour Sort, Arrows (Klondike on KLC).
+
+**GitHub (26 Nov 2026).** `origin/main` is `b644a49` (SKC waiting for batch). Local `main` is **91 commits ahead** and has not been pushed. GitHub Actions CI last ran **17 Nov 2026** (success, 8 min, old bank-hand-test TRACK). GitHub is not a current test gate. CI runs only on request after a push (`gh workflow run CI --ref main`). Do not push until asked. Until then, the local `check` on each merged card is the gate.
+
+Human tests still open: H1 (original four-game bank), H7 (launch catalog — waits for remaining banks). H0.1, H4, H5, H6 stay human.
+
+Build order left: **MOB (one bankgen)** → MOC (12th playable) → KLB → KLC. Cut CT if the calendar is tight.
 
 | Order | Game | Family | Content | Level time | Interstitial | Continue |
 |---|---|---|---|---|---|---|
@@ -738,7 +744,7 @@ All code comes from AI agents. You are the lead: you pick tasks, read handoff no
 ### 16.2 Why this split works
 
 - **Engine first.** Family A in `engine/` has a strong test oracle: "exactly one solution, and the technique solver solves it". Family B uses winnable / `isLost` oracles. Agents do well on this work, and the tests catch their mistakes.
-- **Contracts before lanes.** E1 (Family A) and A3 (app) are done. E3 (Family B) must land before Colour Sort, Arrows and Klondike. Sudoku 9x9 and Path do not wait on E3.
+- **Contracts before lanes.** E1 (Family A), A3 (app) and E3 (Family B) are done. Colour Sort and Arrows are playable. Klondike still needs its bank.
 - **Two families.** Codex builds most of the engine and Claude builds most of the UI. Tests and reviews come from the other family, so one model's misreading of the spec does not pass through unseen.
 - **Logic out of the UI.** Ad rules, streaks and allowances are plain Kotlin with JVM tests. Agents cannot check a Compose screen by eye, but they can check a unit test.
 - **Humans keep the risky steps.** Accounts, keys, live ad IDs, hand tests, art approval and store forms are cards with tier **Human**.
@@ -752,3 +758,4 @@ All code comes from AI agents. You are the lead: you pick tasks, read handoff no
 - Codex cannot write the worktree git index. The lead commits Codex work.
 - Gemini runs sometimes end before they commit or write a handoff. The lead checks `git status` in the worktree after every run.
 - Keep slow generator tests small: sample 20 to 60 puzzles for slow packs, not 150.
+- GitHub CI is not current while local `main` is unpushed (91 commits ahead as of 26 Nov). Treat local `./gradlew check` as the merge gate until a requested push.
