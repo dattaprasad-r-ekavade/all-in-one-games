@@ -100,7 +100,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | AR1–AR3 | Arrows engine | see hub lane table | | | E3 | done |
 | ARA | Arrows board | M | Claude | Codex | AR2 | done |
 | ARB | Arrows bank | L | Codex | Claude | AR3, B6 | done |
-| ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | todo |
+| ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | active (Gemini Hydrogen) |
 | KL1–KL3 | Klondike engine | see hub lane table | | | E3 | done |
 | KLA | Klondike board | H | Codex | Claude | KL2 | done |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | todo |
@@ -112,7 +112,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | done |
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | done |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | done |
-| KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | todo |
+| KSC | Killer Sudoku intro, config, strings | L | Claude | Codex | KSA, KSB | active (Gemini Hydrogen) |
 | FU1–FU4 | Futoshiki lane | see hub lane table | | | E1 | FU1 done, FU2 done, FU3 done, FU4 done |
 | FUA | Futoshiki board | M | Gemini | Claude | A4, FU2 | done |
 | FUB | Futoshiki bank | L | Codex (luna) | Claude | FU3, B6 | done |
