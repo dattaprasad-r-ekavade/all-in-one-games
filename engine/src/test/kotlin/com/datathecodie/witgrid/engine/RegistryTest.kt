@@ -9,12 +9,22 @@ import org.junit.jupiter.api.Test
 
 class RegistryTest {
     @Test
-    fun listsEightStableUniqueGameIdsInProductOrder() {
+    fun listsNineStableUniqueGameIdsInProductOrder() {
         assertEquals(
-            listOf("crowns", "binary", "nonogram", "minisudoku", "futoshiki", "skyscrapers", "path", "sudoku"),
+            listOf(
+                "crowns",
+                "binary",
+                "nonogram",
+                "minisudoku",
+                "futoshiki",
+                "skyscrapers",
+                "path",
+                "sudoku",
+                "killersudoku",
+            ),
             Registry.engines.map { it.id },
         )
-        assertEquals(8, Registry.engines.map { it.id }.toSet().size)
+        assertEquals(9, Registry.engines.map { it.id }.toSet().size)
     }
 
     @Test
