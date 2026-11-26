@@ -103,8 +103,8 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | ARC | Arrows intro, revive, config | L | Claude | Codex | ARA, ARB, M5 | done |
 | KL1–KL3 | Klondike engine | see hub lane table | | | E3 | done |
 | KLA | Klondike board | H | Codex | Claude | KL2 | done |
-| KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | active |
-| KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | todo |
+| KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | done |
+| KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | ready |
 | CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 done |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | done |
 | CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
@@ -815,6 +815,7 @@ Plan: 12.5.
 **Owns:** `app/src/main/assets/bank/klondike-*.txt.gz`, `docs/reports/bank-klondike.md`.
 **Do:** 4×150 + 365 daily seeds. Each seed wins under the engine solver.
 **Done when:** Family B `validate --all` passes.
+**Lead completion note (27 Nov 2026):** Squash-merged as `501341c`. 4×150 + 365 daily, seeds 281001–281005, 965/965 distinct deal seeds. `FamilyBRegistry` + `KlondikeBankValidatorTest`. `./gradlew check` 12,556 puzzles in 76 files. KLC unblocked.
 
 ### KLC — Klondike intro, extra undo, config
 Tier L · Build Claude (`chore`) · Review Codex
