@@ -72,7 +72,6 @@ internal fun PlayScreenLayout(
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onRequestHint: () -> Unit,
-    onCheck: () -> Unit,
     onBack: () -> Unit,
     onRestart: () -> Unit = {},
     hintCredits: String? = null,
@@ -102,7 +101,6 @@ internal fun PlayScreenLayout(
                             onRedo = onRedo,
                             onRestart = { restartVisible = true },
                             onRequestHint = onRequestHint,
-                            onCheck = onCheck,
                             hintCredits = hintCredits,
                             hintOperationPending = hintOperationPending,
                             modeTools = modeTools,
@@ -154,7 +152,6 @@ internal fun PlayScreenLayout(
                                 onRedo = onRedo,
                                 onRestart = { restartVisible = true },
                                 onRequestHint = onRequestHint,
-                                onCheck = onCheck,
                                 hintCredits = hintCredits,
                                 hintOperationPending = hintOperationPending,
                                 modeTools = modeTools,
@@ -249,7 +246,6 @@ private fun PlayToolbar(
     onRedo: () -> Unit,
     onRestart: () -> Unit,
     onRequestHint: () -> Unit,
-    onCheck: () -> Unit,
     hintCredits: String?,
     hintOperationPending: Boolean,
     modeTools: (@Composable () -> Unit)?,
@@ -280,7 +276,6 @@ private fun PlayToolbar(
                 Row(Modifier.fillMaxWidth()) {
                     LargeTextAction(playIcon(PlayIcon.HINT), R.string.button_hint,
                         onRequestHint, !hintOperationPending, hintCredits)
-                    LargeTextAction(playIcon(PlayIcon.CHECK), R.string.button_check, onCheck, !hintOperationPending)
                 }
             }
         } else {
@@ -300,8 +295,6 @@ private fun PlayToolbar(
                 }
                 ToolBarItem(playIcon(PlayIcon.HINT), stringResource(R.string.button_hint), onRequestHint,
                     Modifier.weight(1.1f), badge = hintCredits, enabled = !hintOperationPending)
-                ToolBarItem(playIcon(PlayIcon.CHECK), stringResource(R.string.button_check), onCheck,
-                    Modifier.weight(1f), enabled = !hintOperationPending)
             }
         }
     }
