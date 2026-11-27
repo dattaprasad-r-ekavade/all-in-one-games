@@ -65,7 +65,7 @@ class DataStorePlayerDataRepository(
         val monetisation = readMonetisationData(preferences)
         PlayerData(
             settings = AppSettings(
-                soundEnabled = preferences[SOUND_ENABLED] ?: true,
+                soundEnabled = preferences[SOUND_ENABLED] ?: false,
                 hapticsEnabled = preferences[HAPTICS_ENABLED] ?: true,
                 mistakeLimitEnabled = preferences[MISTAKE_LIMIT_ENABLED] ?: false,
                 themeMode = ThemeMode.entries.firstOrNull {

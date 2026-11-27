@@ -28,6 +28,23 @@ import org.robolectric.annotation.Config
 @Config(sdk = [35])
 class PlayerDataRepositoryTest {
     @Test
+    fun soundStartsOffWhenNoPreferenceHasBeenSaved() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-sound-default")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+        try {
+            assertFalse(withTimeout(2_000) {
+                DataStorePlayerDataRepository(dataStore).playerData.first().settings.soundEnabled
+            })
+        } finally {
+            scope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
     fun regionAidsStartOffAndPersistAnExplicitOptIn() = runBlocking {
         val directory = Files.createTempDirectory("witgrid-region-aids")
         val file = directory.resolve("witgrid_settings.preferences_pb").toFile()

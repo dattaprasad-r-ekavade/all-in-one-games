@@ -26,7 +26,12 @@ import com.datathecodie.witgrid.ui.theme.Colourway
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 
 class MainActivity : ComponentActivity() {
-    private val navigator = AppNavigator()
+    private val navigator: AppNavigator by lazy {
+        lastCustomNonConfigurationInstance as? AppNavigator ?: AppNavigator()
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onRetainCustomNonConfigurationInstance(): Any = navigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -372,7 +372,7 @@
     <string name="calendar_empty_mark"> </string>
     <string name="settings_theme">Theme</string>
     <string name="settings_colourway_selected">Colourway · %1$s</string>
-    <string name="settings_region_aids_subtitle">Letters and patterns on Crowns regions</string>
+    <string name="settings_region_aids_subtitle">Letters and patterns on Crowns regions and Colour Sort tubes</string>
     <string name="settings_auto_x_subtitle">Cross out cells a crown blocks</string>
     <string name="settings_auto_cross_subtitle">Fill finished lines with crosses</string>
     <string name="settings_mistake_subtitle">Three mistakes end the level</string>

@@ -1,7 +1,7 @@
 package com.datathecodie.witgrid.data.settings
 
 data class AppSettings(
-    val soundEnabled: Boolean = true,
+    val soundEnabled: Boolean = false,
     val hapticsEnabled: Boolean = true,
     val mistakeLimitEnabled: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,

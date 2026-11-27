@@ -187,6 +187,7 @@ class AllowanceLedger(
                 localDateEpochDay = epochDay,
                 hintsUsedToday = 0,
                 offlineHintsUsedToday = 0,
+                chargedHintKeys = emptySet(),
             )
         }
 
