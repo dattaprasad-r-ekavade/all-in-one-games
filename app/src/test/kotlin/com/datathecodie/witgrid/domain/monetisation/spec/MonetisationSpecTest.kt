@@ -119,8 +119,8 @@ class MonetisationSpecTest {
         assertEquals(HintAllowanceDecision.AlreadyCharged, ledger.allowHint("crowns:level-1:board-a:step"))
 
         day.incrementAndGet()
-        assertEquals(HintAllowanceDecision.AlreadyCharged, ledger.allowHint("crowns:level-1:board-a:step"))
-        assertEquals(0, repository.current.allowanceUsage.hintsUsedToday)
+        assertEquals(HintAllowanceDecision.Allowed, ledger.allowHint("crowns:level-1:board-a:step"))
+        assertEquals(1, repository.current.allowanceUsage.hintsUsedToday)
     }
 
     @Test
