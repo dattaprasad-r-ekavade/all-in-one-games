@@ -255,6 +255,7 @@ private fun PlayToolbar(
     modeTools: (@Composable () -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+    val hintBadge = visibleHintBadge(hintCredits)
     val toolbarTypography = MaterialTheme.typography.copy(
         labelMedium = MaterialTheme.typography.labelMedium.copy(
             fontSize = 12.sp,
@@ -270,16 +271,13 @@ private fun PlayToolbar(
                         Modifier.weight(1f), enabled = canUndo)
                     ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
                         Modifier.weight(1f), enabled = canRedo)
-                    if (modeTools == null) {
-                        ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
-                            onRestart, Modifier.weight(1f))
-                    } else {
-                        Row(Modifier.weight(2f)) { modeTools() }
-                    }
+                    ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
+                        onRestart, Modifier.weight(1f))
+                    if (modeTools != null) Row(Modifier.weight(2f)) { modeTools() }
                 }
                 Row(Modifier.fillMaxWidth()) {
                     LargeTextAction(playIcon(PlayIcon.HINT), R.string.button_hint,
-                        onRequestHint, !hintOperationPending, hintCredits)
+                        onRequestHint, !hintOperationPending, hintBadge)
                     LargeTextAction(playIcon(PlayIcon.CHECK), R.string.button_check, onCheck, !hintOperationPending)
                 }
             }
@@ -292,14 +290,11 @@ private fun PlayToolbar(
                     Modifier.weight(1f), enabled = canUndo)
                 ToolBarItem(playIcon(PlayIcon.REDO), stringResource(R.string.button_redo), onRedo,
                     Modifier.weight(1f), enabled = canRedo)
-                if (modeTools == null) {
-                    ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
-                        onRestart, Modifier.weight(1f))
-                } else {
-                    Row(Modifier.weight(2f)) { modeTools() }
-                }
+                ToolBarItem(playIcon(PlayIcon.RESTART), stringResource(R.string.button_restart),
+                    onRestart, Modifier.weight(1f))
+                if (modeTools != null) Row(Modifier.weight(2f)) { modeTools() }
                 ToolBarItem(playIcon(PlayIcon.HINT), stringResource(R.string.button_hint), onRequestHint,
-                    Modifier.weight(1.1f), badge = hintCredits, enabled = !hintOperationPending)
+                    Modifier.weight(1.1f), badge = hintBadge, enabled = !hintOperationPending)
                 ToolBarItem(playIcon(PlayIcon.CHECK), stringResource(R.string.button_check), onCheck,
                     Modifier.weight(1f), enabled = !hintOperationPending)
             }
@@ -349,7 +344,7 @@ private fun PlayHeader(
                     if (!compact) Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = WitgridTheme.colors.mutedInk)
                 }
                 if (!compact) {
-                    ZoomAction(enlarged, onZoom)
+                    if (supportsBoardZoom(levelRef.gameId)) ZoomAction(enlarged, onZoom)
                     TimerChip(elapsed, timerVisible, onTimer)
                 }
                 IconActionButton(painterResource(R.drawable.ic_info), stringResource(R.string.play_rules), onRules)
@@ -358,7 +353,7 @@ private fun PlayHeader(
                 Row(Modifier.fillMaxWidth().padding(start = 16.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(subtitle, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = WitgridTheme.colors.mutedInk)
                     TimerChip(elapsed, timerVisible, onTimer)
-                    ZoomAction(enlarged, onZoom)
+                    if (supportsBoardZoom(levelRef.gameId)) ZoomAction(enlarged, onZoom)
                 }
             }
         }
@@ -385,6 +380,10 @@ private val LANDSCAPE_SIDE_COLUMN_MIN = 240.dp
 
 internal fun isPlayHeaderCompact(maxWidth: Dp, fontScale: Float): Boolean =
     (maxWidth < 440.dp || fontScale > 1.1f) && maxWidth < 600.dp
+
+internal fun supportsBoardZoom(gameId: String): Boolean = gameId != "coloursort" && gameId != "klondike"
+
+internal fun visibleHintBadge(credits: String?): String? = credits?.takeIf { it.isNotBlank() && it != "0" }
 
 internal fun packNameResource(pack: Pack): Int = when (pack) {
     Pack.EASY -> R.string.pack_easy
