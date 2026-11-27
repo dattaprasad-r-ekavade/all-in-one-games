@@ -1,6 +1,7 @@
 package com.datathecodie.witgrid.games.coloursort
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
@@ -68,6 +70,7 @@ import com.datathecodie.witgrid.engine.coloursort.ColourSortPuzzle
 import com.datathecodie.witgrid.engine.coloursort.ColourSortRules
 import com.datathecodie.witgrid.engine.coloursort.ColourSortState
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.ui.board.LocalBoardHighlightCells
 import com.datathecodie.witgrid.ui.board.rememberBoardHaptics
 import com.datathecodie.witgrid.ui.theme.HatchPattern
 import com.datathecodie.witgrid.ui.theme.RegionStyle
@@ -84,15 +87,32 @@ fun ColourSortBoard(
     modifier: Modifier = Modifier,
 ) {
     var selectedTube by remember(state.puzzle.bankId) { mutableStateOf<Int?>(null) }
+    var pour by remember(state.puzzle.bankId) { mutableStateOf<PendingPour?>(null) }
+    val pourProgress = remember(state.puzzle.bankId) { Animatable(1f) }
+    val latestOnAction = rememberUpdatedState(onAction)
     val haptics = rememberBoardHaptics(options.hapticsEnabled)
     val colors = WitgridTheme.colors
     val textMeasurer = rememberTextMeasurer()
+    val highlightedTubes = LocalBoardHighlightCells.current.map { it.index }.toSet()
 
     // Clear stale selection if undo, restart, or Continue alters the selected tube out from under it.
     LaunchedEffect(state.tubes) {
         val current = selectedTube
         if (current != null && (current !in state.tubes.indices || state.tubes[current].isEmpty())) {
             selectedTube = null
+        }
+    }
+
+    LaunchedEffect(pour) {
+        val pending = pour ?: return@LaunchedEffect
+        if (options.reduceMotion) {
+            latestOnAction.value(pending.action)
+            pour = null
+        } else {
+            pourProgress.snapTo(0f)
+            pourProgress.animateTo(1f, tween(ColourSortMotion.pourDurationMillis(reduceMotion = false)))
+            latestOnAction.value(pending.action)
+            pour = null
         }
     }
 
@@ -140,25 +160,34 @@ fun ColourSortBoard(
                             val isSelected = selectedTube == tubeIndex
                             val isLegalDest = ColourSortBoardInput.isLegalDestination(state, selectedTube, tubeIndex)
                             val description = describeTube(tubeIndex, tube, isSelected)
+                            val incomingColour = pour
+                                ?.takeIf { it.action.to == tubeIndex }
+                                ?.let { state.tubes[it.action.from].lastOrNull() }
 
                             TubeItem(
                                 tubeIndex = tubeIndex,
                                 tube = tube,
                                 isSelected = isSelected,
+                                isHinted = tubeIndex in highlightedTubes,
                                 isLegalDestination = isLegalDest,
                                 metrics = metrics,
                                 options = options,
                                 colors = colors,
                                 textMeasurer = textMeasurer,
+                                incomingColour = incomingColour,
+                                pourProgress = if (incomingColour == null) 1f else pourProgress.value,
                                 contentDescription = description,
                                 onClick = {
+                                    if (pour != null) return@TubeItem
                                     val result = ColourSortBoardInput.tapTube(state, selectedTube, tubeIndex)
                                     selectedTube = result.selectedTube
                                     when (result.feedback) {
                                         TapFeedback.SELECTED, TapFeedback.DESELECTED -> haptics.mark()
                                         TapFeedback.POURED -> {
                                             haptics.placement()
-                                            result.action?.let(onAction)
+                                            result.action?.let { action ->
+                                                if (pour == null) pour = PendingPour(action)
+                                            }
                                         }
                                         TapFeedback.NONE -> Unit
                                     }
@@ -177,11 +206,14 @@ private fun TubeItem(
     tubeIndex: Int,
     tube: List<Int>,
     isSelected: Boolean,
+    isHinted: Boolean,
     isLegalDestination: Boolean,
     metrics: TubeGridMetrics,
     options: ColourSortBoardOptions,
     colors: WitgridColors,
     textMeasurer: TextMeasurer,
+    incomingColour: Int?,
+    pourProgress: Float,
     contentDescription: String,
     onClick: () -> Unit,
 ) {
@@ -192,6 +224,14 @@ private fun TubeItem(
         label = "tube-lift",
     )
     val isSortedFull = ColourSortBoardInput.isTubeSortedAndFull(tube)
+    val popScale = remember(tubeIndex, isSortedFull) { Animatable(if (isSortedFull) 0.82f else 1f) }
+    LaunchedEffect(isSortedFull, options.reduceMotion) {
+        if (isSortedFull && !options.reduceMotion) {
+            popScale.animateTo(1f, tween(ColourSortMotion.completePopDurationMillis(reduceMotion = false)))
+        } else {
+            popScale.snapTo(1f)
+        }
+    }
     val labelStyle = TextStyle(
         color = colors.ink,
         fontSize = COLOUR_LABEL_SP.sp,
@@ -204,6 +244,10 @@ private fun TubeItem(
             .width(metrics.tubeWidthDp.dp)
             .height((metrics.tubeHeightDp + metrics.selectionLiftDp).dp)
             .sizeIn(minWidth = Spacing.minTouchTarget, minHeight = Spacing.minTouchTarget)
+            .graphicsLayer {
+                scaleX = popScale.value
+                scaleY = popScale.value
+            }
             .semantics {
                 this.selected = isSelected
                 this.contentDescription = contentDescription
@@ -224,12 +268,15 @@ private fun TubeItem(
             drawTube(
                 tube = tube,
                 isSelected = isSelected,
+                isHinted = isHinted,
                 isLegalDestination = isLegalDestination,
                 isSortedFull = isSortedFull,
                 showColourAids = options.showColourAids,
                 colors = colors,
                 textMeasurer = textMeasurer,
                 labelStyle = labelStyle,
+                incomingColour = incomingColour,
+                pourProgress = pourProgress,
             )
         }
     }
@@ -253,12 +300,15 @@ private fun describeTube(tubeIndex: Int, tube: List<Int>, isSelected: Boolean): 
 private fun DrawScope.drawTube(
     tube: List<Int>,
     isSelected: Boolean,
+    isHinted: Boolean,
     isLegalDestination: Boolean,
     isSortedFull: Boolean,
     showColourAids: Boolean,
     colors: WitgridColors,
     textMeasurer: TextMeasurer,
     labelStyle: TextStyle,
+    incomingColour: Int?,
+    pourProgress: Float,
 ) {
     val rimOverhang = LIP_OVERHANG_DP.dp.toPx()
     val indicatorReserve = INDICATOR_SPACE_DP.dp.toPx()
@@ -286,6 +336,24 @@ private fun DrawScope.drawTube(
     }
 
     drawPath(path = tubePath, color = colors.card)
+
+    // A darker inset and paired highlights make the empty vessel read as rounded glass.
+    val innerInset = 1.5.dp.toPx()
+    val innerGlass = Path().apply {
+        addRoundRect(
+            RoundRect(
+                left = bodyLeft + innerInset,
+                top = bodyTop + innerInset,
+                right = bodyRight - innerInset,
+                bottom = bodyBottom - innerInset,
+                topLeftCornerRadius = CornerRadius(TOP_CORNER_RADIUS_DP.dp.toPx()),
+                topRightCornerRadius = CornerRadius(TOP_CORNER_RADIUS_DP.dp.toPx()),
+                bottomLeftCornerRadius = CornerRadius(bottomRadius),
+                bottomRightCornerRadius = CornerRadius(bottomRadius),
+            ),
+        )
+    }
+    drawPath(innerGlass, colors.mutedInk.copy(alpha = if (colors.isDark) 0.16f else 0.09f), style = Stroke(1.dp.toPx()))
 
     val headroom = bodyHeight * HEADROOM_FRACTION
     val usableHeight = (bodyHeight - headroom).coerceAtLeast(1f)
@@ -326,16 +394,52 @@ private fun DrawScope.drawTube(
                 )
             }
         }
+
+        if (tube.isNotEmpty()) {
+            val surfaceY = bodyBottom - tube.size * slotHeight
+            drawArc(
+                color = styleForColour(tube.last(), colors).color.copy(alpha = 0.72f),
+                startAngle = 180f,
+                sweepAngle = 180f,
+                useCenter = false,
+                topLeft = Offset(bodyLeft + 1.dp.toPx(), surfaceY - slotHeight * 0.1f),
+                size = Size(bodyWidth - 2.dp.toPx(), slotHeight * 0.2f),
+                style = Stroke(width = 1.5.dp.toPx()),
+            )
+        }
+
+        if (incomingColour != null && pourProgress < 1f) {
+            val style = styleForColour(incomingColour, colors)
+            val surfaceY = bodyBottom - tube.size * slotHeight
+            val streamTop = bodyTop + slotHeight * 0.25f
+            val streamBottom = streamTop + (surfaceY - streamTop).coerceAtLeast(0f) * pourProgress
+            drawLine(
+                color = style.color,
+                start = Offset(size.width / 2f, streamTop),
+                end = Offset(size.width / 2f, streamBottom),
+                strokeWidth = (bodyWidth * POUR_STREAM_FRACTION).coerceAtLeast(2.dp.toPx()),
+                cap = StrokeCap.Round,
+            )
+            drawArc(
+                color = style.color,
+                startAngle = 0f,
+                sweepAngle = 180f,
+                useCenter = false,
+                topLeft = Offset(bodyLeft + 2.dp.toPx(), surfaceY - slotHeight * 0.12f),
+                size = Size(bodyWidth - 4.dp.toPx(), slotHeight * 0.24f),
+                style = Stroke(width = 1.5.dp.toPx()),
+            )
+        }
     }
 
     val outlineColor = when {
-        isSelected -> colors.accent
+        isSelected || isHinted -> colors.accent
         isLegalDestination -> colors.accent.copy(alpha = DESTINATION_OUTLINE_ALPHA)
         isSortedFull -> colors.ink
         else -> colors.ink.copy(alpha = IDLE_OUTLINE_ALPHA)
     }
     val outlineWidth = when {
-        isSelected -> SELECTED_STROKE_DP.dp.toPx()
+        isSelected || isHinted -> SELECTED_STROKE_DP.dp.toPx()
         isLegalDestination || isSortedFull -> EMPHASIS_STROKE_DP.dp.toPx()
         else -> IDLE_STROKE_DP.dp.toPx()
     }
@@ -354,6 +458,20 @@ private fun DrawScope.drawTube(
         strokeWidth = outlineWidth,
         cap = StrokeCap.Round,
     )
+    drawLine(
+        color = colors.paper.copy(alpha = if (colors.isDark) 0.36f else 0.72f),
+        start = Offset(bodyLeft + 3.dp.toPx(), bodyTop + 5.dp.toPx()),
+        end = Offset(bodyLeft + 3.dp.toPx(), bodyBottom - bottomRadius * 0.6f),
+        strokeWidth = 1.dp.toPx(),
+        cap = StrokeCap.Round,
+    )
+    drawLine(
+        color = colors.mutedInk.copy(alpha = 0.3f),
+        start = Offset(bodyRight - 3.dp.toPx(), bodyTop + 5.dp.toPx()),
+        end = Offset(bodyRight - 3.dp.toPx(), bodyBottom - bottomRadius * 0.6f),
+        strokeWidth = 1.5.dp.toPx(),
+        cap = StrokeCap.Round,
+    )
 
     if (isLegalDestination) {
         val markerRadius = DESTINATION_DOT_RADIUS_DP.dp.toPx()
@@ -363,26 +481,17 @@ private fun DrawScope.drawTube(
             center = Offset(size.width / 2f, indicatorReserve * 0.45f),
         )
     } else if (isSortedFull) {
-        drawSortedCheckmark(
-            center = Offset(size.width / 2f, indicatorReserve * 0.45f),
-            radius = SORTED_MARK_RADIUS_DP.dp.toPx(),
-            color = colors.ink,
+        drawRoundRect(
+            color = colors.cardEdge,
+            topLeft = Offset(size.width * 0.32f, indicatorReserve * 0.18f),
+            size = Size(size.width * 0.36f, indicatorReserve * 0.48f),
+            cornerRadius = CornerRadius(2.dp.toPx()),
         )
+        drawLine(colors.ink, Offset(size.width * 0.38f, indicatorReserve * 0.42f), Offset(size.width * 0.62f, indicatorReserve * 0.42f), 1.2.dp.toPx(), cap = StrokeCap.Round)
     }
 }
 
-private fun DrawScope.drawSortedCheckmark(center: Offset, radius: Float, color: Color) {
-    val path = Path().apply {
-        moveTo(center.x - radius * 0.8f, center.y)
-        lineTo(center.x - radius * 0.2f, center.y + radius * 0.6f)
-        lineTo(center.x + radius * 0.85f, center.y - radius * 0.65f)
-    }
-    drawPath(
-        path = path,
-        color = color,
-        style = Stroke(width = 1.75.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
-    )
-}
+private data class PendingPour(val action: ColourSortAction)
 
 private fun styleForColour(colour: Int, colors: WitgridColors): RegionStyle {
     val index = colour - 1
@@ -589,6 +698,7 @@ private const val EMPHASIS_STROKE_DP = 2f
 private const val IDLE_STROKE_DP = 1.5f
 private const val DESTINATION_DOT_RADIUS_DP = 3.5f
 private const val SORTED_MARK_RADIUS_DP = 4f
+private const val POUR_STREAM_FRACTION = 0.16f
 private const val HATCH_ALPHA = 0.22f
 private const val HATCH_SPACING_FRACTION = 0.36f
 private const val HATCH_STROKE_FRACTION = 0.055f
