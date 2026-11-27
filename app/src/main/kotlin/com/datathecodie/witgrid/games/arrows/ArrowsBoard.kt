@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -56,7 +57,20 @@ fun ArrowsBoard(
     val livesTotal = ArrowsRules.MAX_MISTAKES
     var sliding by remember { mutableStateOf<Pair<Int, ArrowsDirection>?>(null) }
     val slideProgress = remember { Animatable(0f) }
+    val blockedShake = remember { Animatable(0f) }
+    var blockedShakeToken by remember { mutableStateOf(0) }
     val latestOnAction = androidx.compose.runtime.rememberUpdatedState(onAction)
+    LaunchedEffect(blockedShakeToken, options.reduceMotion) {
+        if (blockedShakeToken == 0) return@LaunchedEffect
+        if (options.reduceMotion) {
+            blockedShake.snapTo(0f)
+            return@LaunchedEffect
+        }
+        val offsets = floatArrayOf(8f, -8f, 6f, -6f, 0f)
+        for (offset in offsets) {
+            blockedShake.animateTo(offset, tween(35))
+        }
+    }
     LaunchedEffect(sliding) {
         val move = sliding ?: return@LaunchedEffect
         slideProgress.snapTo(0f)
@@ -67,6 +81,7 @@ fun ArrowsBoard(
 
     val boardContent: @Composable () -> Unit = {
         BoardCanvas(
+            modifier = Modifier.graphicsLayer { translationX = blockedShake.value },
             gridSize = state.puzzle.size,
             cellDescription = { cell -> describeArrowCell(state, cell) },
             solved = ArrowsRules.isWon(state.arrows),
@@ -118,6 +133,7 @@ fun ArrowsBoard(
                     }
                     ArrowTapFeedback.BLOCKED -> {
                         haptics.mark()
+                        blockedShakeToken += 1
                         result.action?.let(onAction)
                     }
                     ArrowTapFeedback.NONE -> Unit
