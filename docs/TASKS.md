@@ -104,11 +104,11 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | KL1–KL3 | Klondike engine | see hub lane table | | | E3 | done |
 | KLA | Klondike board | H | Codex | Claude | KL2 | done |
 | KLB | Klondike winnable-deal bank | L | Claude | Codex | KL3, B6 | done |
-| KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | ready |
+| KLC | Klondike intro, extra undo, config | L | Claude | Codex | KLA, KLB, M5 | done |
 | CT1–CT4 | Chess tactics lane | see hub lane table | | | E1, B6 | CT1 done, CT2 done, CT3 done, CT4 done |
 | CTA | Chess tactics board | M | Claude | Codex | A4, CT2 | done |
-| CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | todo |
-| CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | todo |
+| CTB | Chess tactics bank | L | Codex | Claude | CT3, B6 | done |
+| CTC | Chess tactics intro, config, strings | L | Claude | Codex | CTA, CTB | done |
 | KS1–KS4 | Killer Sudoku lane | see hub lane table | | | SU3 | done |
 | KSA | Killer Sudoku board | M | Codex | Claude | SUA, KS2 | done |
 | KSB | Killer Sudoku bank | L | Claude | Codex | KS3, B6 | done |
@@ -124,7 +124,7 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | MO1–MO4 | Mosaic lane | see hub lane table | | | E1 | MO1 done, MO2 done, MO3 done, MO4 done |
 | MOA | Mosaic board | M | Gemini | Claude | A4, MO2 | done |
 | MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | done |
-| MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | ready |
+| MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | done |
 | H7 | Hand-test the launch catalog | Human | — | — | All Phase 7 bank cards | todo |
 
 ---
@@ -822,6 +822,7 @@ Tier L · Build Claude (`chore`) · Review Codex
 Plan: 12.5, 8.4.
 **Owns:** intro, strings, `levelsPerInterstitial` 1, Continue = extra undo.
 **Done when:** `./gradlew check` passes.
+**Lead completion note (27 Nov 2026):** Squash-merged as `ea75f2e`. Intro `KL-INTRO-01`, `PlayRegistry`, Continue stays `EXTRA_LIFE` with extra-undo copy. `:app:testDebugUnitTest` passed.
 
 ### CTA — Chess tactics board
 Tier M · Build Claude (`builder`) · Review Codex
@@ -837,12 +838,14 @@ Plan: 12.6.
 **Owns:** `app/src/main/assets/bank/tactics-*.txt.gz`, `docs/reports/bank-tactics.md`.
 **Do:** 4×150 + 365 daily. Unique mate. Generation may be slow; run on the PC.
 **Done when:** `validate --all` passes.
+**Lead completion note (27 Nov 2026):** Squash-merged as `dc2a95ee`. 4×150 + 365 daily, seeds 291001–291005, 965/965 distinct fingerprints. `TacticsEngine` in `Registry`. `validate --all` 13,523 puzzles in 83 files. Unique-mate volume is fine.
 
 ### CTC — Chess tactics intro, config, strings
 Tier L · Build Claude (`chore`) · Review Codex
 Plan: 12.6, 8.1.
 **Owns:** intro, strings, register id `tactics`, `levelsPerInterstitial` 2. Name "Tactics".
 **Done when:** `./gradlew check` passes.
+**Lead completion note (27 Nov 2026):** Squash-merged as `c4a9bf3`. Intro `CT-INTRO-01` (mate in 1), `GameRegistry`, name "Tactics", interstitial 2, TalkBack piece names, haptics from settings. `:app:testDebugUnitTest` passed. Launch catalog is 14/14 playable.
 
 ---
 

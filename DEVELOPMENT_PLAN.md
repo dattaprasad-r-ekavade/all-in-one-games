@@ -14,7 +14,7 @@ Updated 27 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ██████████████████░░  91 %  (132 of 145 done)
+All tasks                         ███████████████████░  94 %  (136 of 145 done)
 
 Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
 Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
@@ -24,22 +24,22 @@ Phase 4 — Monetisation and data   ████████████░░�
 UI cleanup                        ████████████████████ 100 %  (11 of 11 done)
 Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
 Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          ███████████████████░  93 %  (65 of 70 done)
+Phase 7 — Launch catalog          ████████████████████  99 %  (69 of 70 done)
 
 Launch catalog, by game
   Sudoku 9x9                      ████████████████████ 100 %  (7 of 7 done)
   Killer Sudoku                   ████████████████████ 100 %  (7 of 7 done)
   Futoshiki                       ████████████████████ 100 %  (7 of 7 done)
   Skyscrapers                     ████████████████████ 100 %  (7 of 7 done)
-  Mosaic                          █████████████████░░░  86 %  (6 of 7 done)
+  Mosaic                          ████████████████████ 100 %  (7 of 7 done)
   Colour Sort                     ████████████████████ 100 %  (6 of 6 done)
   Path                            ████████████████████ 100 %  (7 of 7 done)
   Arrows                          ████████████████████ 100 %  (6 of 6 done)
-  Klondike                        █████████████████░░░  83 %  (5 of 6 done)
-  Chess tactics                   ██████████████░░░░░░  71 %  (5 of 7 done)
+  Klondike                        ████████████████████ 100 %  (6 of 6 done)
+  Chess tactics                   ████████████████████ 100 %  (7 of 7 done)
   Shared (B6, E3, H7)             █████████████░░░░░░░  67 %  (2 of 3 done)
 
-Launch games playable             ████████████████░░░░  79 %  (11 of 14 ready)
+Launch games playable             ████████████████████ 100 %  (14 of 14 ready)
 ```
 
 Open human tasks: H0.1, H1, H4, H5, H6, H7.
@@ -493,7 +493,7 @@ Open-source references with the MIT licence: Simon Tatham's Portable Puzzle Coll
 
 The production launch ships 14 games: the 4 built games plus the 10 below. Minimum 12. If the build runs late, cut Chess tactics first, then Klondike. Do not cut a cheap Family A game to save time. After launch, keep adding games from 12.11. Phase 7 in `docs/TASKS.md` has the cards. Research: `docs/reports/extra-launch-games.md`. Decision: `docs/decisions/prototype-catalog.md`.
 
-**Engine and app status (27 Nov 2026).** Each lane has x1 (rules and counter), x2 (technique solver and hints), x3 (generator) and x4 (independent spec tests). The app cards are A (board), B (bank) and C (intro, config, registration). Local `./gradlew check` on KLB passed (12,556 puzzles in 76 files). Do not run two bankgens at once. Do not work on GitHub CI pipelines unless asked.
+**Engine and app status (27 Nov 2026).** Each lane has x1 (rules and counter), x2 (technique solver and hints), x3 (generator) and x4 (independent spec tests). The app cards are A (board), B (bank) and C (intro, config, registration). Local `validate --all` on CTB passed (13,523 puzzles in 83 files). Do not run two bankgens at once. Do not work on GitHub CI pipelines unless asked.
 
 | Game | Engine | Board (A) | Bank (B) | Intro (C) | Playable | State and next step |
 |---|---|---|---|---|---|---|
@@ -504,19 +504,19 @@ The production launch ships 14 games: the 4 built games plus the 10 below. Minim
 | Path | **done** | **done** | **done** | **done** | yes | Complete. |
 | Colour Sort | **done** | **done** | **done** | **done** | yes | Complete 26 Nov (`ce80267`). Continue = extra empty tube (`EXTRA_TUBE`). |
 | Arrows | **done** | **done** | **done** | **done** | yes | Complete. Continue = extra life. |
-| Mosaic | **done** | **done** | **done** | ready | no | Bank complete 27 Nov (`99d7d5f`). **MOC** for 12th playable. |
-| Klondike | **done** | **done** | **done** | ready | no | Bank complete 27 Nov (`501341c`). **KLC** (Continue = extra undo). |
-| Chess tactics | **done** | **done** | — | — | no | First cut if late. CTB then CTC. Unique mate volume still a risk (12.6). |
+| Mosaic | **done** | **done** | **done** | **done** | yes | Complete 27 Nov (`887f3c7`). |
+| Klondike | **done** | **done** | **done** | **done** | yes | Complete 27 Nov (`ea75f2e`). Continue = extra undo (`EXTRA_LIFE` copy). |
+| Chess tactics | **done** | **done** | **done** | **done** | yes | Complete 27 Nov (`c4a9bf3`). Unique-mate volume is fine (965 distinct). |
 
-**Playable on local `main` (11 of 14):** Crowns, Binary, Nonogram, Mini Sudoku, plus the seven complete hub games above. Mosaic and Klondike have banks but are not on Home until MOC and KLC.
+**Playable on local `main` (14 of 14):** Crowns, Binary, Nonogram, Mini Sudoku, plus the ten hub games above.
 
-Family A `engine.Registry` on main (10): Crowns, Binary, Nonogram, Mini Sudoku, Futoshiki, Skyscrapers, Path, Sudoku, Killer Sudoku, Mosaic. Tactics joins on CTC. Family B `PlayRegistry`: Colour Sort, Arrows (Klondike on KLC).
+Family A `engine.Registry` on main (11): Crowns, Binary, Nonogram, Mini Sudoku, Futoshiki, Skyscrapers, Path, Sudoku, Killer Sudoku, Mosaic, Tactics. Family B `PlayRegistry`: Colour Sort, Arrows, Klondike.
 
-**GitHub (27 Nov 2026).** `origin/main` tracks through the 26 Nov catalog snapshot (`66797b8`). Local `main` is **3 commits ahead** (MOB, TRACK, KLB). Do not push until asked. Until then, the local `check` on each merged card is the gate.
+**GitHub (27 Nov 2026).** `origin/main` tracks through the 26 Nov catalog snapshot (`66797b8`). Local `main` is ahead (MOB through CTC). Do not push until asked. Until then, the local `check` on each merged card is the gate.
 
-Human tests still open: H1 (original four-game bank), H7 (launch catalog — waits for remaining banks). H0.1, H4, H5, H6 stay human.
+Human tests still open: H1 (original four-game bank), H7 (launch catalog hand-test). H0.1, H4, H5, H6 stay human.
 
-Build order left: **MOC** (12th playable) and **KLC** (13th) in parallel if needed; then CTB. Cut CT if the calendar is tight.
+Build order left: none for the 14-game catalog. Next is H7 hand-test, then human launch cards.
 
 | Order | Game | Family | Content | Level time | Interstitial | Continue |
 |---|---|---|---|---|---|---|
