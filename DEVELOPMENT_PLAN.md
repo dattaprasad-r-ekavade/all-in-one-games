@@ -2,9 +2,11 @@
 
 > **Keep the progress bars current.** The "Progress" section below is generated from the Status column in `docs/TASKS.md`. Do not edit the bars by hand. After you change any status in `docs/TASKS.md`, run `python scripts/progress.py` from the repo root, and commit `DEVELOPMENT_PLAN.md` together with `docs/TASKS.md`.
 
-Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14). Launch-catalog engine status and rule decisions from review added 22 Nov 2026 (sections 12, 12.3, 12.6, 12.8, 12.10, 14, 16). Engine status, generator-quality lessons and machine-load rule updated 23 Nov 2026 (sections 12, 14, 16.3). Catalog snapshot updated 27 Nov 2026 (section 12). Device-play feedback candidates added 27 Nov 2026 (section 12.12).
+Plan v2, 27 Nov 2026. The launch catalog of 14 games is built and playable. The v1 plan (16 to 27 Nov 2026, with the build history, the finished phases and the device-play polish list) is in `docs/archive/DEVELOPMENT_PLAN-v1.md`. The v1 task cards are in `docs/archive/TASKS-v1.md`. Section numbers 1 to 10 and 12.1 to 12.10 are the same as in v1, because code comments cite them.
 
-This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
+What is new in v2: four display renames (section 12), the remaining launch work (section 11), and the catalog expansion in three waves (section 17).
+
+This plan replaces the game design document (the GDD PDF in this folder) where the two differ.
 
 <!-- progress:start -->
 ## Progress
@@ -14,35 +16,47 @@ Updated 27 Nov 2026 from the status column in `docs/TASKS.md`. Rebuild with `pyt
 █ done   ▒ in progress (active or in review)   ░ not started (ready, todo or blocked)
 
 ```text
-All tasks                         ███████████████████░  94 %  (136 of 145 done)
+All tasks                         ░░░░░░░░░░░░░░░░░░░░   1 %  (1 of 168 done)
 
-Phase 0 — Setup                   ████████████████░░░░  80 %  (4 of 5 done)
-Phase 1 — Engine and puzzle bank  ███████████████████░  96 %  (25 of 26 done)
-Phase 2 — Core app                ████████████████████ 100 %  (14 of 14 done)
-Phase 3 — Retention               ████████████████████ 100 %  (6 of 6 done)
-Phase 4 — Monetisation and data   ████████████░░░░░░░░  62 %  (5 of 8 done)
-UI cleanup                        ████████████████████ 100 %  (11 of 11 done)
-Phase 5 — Closed test             ██████████░░░░░░░░░░  50 %  (2 of 4 done)
-Phase 6 — Launch                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 1 done)
-Phase 7 — Launch catalog          ████████████████████  99 %  (69 of 70 done)
+Launch                            ██░░░░░░░░░░░░░░░░░░  10 %  (1 of 10 done)
+Expansion foundations             ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+Wave 1 — Solo games               ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 68 done)
+Wave 2 — Against the computer     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 71 done)
+Wave 3 — Word games               ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 13 done)
 
-Launch catalog, by game
-  Sudoku 9x9                      ████████████████████ 100 %  (7 of 7 done)
-  Killer Sudoku                   ████████████████████ 100 %  (7 of 7 done)
-  Futoshiki                       ████████████████████ 100 %  (7 of 7 done)
-  Skyscrapers                     ████████████████████ 100 %  (7 of 7 done)
-  Mosaic                          ████████████████████ 100 %  (7 of 7 done)
-  Colour Sort                     ████████████████████ 100 %  (6 of 6 done)
-  Path                            ████████████████████ 100 %  (7 of 7 done)
-  Arrows                          ████████████████████ 100 %  (6 of 6 done)
-  Klondike                        ████████████████████ 100 %  (6 of 6 done)
-  Chess tactics                   ████████████████████ 100 %  (7 of 7 done)
-  Shared (B6, E3, H7)             █████████████░░░░░░░  67 %  (2 of 3 done)
+Expansion games, by lane
+  Nuts & Bolts                    ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Minesweeper                     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Maze Paint                      ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Number Merge                    ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Sliding Puzzle                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Memory Pairs                    ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Block Escape                    ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Yatzy                           ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Shikaku                         ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 7 done)
+  Spider Solitaire                ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  FreeCell                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Tic-Tac-Toe                     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Four in a Row                   ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Mancala                         ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Reversi                         ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Dots and Boxes                  ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Sea Battle                      ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Checkers                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Chain Burst                     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Hearts                          ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Spades                          ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Crazy Eights                    ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Dominoes                        ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Ludo                            ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Chess                           ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 5 done)
+  Word Search                     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
+  Secret Word                     ░░░░░░░░░░░░░░░░░░░░   0 %  (0 of 6 done)
 
-Launch games playable             ████████████████████ 100 %  (14 of 14 ready)
+Games playable                    ███████░░░░░░░░░░░░░  34 %  (14 of 41 ready)
 ```
 
-Open human tasks: H0.1, H1, H4, H5, H6, H7.
+Open human tasks: H0.1, H1, H4, H5, H7, H6, H8, H9, H10, H11.
 <!-- progress:end -->
 
 Labels used in this plan:
@@ -58,8 +72,8 @@ Labels used in this plan:
 | Title | Witgrid: Offline Logic Puzzles (30 characters, the Play limit) |
 | Platform | Android, Google Play. No iOS at launch. |
 | Product | A growing puzzle hub. All games work with no connection. |
-| Built games | Pet Crowns, Binary, Nonogram, Mini Sudoku 6x6 |
-| Production launch set | The 4 built games plus 10 from section 12: Sudoku 9x9, Killer Sudoku, Futoshiki, Skyscrapers, Mosaic, Colour Sort, Path, Arrows, Klondike, Chess tactics. Target 14, minimum 12. |
+| Launch catalog | 14 games, all playable (section 12): Pet Crowns, Binary, Nonogram, Mini Sudoku, Sudoku, Killer Sudoku, Futoshiki, Towers, Mosaic, Colour Sort, Number Link, Arrows, Solitaire, Chess Puzzles. |
+| Next | Catalog expansion in three waves (section 17) |
 | USP | Clean UI, low distraction, no ad during a puzzle, hints that explain the logic |
 | Income | Interstitial ad at level finish, rewarded ads for hints / checks / lives, one-time Premium at $7.99 |
 | Income goal | About $100 each month |
@@ -82,7 +96,7 @@ Labels used in this plan:
 | Widget, leaderboards, share card, world median time | In scope | Not in the launch. Share card and widget are post-launch options. |
 | Closed test | Risk | Not a risk. Your app community supplies the 12 testers. |
 | Level count | Not stated | Endless. The UI never shows a level total, "x of y", a percent or a progress bar. Levels loop through the bank (section 7.5). Owner decision, 17 Nov 2026. |
-| Number of games in text | Not stated | No text states how many games there are. More games will come (section 12), and a number would lock the product. Owner decision, 17 Nov 2026. |
+| Number of games in text | Not stated | No text states how many games there are. More games will come (section 17), and a number would lock the product. Owner decision, 17 Nov 2026. |
 
 ## 3. Goal, numbers and stop criteria
 
@@ -152,7 +166,7 @@ The owner approved the mockups in `docs/design/` (light and dark PNGs for Welcom
 ## 5. Launch scope
 
 **In the production launch**
-- The launch set of 14 games (section 12; minimum 12), each with 4 difficulty packs and one daily puzzle.
+- The launch catalog of 14 games (section 12), each with 4 difficulty packs and one daily puzzle.
 - First-run welcome (3 pages) and the Android 12+ splash.
 - Home screen with the game list, the next level of each game, and the streak.
 - Play screen with undo, redo, mark mode, hint, check, and timer.
@@ -163,11 +177,11 @@ The owner approved the mockups in `docs/design/` (light and dark PNGs for Welcom
 - Analytics and Crashlytics collection start only after explicit opt-in in Settings and stop when the player opts out.
 
 **Not in the production launch**
-- Section 12.11 later options, widget, leaderboards, share card, cloud save, accounts, subscription, banner ads, app-open ads, on-device puzzle generation, iOS, web.
+- Section 17 expansion games (they follow in updates), widget, leaderboards, share card, cloud save, accounts, subscription, banner ads, app-open ads, on-device puzzle generation, iOS, web.
 
-**Closed test and launch.** Start the closed test (H5) with the current build as soon as S3 is done. The closed track is private, so it does not use up the public launch. Upload each new game to the closed track during the 14 days. The production release (H6) waits for the launch set (Phase 7) and the launch hand test (H7).
+**Closed test and launch.** Start the closed test (H5) with the current build as soon as S3 is done. The closed track is private, so it does not use up the public launch. Upload each new game to the closed track during the 14 days. The production release (H6) waits for the closed test (H5) and the launch hand test (H7). Expansion games do not block it.
 
-## 6. The four launch games
+## 6. The first four games
 
 Level content for each game: 4 packs x 150 levels = 600 regular levels, plus 365 daily puzzles. The app also has one guided intro level per game, outside the regular packs: 4 intro levels total. Overall content is 2,400 regular levels, 1,460 daily puzzles and 4 guided intro levels. The daily puzzle index is `days since a fixed date mod 365`, so the daily list never ends.
 
@@ -181,7 +195,7 @@ Level content for each game: 4 packs x 150 levels = 600 regular levels, plus 365
 | Generator | Place a random valid crown layout. Grow the regions with a random flood fill. Run the solver. Reject the puzzle unless it is unique and the technique set solves it. |
 | Solver techniques | Region confined to one line, touch exclusion, k regions confined to k lines. No look-ahead. |
 | Level time | 60 to 150 seconds |
-| Name rule | Display name **"Pet Crowns"**. Engine id stays `crowns`. Do not use "Queens", "Meowdoku" or "Petdoku". Owner decision 27 Nov 2026: Pet Crowns (section 12.12). Home tile and store art: original crowned-cat mark (H5), not Oakever/Meowdoku assets. |
+| Name rule | Display name **"Pet Crowns"**. Engine id stays `crowns`. Do not use "Queens", "Meowdoku" or "Petdoku". Owner decision 27 Nov 2026. Home tile and store art: original crowned-cat mark (H5), not Oakever/Meowdoku assets. |
 
 ### 6.2 Binary
 
@@ -222,8 +236,9 @@ Level content for each game: 4 packs x 150 levels = 600 regular levels, plus 365
 ### 6.5 Rules for all games
 
 - The first level of each game is a small, guided puzzle with one coach line. There is no tutorial wall.
-- **Family A** (Crowns, Binary, Nonogram, Mini Sudoku, Sudoku 9x9, Path, Chess tactics): each bank puzzle stores its solution, its difficulty pack and its technique grade. Two solvers check each puzzle: the technique solver and a brute-force solver that counts solutions (cap 2). Unique and no-guess.
-- **Family B** (Colour Sort, Arrows, Klondike): each level is winnable, or has a legal fail. Many solution paths are allowed. `bankgen validate` checks winnable (or `isLost` only after a wrong action), not uniqueness. Hints name one legal improving action.
+- **Family A** (Pet Crowns, Binary, Nonogram, Mini Sudoku, Sudoku, Killer Sudoku, Futoshiki, Towers, Mosaic, Number Link, Chess Puzzles; later Shikaku): each bank puzzle stores its solution, its difficulty pack and its technique grade. Two solvers check each puzzle: the technique solver and a brute-force solver that counts solutions (cap 2). Unique and no-guess.
+- **Family B** (Colour Sort, Arrows, Solitaire; most Wave 1 and Wave 3 games): each level is winnable, or has a legal fail. Many solution paths are allowed. `bankgen validate` checks winnable (or `isLost` only after a wrong action), not uniqueness. Hints name one legal improving action.
+- **Family C** (Wave 2, games against the computer): no bank and no uniqueness. A level is one match; the pack is the computer strength (section 17.2).
 
 ## 7. Tech stack and architecture
 
@@ -273,7 +288,7 @@ Each game is one package. A new game needs no change to the home screen, the sav
 
 - Sudoku 9x9 copies Mini Sudoku. Size, digits, boxes and notes are hardcoded to 6 today, so this is a new `sudoku` package, not a one-line change.
 - Path uses `SetDigit` as the pair colour (1..n, 0 clears). Uniqueness is required. The generator may add walls so the fill is unique.
-- Chess tactics uses cell picks for from-square and to-square. Unique winning move (or unique mate sequence). Pure Kotlin rules and a bounded mate search. No chess-engine library and no online play.
+- Chess Puzzles (`tactics`) uses cell picks for from-square and to-square. Unique winning move (or unique mate sequence). Pure Kotlin rules and a bounded mate search. No chess-engine library and no online play.
 
 **Family B — many solutions or failure-as-play.** New `PlayEngine<P, S, A>` (task E3). Game-defined actions (`Pour`, `Slide`, `CardMove`). Colour Sort, Arrows and Klondike use this. Later block puzzle would use it too.
 
@@ -324,7 +339,7 @@ Show an interstitial only when all these conditions are true:
 - The player does not have Premium.
 - An ad is loaded. If no ad is loaded, continue with no delay.
 
-Default `levelsPerInterstitial`: Crowns 1, Nonogram 10x10 and larger 1, Binary 2, Mini Sudoku 2, Nonogram 5x5 2, Sudoku 9x9 1, Path 2, Chess tactics 2, Colour Sort 2, Arrows 2, Klondike 1 (each finished deal).
+Default `levelsPerInterstitial`: the table in section 12 for launch games, and the tables in section 17 for expansion games. Every registered game must have a default in `ConfigKeys` (a test checks it).
 
 **Never:** an interstitial during a puzzle, at app start, at level start, or on a back action.
 
@@ -356,8 +371,9 @@ Rules:
 
 | Game type | Rule |
 |---|---|
-| Family A logic grids (the four closed-test games, Sudoku 9x9, Path, Chess tactics) | "Mistake limit" is a setting, **off by default**. When it is on, the game flags a wrong entry immediately, and three mistakes fail the level. |
-| Family B, failure is natural (Colour Sort, Arrows, Klondike; later block puzzle) | Lives are always part of the game: extra tube (Colour Sort), revive (Arrows, later block puzzle), extra undo (Klondike). |
+| Family A logic grids (all Family A games) | "Mistake limit" is a setting, **off by default**. When it is on, the game flags a wrong entry immediately, and three mistakes fail the level. |
+| Family B, failure is natural (Colour Sort, Arrows, Solitaire; Wave 1 and 3 games with a fail state) | Lives are always part of the game: extra tube (Colour Sort), extra life (Arrows), extra undo (Solitaire); section 17 for new games. |
+| Family C, games against the computer | A lost match is a failed level. Continue takes back the last full turn. |
 
 When a level fails or lives are gone, show two buttons:
 1. "Continue" — one rewarded ad, or free with Premium.
@@ -438,101 +454,46 @@ Analytics and Crashlytics are disabled by default. An explicit Settings opt-in e
 
 Measures to watch: day-1, day-7 and day-30 retention, levels for each session, interstitials for each daily player, rewarded ads for each daily player, Premium conversion, share of offline sessions, crash-free sessions.
 
-## 11. Development phases
+## 11. Remaining launch work
 
-Durations are **[Estimate]** values for one developer who directs AI coding agents. Each phase lists its task cards from `docs/TASKS.md`. The cards hold the detail; this section holds the sequence and the exit test.
+The production launch needs these cards. Phases 0 to 7 of v1 are otherwise done. The cards are in `docs/TASKS.md`, group "Launch (remaining)".
 
-### Phase 0 — Setup (week 1)
-- H0.1 (you): Google and Play Store name search, Play Console, AdMob account, developer website with privacy policy and `app-ads.txt`.
-- H0.2 (you): `ANDROID_HOME`, `gh auth login`, first commit, Codex folder trust.
-- T0.1: Gradle project with `engine`, `bankgen`, `app`. Application id `com.datathecodie.witgrid`.
-- T0.2: GitHub Actions CI.
-- T0.3: ads SDK memo (Legacy or Next-Gen). You decide.
+| Card | Work | Owner | Waits on |
+|---|---|---|---|
+| H0.1 | Google and Play name search, Play Console, AdMob account, developer website with privacy policy and `app-ads.txt` | Human | — |
+| H1 | Hand-test 20 puzzles of each pack of the first four games | Human | — |
+| H4 | Firebase project, AdMob ad units, licence-test account | Human | H0.1 |
+| M6 | Premium purchase and restore | Agent (H) | H4 |
+| M7 | Analytics, Crashlytics, Remote Config | Agent (M) | H4, M6 |
+| S3 | Release build configuration | Agent (M) | M6, M7 |
+| H5 | Art, upload keystore, closed test (12+ testers, 14 days), policy forms, production access | Human | S3 |
+| H7 | Hand-test the 14-game launch catalog | Human | — |
+| H6 | Live ad units, staged rollout, weekly review of the section 10 measures | Human | H5, H7 |
 
-**Exit:** an empty app builds and runs on a phone, and CI is green.
+**Rules for the launch.** Start the closed test (H5) with the current build as soon as S3 is done. Expansion games (section 17) do not block the launch. Upload each finished expansion game to the closed track. Live ad unit IDs go in Gradle properties outside the repository (H6), never in the repository.
 
-### Phase 1 — Engine and puzzle bank (weeks 1 to 3)
-- E1: engine contracts (you read them before merge). E2: test kit.
-- Four parallel lanes, four cards each: CR (Crowns), BI (Binary), NO (Nonogram), MS (Mini Sudoku). Each lane: rules and solution counter → technique solver, grader and hints → generator; independent spec tests from the other agent family.
-- B1: `bankgen`. B2: generate 600 levels and 365 daily puzzles for each game. B3: bank validation in CI.
-- H1 (you): solve 20 puzzles of each game and pack by hand.
+## 12. Launch catalog (14 games, all playable)
 
-Open-source references with the MIT licence: Simon Tatham's Portable Puzzle Collection (Solo, Unruly, Pattern) and small Star Battle projects. If you reuse MIT code, keep the copyright notice in the app's licence screen.
+| Display name | Engine id | Family | Spec | Interstitial | Continue |
+|---|---|---|---|---|---|
+| Pet Crowns | `crowns` | A | 6.1 | Each level | Extra mistake |
+| Binary | `binary` | A | 6.2 | Each 2 levels | Extra mistake |
+| Nonogram | `nonogram` | A | 6.3 | 1 (10x10+) or 2 (5x5) | Extra mistake |
+| Mini Sudoku | `minisudoku` | A | 6.4 | Each 2 levels | Extra mistake |
+| Sudoku | `sudoku` | A | 12.1 | Each level | Extra mistake |
+| Colour Sort | `coloursort` | B | 12.2 | Each 2 levels | Extra empty tube |
+| Number Link | `path` | A | 12.3 | Each 2 levels | Extra mistake |
+| Arrows | `arrows` | B | 12.4 | Each 2 levels | Extra life |
+| Solitaire | `klondike` | B | 12.5 | Each deal | Extra undo |
+| Chess Puzzles | `tactics` | A | 12.6 | Each 2 levels | Extra mistake |
+| Killer Sudoku | `killersudoku` | A | 12.7 | Each level | Extra mistake |
+| Futoshiki | `futoshiki` | A | 12.8 | Each 2 levels | Extra mistake |
+| Towers | `skyscrapers` | A | 12.9 | Each 2 levels | Extra mistake |
+| Mosaic | `mosaic` | A | 12.10 | Each 2 levels | Extra mistake |
 
-**Exit:** the bank files exist and all tests pass.
+**Display renames (owner decision, 27 Nov 2026).** Path → **Number Link**, Klondike → **Solitaire**, Chess tactics → **Chess Puzzles**, Skyscrapers → **Towers**. Only the user-visible name changes. Engine ids, packages, bank files, save keys and Remote Config keys keep the old ids. Colour Sort keeps its name: "Water Sort" has open USPTO filings by other companies, so it is used only as a store keyword (section 13). Reason for the renames: the store search names for these genres are "number link", "solitaire", "chess puzzles" and "towers"; the old names were rare search terms.
 
-### Phase 2 — Core app (weeks 3 to 6)
-- A1 theme · A2 storage · A3 app contracts and play controller (you read them before merge) · A4 board kit and gestures.
-- A5 to A8: the four boards, in parallel.
-- A9 Home and Game · A10 Play, Result, Level failed · A11 hint and check UI · A12 guided first levels · A13 edge-to-edge and tablets · A14 UI smoke tests.
-
-**Exit:** all 2,400 levels are playable offline from start to result.
-
-### Phase 3 — Retention (weeks 6 to 7)
-- R1 daily, streak and freeze logic · R2 calendar · R3 statistics · R4 reminder · R5 settings · R6 accessibility pass.
-
-**Exit:** a player can keep a streak for 7 days with the device offline.
-
-### Phase 4 — Monetisation and data (weeks 7 to 8)
-- M1 policy logic (plain Kotlin) · M2 policy tests from the spec · M3 consent and ad service with test units · M4 ads in the flows · M5 mistake limit and continue · M6 Premium purchase and restore.
-- H4 (you): Firebase project, AdMob ad units, licence-test account. Then M7: analytics, Crashlytics, Remote Config.
-
-**Exit:** each ad and purchase path works with test units and a licence-test account, online and offline.
-
-### Phase 5 — Closed test (weeks 8 to 10)
-- S1 store listing and policy form drafts · S2 screenshot script · S3 release build configuration.
-- U0 to U8 UI cleanup (`docs/TASKS.md`, section "UI cleanup") before the closed test. U0, U1 and U2 are done.
-- H5 (you): art approval, upload keystore, closed test with 12 or more testers for 14 continuous days, policy forms, production access. Tester bugs become new cards. Start H5 with the current games; do not wait for Phase 7. Add new games to the closed track as they are done.
-
-**Exit:** Google approves production access. Production release still waits for the Phase 7 launch set and H7.
-
-### Phase 6 — Launch and first 30 days (week 10 onward)
-- H6 (you): replace test ad units with live ad units (Gradle properties outside the repo), check `app-ads.txt` status, staged rollout, posts in your app community and puzzle communities, weekly review of the section 10 measures, one Remote Config change at a time.
-- Launch catalog (Phase 7 in `docs/TASKS.md`) starts now and must finish before H6. Sudoku 9x9 does not wait on E3. Colour Sort, Arrows and Klondike wait on E3. Closed test (H5) does not wait on Phase 7.
-
-## 12. Launch catalog (owner, 18 and 21 Nov 2026)
-
-The production launch ships 14 games: the 4 built games plus the 10 below. Minimum 12. If the build runs late, cut Chess tactics first, then Klondike. Do not cut a cheap Family A game to save time. After launch, keep adding games from 12.11. Phase 7 in `docs/TASKS.md` has the cards. Research: `docs/reports/extra-launch-games.md`. Decision: `docs/decisions/prototype-catalog.md`.
-
-**Engine and app status (27 Nov 2026).** Each lane has x1 (rules and counter), x2 (technique solver and hints), x3 (generator) and x4 (independent spec tests). The app cards are A (board), B (bank) and C (intro, config, registration). Local `validate --all` on CTB passed (13,523 puzzles in 83 files). Do not run two bankgens at once. Do not work on GitHub CI pipelines unless asked.
-
-| Game | Engine | Board (A) | Bank (B) | Intro (C) | Playable | State and next step |
-|---|---|---|---|---|---|---|
-| Sudoku 9x9 | **done** | **done** | **done** | **done** | yes | Complete. |
-| Killer Sudoku | **done** | **done** | **done** | **done** | yes | Complete. |
-| Futoshiki | **done** | **done** | **done** | **done** | yes | Complete. |
-| Skyscrapers | **done** | **done** | **done** | **done** | yes | Complete. |
-| Path | **done** | **done** | **done** | **done** | yes | Complete. |
-| Colour Sort | **done** | **done** | **done** | **done** | yes | Complete 26 Nov (`ce80267`). Continue = extra empty tube (`EXTRA_TUBE`). |
-| Arrows | **done** | **done** | **done** | **done** | yes | Complete. Continue = extra life. |
-| Mosaic | **done** | **done** | **done** | **done** | yes | Complete 27 Nov (`887f3c7`). |
-| Klondike | **done** | **done** | **done** | **done** | yes | Complete 27 Nov (`ea75f2e`). Continue = extra undo (`EXTRA_LIFE` copy). |
-| Chess tactics | **done** | **done** | **done** | **done** | yes | Complete 27 Nov (`c4a9bf3`). Unique-mate volume is fine (965 distinct). |
-
-**Playable on local `main` (14 of 14):** Crowns, Binary, Nonogram, Mini Sudoku, plus the ten hub games above.
-
-Family A `engine.Registry` on main (11): Crowns, Binary, Nonogram, Mini Sudoku, Futoshiki, Skyscrapers, Path, Sudoku, Killer Sudoku, Mosaic, Tactics. Family B `PlayRegistry`: Colour Sort, Arrows, Klondike.
-
-**GitHub (27 Nov 2026).** `origin/main` tracks through the 26 Nov catalog snapshot (`66797b8`). Local `main` is ahead (MOB through CTC). Do not push until asked. Until then, the local `check` on each merged card is the gate.
-
-Human tests still open: H1 (original four-game bank), H7 (launch catalog hand-test). H0.1, H4, H5, H6 stay human.
-
-Build order left: none for the 14-game catalog. Next is H7 hand-test, then human launch cards.
-
-| Order | Game | Family | Content | Level time | Interstitial | Continue |
-|---|---|---|---|---|---|---|
-| 1 | Sudoku 9x9 | A | Bank, 4×150 + 365 daily | 5 to 15 min | Each level | Extra mistake |
-| 2 | Colour Sort | B | Bank of tube layouts, winnable, not unique | 45 to 120 s | Each 2 levels | Extra empty tube |
-| 3 | Path | A | Bank, unique fill. Walls allowed | 20 to 90 s | Each 2 levels | Extra mistake |
-| 4 | Arrows | B | Bank of layouts, at least one clear-all | 30 to 120 s | Each 2 levels | Revive / undo last slide |
-| 5 | Klondike | B | Winnable deals stored as seeds | 3 to 7 min | Each deal | Extra undo |
-| 6 | Chess tactics | A | Bank of unique mates | 30 to 180 s | Each 2 levels | Extra mistake |
-| 7 | Killer Sudoku | A | Bank, 4×150 + 365 daily | 8 to 20 min | Each level | Extra mistake |
-| 8 | Futoshiki | A | Bank, 4×150 + 365 daily | 2 to 6 min | Each 2 levels | Extra mistake |
-| 9 | Skyscrapers | A | Bank, 4×150 + 365 daily | 2 to 6 min | Each 2 levels | Extra mistake |
-| 10 | Mosaic | A | Bank, 4×150 + 365 daily | 2 to 8 min | Each 2 levels | Extra mistake |
-
-### 12.1 Sudoku 9x9
+### 12.1 Sudoku
 
 | Item | Spec |
 |---|---|
@@ -554,9 +515,9 @@ Build order left: none for the 14-game catalog. Next is H7 hand-test, then human
 | Input | Tap source tube, tap dest tube. Family B action `Pour`. |
 | Generator | Start from a solved set of tubes, shuffle pours in reverse. Accept if a solver can re-sort. Many solutions allowed. |
 | Hint | One pour that does not increase the number of colour runs. |
-| Name rule | Use "Colour Sort". Do not use Water Sort as a product name. |
+| Name rule | Use "Colour Sort". "Water Sort" only as a store keyword (section 13), never as a display name. |
 
-### 12.3 Path
+### 12.3 Number Link (engine id `path`)
 
 | Item | Spec |
 |---|---|
@@ -567,7 +528,7 @@ Build order left: none for the 14-game catalog. Next is H7 hand-test, then human
 | Input | Drag along empty cells. `SetDigit` stores the pair colour. |
 | Generator | Place pairs (and optional walls). Accept only if `countSolutions` is 1 and the technique solver fills the board. |
 | Solver techniques | Endpoint extension, forced neighbour, last empty cell in a region. No guess. |
-| Name rule | Use "Path". Do not use Zip or Flow Free. |
+| Name rule | Display name "Number Link" (two words). Do not use Zip, Flow Free or "Numberlink" as one word. |
 
 ### 12.4 Arrows
 
@@ -582,7 +543,7 @@ Build order left: none for the 14-game catalog. Next is H7 hand-test, then human
 | Hint | One arrow that can slide now. |
 | Art | Line-art arrows on the paper grid. No sprites. |
 
-### 12.5 Klondike
+### 12.5 Solitaire (engine id `klondike`)
 
 | Item | Spec |
 |---|---|
@@ -593,21 +554,21 @@ Build order left: none for the 14-game catalog. Next is H7 hand-test, then human
 | Generator | Deal from `SplitMix64`. A solver must win. Store the seed in the bank line. Reject unwinnable deals. |
 | Hint | One legal move that the solver uses on the winning line. |
 | Art | Code-drawn cards. Ranks as tabular numerals, suits as simple marks. No face sprites. |
-| Name rule | Use "Klondike". Do not ship 50 solitaire variants. |
+| Name rule | Display name "Solitaire". "Klondike" is a store keyword and the rules name. Other solitaire games are separate games (Spider Solitaire, FreeCell, section 17), not variants of this one. |
 
-### 12.6 Chess tactics
+### 12.6 Chess Puzzles (engine id `tactics`)
 
 | Item | Spec |
 |---|---|
 | Package | `tactics` |
 | Rule | 8x8 chess, FIDE movement. The side to move has a unique mate in N. Player plays the winning side only. Opponent replies are forced (or the unique defence). |
 | Uniqueness (lead decision, 22 Nov 2026) | Unique mate sequence: at every player turn along the stored line, exactly one move keeps a forced mate. `countSolutions` returns the worst turn, capped at 2. A second mate on the last move makes the puzzle invalid. |
-| Volume (review, 22 Nov 2026) | The bank needs at least 241 distinct starting positions per pack (150 regular plus the daily share). The first generator made only 40 Expert positions. If the fix cannot reach the volume, cut Chess tactics from the launch (launch with 13). |
+| Volume (review, 22 Nov 2026) | The bank needs at least 241 distinct starting positions per pack (150 regular plus the daily share). The first generator made only 40 Expert positions. Fixed: 965 distinct positions. |
 | Packs | Easy mate in 1. Medium mate in 2. Hard mate in 2 with more pieces. Expert mate in 3. |
 | Input | Tap from-square, tap to-square. Encode as cell picks on `GameEngine`. Promotion: queen only in the bank. |
 | Generator | Pure Kotlin rules and a bounded mate search. Place a king plus a small piece set from a pattern list, then search. Accept only if the mate is unique. No Stockfish, no JNI, no new library. |
 | Solver techniques | Checks, forced captures, mating patterns named in the hint sentence. |
-| Name rule | Use "Tactics". Not a chess server, not ratings, not clocks, not online play. |
+| Name rule | Display name "Chess Puzzles". Not a chess server, not ratings, not clocks, not online play. |
 
 ### 12.7 Killer Sudoku
 
@@ -631,7 +592,7 @@ Build order left: none for the 14-game catalog. Next is H7 hand-test, then human
 | Generator | Random Latin square. Add all signs, then remove signs and givens while unique and technique-solvable. |
 | Solver techniques | Singles, sign chains (min/max bounds), naked pair. |
 
-### 12.9 Skyscrapers
+### 12.9 Towers (engine id `skyscrapers`)
 
 | Item | Spec |
 |---|---|
@@ -641,6 +602,7 @@ Build order left: none for the 14-game catalog. Next is H7 hand-test, then human
 | Input | Digit pad and notes. Outside clues use the Nonogram clue band. |
 | Generator | Random Latin square. Compute all clues, then remove clues while unique and technique-solvable. |
 | Solver techniques | Edge clues 1 and n, height bounds from clues, singles. |
+| Name rule | Display name "Towers". "Skyscrapers" is a store keyword. |
 
 ### 12.10 Mosaic
 
@@ -655,132 +617,184 @@ Build order left: none for the 14-game catalog. Next is H7 hand-test, then human
 | Name rule | Use "Mosaic". |
 | Generator speed | Expert 15x15 takes about 50 s per puzzle, so the full Expert pack takes about 2 hours on the developer PC. Profile it before the bank card (MOB). |
 
-### 12.11 Later options
-
-After the launch: Tents, no-guess Minesweeper, generic 8x8 block puzzle (third family: piece drag + revive; never use the name Block Blast).
-
-**Do not add:** match-3, mahjong, tile match, full online chess, 50-variant solitaire, screw sort, hexa sort, jigsaw, five-letter word guess, sliding block escape, number merge, word search as a near-term game.
-
-**Names to avoid in the app and the store listing:** Queens, Tango, Zip, LinkedIn, NYT, Takuzu, Binairo, Picross, KenKen, Tetris, Block Blast, 2048, Flow Free, Rush Hour, Wordle, Meowdoku, Petdoku.
-
-**After the income goal is met:** share card, home-screen widget, nonogram picture packs, more ad networks through AdMob mediation (after about 1,000 to 2,000 daily players), iOS.
-
-### 12.12 Device-play polish (owner feedback, 27 Nov 2026)
-
-Possible tasks from the first sideload (`FEEDBACK.md`). Not in `docs/TASKS.md` until the owner picks them. Do not start these while H7 is the next catalog gate unless the owner says so.
-
-**Crowns display name — Pet Crowns, not Petdoku.** Meowdoku is Oakever's registered mark (US 99829493, EU, UK). Petdoku is already other apps' name for these rules. **Pet Crowns** is original: it keeps "Crowns", drops *-doku*, and is not Queens. Engine id stays `crowns`. User-visible name is Pet Crowns. Board mark stays a drawn crown until H5 ships a crowned-cat tile (original drawing, no Meowdoku sprites). Store listing still leads with Sudoku, Nonogram, Path and Colour Sort (section 13).
-
-| ID | From | Work | Why it is a task | Suggested tier |
-|---|---|---|---|---|
-| P1 | Names | Done in strings: Crowns → **Pet Crowns**. Remaining: Binary/Path/Tactics copy only if the owner writes new words. H5: crowned-cat Home tile and store art (original, not Meowdoku). | Crowns was not identifiable. Petdoku/Meowdoku/Queens stay banned. | L done; art Human |
-| P2 | Crowns | Drag-paint draws a real X on each cell as the finger enters it, not a tint that becomes all X on lift. Shared `BoardCanvas` drag preview (also Nonogram, Mosaic, Binary). | Drag commits only on finger-up; preview is an accent fill. | M |
-| P3 | Crowns | Two-tap (empty → X → crown) called out in `play_rules_crowns` and the intro coach line. Auto-X on a placed crown: on by default, X the rest of that row, column, region and touching cells; one history record. | Spec 6.1 already is two-tap; rules text does not say so. Auto-X is off and neighbours-only. | M |
-| P4 | Check | Product choice, then one card: (A) keep Check as a credit and hide it on Family B, or (B) live conflict marks, Check becomes a no-op / removed. Family B Check today always returns "no mistakes". | Check is monetised (8.2). Live-only check drops that reward. The Family B stub is a bug either way. | H (policy) then M |
-| P5 | Intro | Stepped first level: highlight the first cell, require the first legal move, then the next, then the rest of the intro puzzle. One pattern reused by every game. | Intro is one coach sentence plus a puzzle. | H |
-| P6 | Sudoku | Split Sudoku 9×9, Killer Sudoku and Futoshiki like Mini Sudoku: grid in `PlayBoard`, digit pad / Notes in `gameControls`. | `PlayBoard` is a square; those three boards embed the pad, so Notes/digits sit on the grid. | M |
-| P7 | Klondike | Drag a card or run onto a legal pile. Keep tap-tap. Animate the card to the destination unless reduce-motion. | KLA asked for tap/drag. Board is tap-only; moves snap. | H |
-| P8 | Klondike | Same as P4 for this board: hide Check or make it mean something (for example highlight a stuck tableau). | Check on Family B is a stub. | L (if P4 is hide) |
-| P9 | Tactics | Code-drawn piece silhouettes (king, queen, rook, bishop, knight, pawn), not FEN letters. No photo sprites, no new library. | CTA allowed letters. Players read it as unfinished. | M |
-| P10 | Colour Sort | Tube with a 3D-looking glass (rim, inner shadow, liquid meniscus) and a pour animation into the destination. Reduce-motion keeps the snap. Paper-and-ink colourways. No new library. | Select lifts; pours jump. Tubes are flat rounded rects. | H |
-| P11 | Arrows | Slide the arrow along empty cells to the edge, then remove it. Reduce-motion keeps the snap. | `ArrowsBoard` comment: one-step remove, no travel. | M |
-| P12 | Play | Wire remaining `Local*BoardOptions` (Sudoku, Killer Sudoku, Futoshiki, Mosaic, Path, Klondike) from player settings, same as Crowns/Tactics. | Haptics and reduce-motion ignore Settings on those boards. | L |
-
-P6, Family B Check in P4, and P2 are the three that fix broken play. P5, P7, P9, P10, P11 are look-and-feel. P1 display name is Pet Crowns; crowned-cat art is H5.
-
 ## 13. Store listing
 
 | Field | Draft |
 |---|---|
 | Title (30 max) | Witgrid: Offline Logic Puzzles |
-| Short description (80 max) | Offline puzzles: sudoku, nonogram, path, colour sort. No wifi needed. |
+| Short description (80 max) | Offline puzzles: sudoku, nonogram, solitaire, colour sort. No wifi needed. |
 | Category | Puzzle |
 | Target audience | 13 and older |
 
-- Lead the listing with Sudoku, Nonogram, Path and Colour Sort once those hub games ship. Pet Crowns, Binary, Tactics and Klondike sit in the list, not in the title. Never state a game count.
-- The head search terms "offline games" and "no wifi games" belong to apps with 100M+ installs. Aim at long terms: "offline logic puzzles", "nonogram offline", "sudoku offline", "colour sort", "path puzzle".
+- Lead the listing with Sudoku, Nonogram, Solitaire and Colour Sort. The other games sit in the list, not in the title. Never state a game count.
+- Long description keywords: "water sort" and "color sort" (for Colour Sort), "number link" and "connect the dots" (Number Link), "klondike" (Solitaire), "chess puzzles" and "mate in one" (Chess Puzzles), "skyscrapers" (Towers), "star battle" (Pet Crowns), "binary puzzle" (Binary). Use each term one time, in a sentence that describes the game. "Water Sort" never appears as a game name in the app or the title.
+- The head search terms "offline games" and "no wifi games" belong to apps with 100M+ installs. Aim at long terms: "offline logic puzzles", "nonogram offline", "sudoku offline", "solitaire offline".
 - Play rules: no emoji in the title, no repeated keywords, no ranking claims, no other company's brand.
-- Screenshots: show one clean board for each game, the dark mode, and the "works offline" message.
-- **[Verify]** "star battle" as a free term. The web check found no registration, but it was not an official search.
+- Screenshots: show one clean board for each lead game, the dark mode, and the "works offline" message.
+- When expansion games ship, add their genre terms the same way. Never use a name from the section 17.1 avoid list.
 
 ## 14. Risks
 
 | Risk | Effect | Mitigation |
 |---|---|---|
-| Few installs. A competitor with a similar feature list has only 100+ installs. | Income stays below the goal | Your app community, long search terms, hub catalog updates from section 12 |
+| Few installs | Income stays below the goal | App community, long search terms, a new game in each update (section 17) |
 | Offline players see no ads | Lower ad income | Premium offer when an ad cannot load; measure the offline share |
 | AdMob account disabled for invalid traffic | Ad income stops permanently | Test ad units only; never tap live ads; no ad placement near tap targets |
 | A Family A puzzle with two solutions or a need to guess | 1-star reviews | Two solvers check each Family A puzzle; hand test of each pack |
-| Scope growth | Late launch | The launch set is fixed at 14 (section 12). Nothing from 12.11 enters before launch. Cut Chess tactics, then Klondike, if late. Closed test runs in parallel. |
-| Agent code passes its own tests but has logic bugs | Wrong puzzles, wrong hints | Every lane gets a cross-family review. On 22 Nov the first Codex review of five Gemini lanes said "fix first" for all five; the fixes go through the batch gate and a second review before merge. |
-| Generators that pass their tests but give repetitive puzzles | Players see the same shapes and solutions; low ratings | Found on 23 Nov: Sudoku SU3 built every puzzle from 7 fixed clue templates (fixed); Skyscrapers Expert repeated a few cyclic grids (fixed; 56 % of Expert solutions still have shifted rows); Futoshiki solutions are relabelled cyclic squares (not visible). Every bank report lists grade histograms and solution patterns. Bank reviews check variety, not only validity. |
-| Hints that never finish | Players who tap Hint again and again loop forever | Family B hints must return the first move of a shortest winning path. Each engine with a hint has a test that follows hints only, from the deal to a win. |
-| 14 games are not checked well | 1-star reviews on a weak game | Same two-solver bank checks for every Family A game; H7 hand test of every new game; the U8 screenshot sheet covers every game |
-| Trademark complaint | Listing removed | The name rules in sections 6 and 12 |
-| Interstitial after each level harms reviews | Lower rating, lower search rank | Minimum gap, "each 2 levels" for short levels, Remote Config tuning |
-| $7.99 is higher than comparable apps | Fewer Premium sales | Premium includes unlimited hints and lives; price experiment |
+| Agent code passes its own tests but has logic bugs | Wrong puzzles, wrong hints, weak AI | Cross-family review; x3/x4 spec tests written from this plan, not from the code; lead batch gate |
+| Generators that pass their tests but repeat themselves | Players see the same shapes | Every bank report lists grade histograms and distinct patterns. Reviews check variety, not only validity. |
+| Hints that never finish | Players loop on Hint | Family B hints return the first move of a shortest winning path. Each engine has a hints-only test from deal to win. |
+| Computer opponents that are too weak, too strong or slow | Bad reviews on board and card games | Strength is set by a fixed search budget, never by clock time. Each Family C lane has an AI report: win rate of each level against the level below, and the slowest move time on a low-end device. |
+| Trademark complaint | Listing removed | Name rules in AGENTS.md and section 17.1. Check each new display name before its xC card. |
+| Home gets long as games are added | Players cannot find games | F4 Home categories before Wave 1 games register |
+| Scope growth before launch | Late launch | Expansion games do not block H5 or H6 (section 11) |
 | Play rule changes (API level, 16 KB pages) | Blocked updates | Native stack; update the target API each year |
 
 ## 15. Open items
 
-1. ~~Official trademark check of "Witgrid"~~ — owner decision 18 Nov 2026: not required. A Google and Play Store name search is enough (H0.1).
-2. ~~Ads SDK choice~~ — decided 16 Nov 2026: Next-Gen (`docs/decisions/ads-sdk.md`).
-3. Public developer details on Play for an account that earns money.
-4. ~~GDD section 7 is missing from the PDF~~ — dropped 18 Nov 2026. No source exists; this plan covers ASO, launch and the closed test.
-5. ~~Nonogram pictures at launch?~~ - abstract patterns are the launch scope; see section 6.3.
-6. ~~Minimum Android version?~~ - minSdk 24 is set in T0.1.
-7. ~~JDK version~~ — settled in T0.1: AGP 9.5.1 works with JDK 17. Versions: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk 37, targetSdk 36, minSdk 24, JUnit 6.1.3.
-8. Codex sandbox flags for Gradle (`network_access`, `--add-dir ~/.gradle`) on your Codex version. Settle at the first Codex task.
-9. ~~Rename Crowns to Petdoku?~~ — no. Display name **Pet Crowns** (27 Nov 2026, section 12.12). Engine id `crowns`. Crowned-cat tile is H5 art.
+1. Public developer details on Play for an account that earns money.
+2. Word list for Wave 3: source and licence (card H8).
+3. Display names marked [Verify] in section 17: run a store and trademark search before each game's xC card.
+4. Daily puzzle for Family C games: none at first (section 17.2). Review after Wave 2.
 
 ## 16. Build method: AI agents
 
-All code comes from AI agents. You are the lead: you pick tasks, read handoff notes, run reviews and merge. Full detail is in these files:
+All code comes from AI agents. The lead picks tasks, reads handoff notes, runs reviews and merges.
 
 | File | Content |
 |---|---|
-| `AGENTS.md` | Rules for every agent: commands, module rules, hard rules, handoff format. Codex reads it automatically. |
+| `AGENTS.md` | Rules for every agent: commands, module rules, hard rules, handoff format. |
 | `CLAUDE.md` | Imports `AGENTS.md`, plus notes for Claude Code. |
 | `docs/TASKS.md` | The backlog: one card for each task, with tier, owner, owned files, plan sections and "done when" commands. |
 | `docs/AGENT_WORKFLOW.md` | Setup, the task loop, parallel work, known risks. |
-| `.claude/agents/` | Claude subagents: `builder` (Sonnet), `test-writer` (Haiku), `chore` (Haiku), `reviewer` (Sonnet). |
-| `scripts/agent-task.ps1` | Starts one task in its own git worktree with Codex, Claude or Gemini. |
-| `scripts/review-task.ps1` | Cross-review of a task branch by another agent family (default Codex `gpt-6.2-sol`). |
+| `scripts/agent-task.ps1` | Starts one task in its own git worktree with Codex, Claude, Gemini or Grok. |
+| `scripts/review-task.ps1` | Cross-review of a task branch by another agent family. |
 | `scripts/check-batch.ps1` | Merges several finished task branches into one scratch worktree and runs `gradlew check` one time. |
 | `scripts/progress.py` | Rebuilds the progress bars at the top of this plan from `docs/TASKS.md`. |
 
 ### 16.1 Model tiers
 
-| Tier | Work | Claude | Codex | Gemini (`agy`) |
-|---|---|---|---|---|
-| L | Tests from spec, wiring, CI, strings, reports | Haiku 5.5 | `gpt-6-luna`, effort medium | `gemini-3.8-flash-medium` |
-| M | Screens, storage, boards, normal features | Sonnet 5.5 | `gpt-6.2-sol`, effort medium | `gemini-3.8-flash-high` |
-| H | Contracts, solvers, generators, gestures, consent, billing | Sonnet 5.5 | `gpt-6.2-sol`, effort high | Not recommended (Flash only) |
-| Escalation | Failed the gate two times | Opus 5.5 | `gpt-6-astra` | — |
+| Tier | Work | Claude | Codex | Gemini (`agy`) | Grok |
+|---|---|---|---|---|---|
+| L | Tests from spec, wiring, strings, reports, banks | Haiku | `gpt-6-luna` | `gemini-4-hydrogen-medium` | `grok-4.7-build-fast` |
+| M | Boards, screens, normal engines | Sonnet | `gpt-6.2-sol` medium | `gemini-4-hydrogen-high` | `grok-4.6` |
+| H | Contracts, solvers, generators, AI search, gestures | Sonnet | `gpt-6.2-sol` high | `gemini-4-hydrogen-xhigh` | `grok-4.7` |
 
-**Test gate (21 to 22 Nov 2026).** Parallel `gradlew check` runs made the PC too slow. Now:
-1. A build agent runs only the tests of its own package (for example `:engine:test --tests 'com.datathecodie.witgrid.engine.mosaic.*'`), fixes every failure without weakening a test, and commits.
+Haiku and Grok have no shell: they cannot run Gradle, bankgen or git, so they cannot do bank (xB) cards. The lead compiles, tests and commits their work. Codex cannot commit; the lead commits Codex work.
+
+### 16.2 Test gate and machine load
+
+1. A build agent runs only the tests of its own package, fixes every failure without weakening a test, and commits.
 2. The lead tests finished branches together with `scripts/check-batch.ps1` (one `gradlew check`).
-3. Codex (`gpt-6.2-sol`) reviews each lane branch. Several reviews run in parallel; they are read-only and do not run Gradle.
-4. Review blockers go back to a builder on the newest branch of the lane. The fix passes the batch and a second review before merge.
+3. Run **one heavy job at a time**: a Gradle `check`, a bank generation or a full engine test run. Agents that only write code can run in parallel.
+4. Run 2 or 3 Gemini agents at a time (quota, error 429).
+5. Keep slow generator and AI tests small: sample 20 to 60 levels or games, not 150.
+6. Local `./gradlew check` is the merge gate. GitHub CI runs only when started by hand.
 
-**Gemini quota (22 Nov 2026).** Five or six parallel Gemini runs used the individual quota in about 4 hours (error 429, reset after about 30 minutes). Run 2 or 3 Gemini agents at a time, or upgrade the subscription. Unfinished Gemini work moves to Codex on the same worktree.
+## 17. Catalog expansion (owner, 27 Nov 2026)
 
-### 16.2 Why this split works
+After the launch catalog, the hub grows by one or more games in each update. Three waves, in order of value for effort. Popularity is from store charts and clone counts on 27 Nov 2026, not from keyword volumes [Verify with a keyword tool].
 
-- **Engine first.** Family A in `engine/` has a strong test oracle: "exactly one solution, and the technique solver solves it". Family B uses winnable / `isLost` oracles. Agents do well on this work, and the tests catch their mistakes.
-- **Contracts before lanes.** E1 (Family A), A3 (app) and E3 (Family B) are done. Colour Sort and Arrows are playable. Klondike still needs its bank.
-- **Two families.** Codex builds most of the engine and Claude builds most of the UI. Tests and reviews come from the other family, so one model's misreading of the spec does not pass through unseen.
-- **Logic out of the UI.** Ad rules, streaks and allowances are plain Kotlin with JVM tests. Agents cannot check a Compose screen by eye, but they can check a unit test.
-- **Humans keep the risky steps.** Accounts, keys, live ad IDs, hand tests, art approval and store forms are cards with tier **Human**.
+Legend: 🔥 top-chart genre, ▲ popular, ● niche. Effort: S mostly reuse, M new engine on a known pattern, L needs a new shared part, XL very large.
 
-### 16.3 Machine load and review rules (23 Nov 2026)
+### 17.1 Rules for every expansion game
 
-- Run **one heavy job at a time**: a Gradle `check`, a bank generation or a full engine test run. Agents that only write code can run in parallel. Several parallel Gradle runs made the PC unusable on 23 Nov.
-- Stop a Codex review that runs longer than 30 minutes. It is stuck. Stopping its shell does not stop the `codex exec` child process; the owner stops it in PowerShell.
-- The lead reviews diffs itself before the batch. Codex `gpt-6.2-sol` reviews are optional; `gpt-6-luna` reviews are not enough on their own.
-- Claude Haiku agents run in `acceptEdits` mode and cannot run Gradle or git. The lead compiles, tests and commits their work.
-- Codex cannot write the worktree git index. The lead commits Codex work.
-- Gemini runs sometimes end before they commit or write a handoff. The lead checks `git status` in the worktree after every run.
-- Keep slow generator tests small: sample 20 to 60 puzzles for slow packs, not 150.
-- GitHub CI is not current while local `main` is unpushed (91 commits ahead as of 26 Nov). Treat local `./gradlew check` as the merge gate until a requested push.
+- One package per game: `engine/…/<id>/` and `app/…/games/<id>/`. Registration through `GameRegistry` / `PlayRegistry` / `MatchRegistry` (F2). Home, saves and ads need no game-specific change.
+- Integer maths and `SplitMix64` only. The same seed gives the same deal, layout and AI move on every machine.
+- Code-drawn art in the paper-and-ink style. No sprites, no photos, no new library unless the card permits it.
+- Each game has a guided first level (intro), an interstitial default in `ConfigKeys` (`interstitial_levels_<id>`), rules text, a Home motif and a result thumbnail.
+- **Names to avoid** (add to AGENTS.md rule 4): UNO, Yahtzee, Connect Four, Connect 4, Battleship, Othello, Unblock Me, Amaze, Ludo King, Scrabble, Boggle, Minecraft, Candy, plus the existing list. "Water Sort" only as a store keyword.
+- **Do not add:** match-3, mahjong, tile match, online play of any kind, 50-variant solitaire, hexa sort, jigsaw, five-letter word guess.
+
+### 17.2 Shared foundations (before or beside Wave 1)
+
+| Card | Work | Tier | Unlocks |
+|---|---|---|---|
+| F1 | **Card kit.** Move the deck, card model and code-drawn card faces out of `klondike` into `engine/…/cards/` and `app/…/games/cards/`: `Card`, `Suit`, `Rank`, `Deck.shuffled(rng)`, card drawing, pile layout, drag-and-drop of a card run, fly-to-pile animation. Solitaire keeps working with no visible change. | M | Spider, FreeCell, Hearts, Spades, Crazy Eights |
+| F2 | **Family C contract: games against the computer.** `MatchEngine<P, S, A>`: players, side to move, legal actions, apply, outcome (win, loss, draw), codec. `MatchGameModule` wraps it for Home, Play, Result and saves. A "level" is one match; the four packs are four computer strengths. Result shows Won / Lost / Draw. Loss = level failed: Continue takes back the last full turn (rewarded, or free with Premium); Restart is free. No bank and no daily puzzle for Family C (Home daily row skips it). Human reads this contract before merge. | H | All Wave 2 games |
+| F3 | **Opponent AI kit.** Deterministic search with a node budget, never a clock: alpha-beta with iterative deepening and integer evaluation (perfect-information games), and determinised Monte Carlo playouts with `SplitMix64` (hidden-card and dice games). Strength levels Easy / Medium / Hard / Expert = budget plus a chance to pick a weaker move. A test harness plays level against level and reports win rates. | H | All Wave 2 games |
+| F4 | **Home at scale.** Category sections on Home (Logic, Sort and Move, Cards, Board, Word), each a 2-column grid; a category is hidden when it has no game. Category is a field on the game module. No count in any text. | M | Needed before the first Wave 1 game registers |
+| F5 | **Word list asset.** Word list from the source that H8 picks, profanity and slur filter, length bands, stored as a gzip asset; bankgen reads it. Licence text in the app licence screen. | M | Wave 3 |
+| H8 | **Pick the word list and licence** (Human). For example a public-domain or permissive list; record the licence in `docs/decisions/word-list.md`. | Human | F5 |
+
+### 17.3 Wave 1: solo games, reuse what exists
+
+| Lane | Display name | Engine id | Family | Popularity | Effort | Interstitial | Continue |
+|---|---|---|---|---|---|---|---|
+| SP | Spider Solitaire | `spider` | B | 🔥 | S (after F1) | Each deal | Extra undo |
+| FC | FreeCell | `freecell` | B | 🔥 | S (after F1) | Each deal | Extra undo |
+| NB | Nuts & Bolts [Verify] | `nutsbolts` | B | 🔥 crowded | S | Each 2 levels | Extra empty bolt |
+| MI | Minesweeper [Verify] | `minesweeper` | B | ▲ evergreen | S–M | Each 2 levels | Mine hit is flagged, play goes on |
+| MP | Maze Paint | `mazepaint` | B | ▲ | S–M | Each 2 levels | None (no fail) |
+| BE | Block Escape | `blockescape` | B | ▲ | M | Each 2 levels | None (no fail) |
+| NM | Number Merge | `numbermerge` | B | 🔥 saturated | S | Each level | Remove the two smallest tiles |
+| YA | Yatzy [Verify] | `yatzy` | B | ▲ | M | Each level | One extra reroll |
+| SL | Sliding Puzzle | `sliding` | B | ● | S | Each 2 levels | None (no fail) |
+| ME | Memory Pairs | `memory` | B | ▲ | S | Each 2 levels | Five extra flips |
+| SH | Shikaku | `shikaku` | A | ● | M | Each 2 levels | Extra mistake |
+
+**Spider Solitaire.** 10 tableau columns, 104 cards. Packs set the suits: Easy 1 suit, Medium 2, Hard 4 with more face-up cards, Expert 4. Build down regardless of suit; move only same-suit runs; a full K→A same-suit run leaves the tableau. Deal from the stock adds one card to each column (not allowed with an empty column). Generator: deal from `SplitMix64`, keep solver-won seeds (Klondike `SolveVerdict` pattern: Unknown is never a loss). Bank stores seeds.
+
+**FreeCell.** 8 columns, 4 free cells, 4 foundations, all cards face up. Move one card (or a run up to the free-space limit). Packs by solver length and free cells needed: Easy, Medium, Hard, Expert (fewest free cells at the end). Generator: seed deal, solver must win. Almost every deal is winnable; reject the rest.
+
+**Nuts & Bolts.** Copy the Colour Sort engine as a new package (do not edit `coloursort`). Bolts hold coloured nuts; move the top run of nuts onto a bolt with the same top colour or an empty bolt. Packs: 4, 6, 8, 10 bolts; capacity 4 (Easy) to 5 (Expert). Board: vertical bolts with threaded lines and hex nuts; a nut spins up and across unless reduce-motion.
+
+**Minesweeper.** No-guess: each level opens with a given safe area, and a deduction solver must clear the board with no guess. Packs: Easy 8x8 10 mines, Medium 12x12 25, Hard 16x16 45, Expert 16x24 80 [Estimate]. Actions: Reveal, Flag (long-press or mode switch, same as Nonogram Fill/Cross). Reuse the Mosaic neighbour-count code where it fits. Bank stores the seed and the opening cell.
+
+**Maze Paint.** A ball slides in one direction until a wall stops it and paints each cell it passes. Win when every open cell is painted. Swipe input. Generator: random walls, BFS for a solution, pack by shortest solution length. No fail state.
+
+**Block Escape.** Sliding blocks on a 6x6 board (Expert 7x7); slide the key block out of the exit. Generator: random layout, BFS from the goal for the minimum move count; pack by move count. No fail state. Never "Rush Hour" or "Unblock Me".
+
+**Number Merge.** 4x4 board (Easy 5x5). Swipe merges equal tiles. New tiles come from the state's `SplitMix64`, so a level replays the same. Win when a tile reaches the pack target (Easy 256, Medium 512, Hard 1024, Expert 4096). Fail when no swipe can move. Never name the game or a pack after a number.
+
+**Yatzy.** Solo score attack with five dice and three rolls per turn. 15 categories (Scandinavian rules, upper bonus at 63). Win when the final score reaches the pack target (Easy 150, Medium 190, Hard 220, Expert 250) [Estimate; tune with a simulation in YA2]. Dice from the state's `SplitMix64`. Code-drawn dice. Never "Yahtzee".
+
+**Sliding Puzzle.** 3x3 (Easy) to 6x6 (Expert) numbered tiles. Generator: random solvable permutation (parity check), pack by optimal or bounded move count. Picture tiles are a later option.
+
+**Memory Pairs.** Turn two cards; a pair stays face up. Grid 4x4 to 6x6 with code-drawn symbols (shapes and colours, colour-blind safe). Harder packs have a flip limit; a fail gives Continue. Layout from seed.
+
+**Shikaku.** Family A. Divide the grid into rectangles; each rectangle holds one number equal to its area. Unique and technique-solvable. Input: drag a rectangle; encode each cell as `SetDigit` with a rectangle id (the Number Link pattern). Sizes 7x7, 10x10, 12x12, 15x15. Techniques: single fitting rectangle, cell reachable by one clue, overlap of all placements.
+
+### 17.4 Wave 2: games against the computer (after F2 and F3)
+
+| Lane | Display name | Engine id | Popularity | Effort | Notes |
+|---|---|---|---|---|---|
+| TT | Tic-Tac-Toe | `tictactoe` | ▲ recognised, low value | S | First user of F2 and F3. Packs: 3x3, then 5x5 four-in-line, 7x7 five-in-line. |
+| FR | Four in a Row | `fourinrow` | ▲ | S–M | 7x6 board, alpha-beta. Never "Connect Four". |
+| MA | Mancala | `mancala` | ▲ | S–M | Kalah rules, 6 pits, 4 seeds. |
+| RV | Reversi | `reversi` | ▲ | M | 8x8, alpha-beta with a position table. Never "Othello". |
+| DB | Dots and Boxes | `dotsboxes` | ● | M | 4x4 to 6x6 boxes; chain rule in the AI evaluation. |
+| SB | Sea Battle | `seabattle` | ▲ | M | Hidden fleets, 10x10. AI uses hit-and-hunt with probability counts. Never "Battleship". |
+| CK | Checkers | `checkers` | ▲ | M–L | English draughts (8x8, forced capture). One rule set only. |
+| CH | Chain Burst | `chainburst` | ▲ | M | Orbs explode at critical mass and convert neighbours. 2 players against the computer. [Verify name] |
+| HE | Hearts | `hearts` | ▲ | M–L | F1 card kit; 3 computer players; pass three cards. |
+| SD | Spades | `spades` | 🔥 (US) | L | Partners and bidding; 3 computer players. |
+| CE | Crazy Eights | `crazyeights` | 🔥 | L | Shedding game with original card art and action cards of our own design. Never "UNO" or its card names. |
+| DO | Dominoes | `dominoes` | ▲ | M–L | Draw and block games; code-drawn tiles. |
+| LU | Ludo | `ludo` | 🔥 | L | 4 players, dice, 3 computer players. Offline only. Never "Ludo King". |
+| CC | Chess | `chess` | 🔥 dominated | XL | Reuse the `tactics` move rules. Strength by search budget. No online play, no ratings. Last in the wave. |
+
+**Family C level rules.** A pack is a computer strength (Easy, Medium, Hard, Expert). "Level N" counts matches in that pack; it only goes up. The hint names one good move from the AI at Expert strength. Statistics show wins, losses and draws.
+
+### 17.5 Wave 3: word games (after F5 and H8)
+
+| Lane | Display name | Engine id | Family | Popularity | Effort | Notes |
+|---|---|---|---|---|---|---|
+| WS | Word Search | `wordsearch` | B | 🔥 | M | Grid with hidden words in 8 directions; drag to select. Theme lists from the word asset. Packs by grid size (8x8 to 14x14) and directions allowed. |
+| HM | Secret Word [Verify] | `hangman` | B | ▲ | M | Guess letters; six wrong letters fail the level. No gallows drawing: a code-drawn candle row burns down. Continue = one extra wrong letter. |
+
+English only at first. A language list is a later card.
+
+### 17.6 Card lanes
+
+Same lane pattern as the launch catalog (v1 Phase 7, in `docs/archive/TASKS-v1.md`). Cards are in `docs/TASKS.md`.
+
+| Family | Engine cards | App cards |
+|---|---|---|
+| A (Shikaku) | x1 rules and counter, x2 technique solver and hints, x3 generator, x4 independent spec tests | xA board, xB bank, xC intro, config, registration |
+| B (Waves 1 and 3) | x1 rules, state, actions, `isWon` / `isLost`, codec; x2 hint, packs, generator; x3 independent spec tests | xA board, xB bank of layouts or seeds, xC intro, Continue, config, registration |
+| C (Wave 2) | x1 rules, state, actions, outcome, codec; x2 AI strengths and hint, AI report; x3 independent spec tests | xA board, xC intro, Continue, config, registration (no bank) |
+
+Each xC card also: interstitial default in `ConfigKeys`, display name and descriptor strings, rules text, Home motif, result thumbnail, the six `gameNameResource` maps, and a trademark and store check of the display name.
+
+**Order.** F4 first (Home at scale). Then Wave 1 lanes in parallel, at most one heavy job at a time: NB, MI, MP, NM, SL, ME, SH and BE can start now; SP and FC after F1; YA any time. F2 and F3 run beside Wave 1. Wave 2 starts with TT (the contract test), then FR, MA, RV. Card games after F1 and F3. Wave 3 after H8 and F5.

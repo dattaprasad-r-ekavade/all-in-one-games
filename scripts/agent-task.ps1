@@ -68,10 +68,22 @@ Always add --no-daemon to Gradle commands (a daemon started in the sandbox break
 $laneGames = @{
     SU = 'sudoku'; KS = 'killersudoku'; FU = 'futoshiki'; SK = 'skyscrapers'; MO = 'mosaic'
     PA = 'path'; CS = 'coloursort'; AR = 'arrows'; KL = 'klondike'; CT = 'tactics'
+    # Expansion waves (plan 17, docs/TASKS.md wave lane table)
+    NB = 'nutsbolts'; MI = 'minesweeper'; MP = 'mazepaint'; NM = 'numbermerge'; SL = 'sliding'
+    ME = 'memory'; BE = 'blockescape'; YA = 'yatzy'; SH = 'shikaku'; SP = 'spider'; FC = 'freecell'
+    TT = 'tictactoe'; FR = 'fourinrow'; MA = 'mancala'; RV = 'reversi'; DB = 'dotsboxes'
+    SB = 'seabattle'; CK = 'checkers'; CH = 'chainburst'; HE = 'hearts'; SD = 'spades'
+    CE = 'crazyeights'; DO = 'dominoes'; LU = 'ludo'; CC = 'chess'; WS = 'wordsearch'; HM = 'hangman'
 }
+# Family C games play against the computer and have no bank (plan 17.2).
+$familyC = @('TT', 'FR', 'MA', 'RV', 'DB', 'SB', 'CK', 'CH', 'HE', 'SD', 'CE', 'DO', 'LU', 'CC')
 $lanePrefix = if ($Task.Length -ge 3) { $Task.Substring(0, 2) } else { '' }
 $gameId = $laneGames[$lanePrefix]
 $cardRules = ''
+
+if ($familyC -contains $lanePrefix -and $Task -match '^[A-Z]{2}B$') {
+    throw "$Task is a Family C lane: it has no bank card. See docs/TASKS.md."
+}
 
 if ($gameId -and $Task -match '^[A-Z]{2}B$' -and $Agent -in @('claude', 'grok')) {
     # Claude print mode and Grok acceptEdits mode have no shell, so they cannot run bankgen.
@@ -87,16 +99,18 @@ LEAD AUTHORIZATION FOR BANK CARDS (this overrides the 'no bankgen' rule above fo
    .\gradlew.bat :bankgen:run --args="validate --all" --no-daemon -q
    Take the counts from the card and plan. Pick an unused seed block (see docs/reports/bank-*.md) and record every seed in the report.
    If validate reports a duplicate across files (small boards), try the next daily seed and record the failed seeds.
-2. You MAY edit engine/src/main/kotlin/com/datathecodie/witgrid/engine/Registry.kt and engine/src/test/kotlin/com/datathecodie/witgrid/engine/RegistryTest.kt.
-   bankgen finds games only through Registry.engines. Add this game's engine at the end of the list and update the id list and count in RegistryTest.
+2. Family A: you MAY edit engine/src/main/kotlin/com/datathecodie/witgrid/engine/Registry.kt and engine/src/test/kotlin/com/datathecodie/witgrid/engine/RegistryTest.kt.
+   bankgen finds Family A games only through Registry.engines. Add this game's engine at the end of the list and update the id list and count in RegistryTest.
+   Family B: you MAY edit bankgen/src/main/kotlin/com/datathecodie/witgrid/bankgen/FamilyBRegistry.kt and add a <Game>BankValidatorTest beside the existing ones
+   (PlayEngineValidator(engine, difficulty) { canWin }, the Colour Sort pattern).
 3. Write docs/reports/bank-$gameId.md like docs/reports/bank-skyscrapers.md: seeds, counts, sizes, compressed bytes, grade histogram per pack,
    and a spread line (distinct solution or clue patterns), so the lead can see whether the generator repeats itself.
 "@
 } elseif ($gameId -and $Task -match '^[A-Z]{2}4$') {
     # x4 cards have no card of their own; agents could not find them (CT4, 25 Nov 2026).
     $cardRules = @"
-CARD LOCATION: $Task is an 'x4' card. It has no section of its own. Read the hub lane table in docs/TASKS.md (the row that starts '| x4 |')
-and the lines under it. x4 = independent tests from the plan rules, with hand-made fixtures.
+CARD LOCATION: $Task is an 'x4' card. It has no section of its own. Read the lane tables in docs/TASKS.md (the row that starts '| x4 |')
+and the lines under it. For v1 launch lanes, the tables are in docs/archive/TASKS-v1.md. x4 = independent tests from the plan rules, with hand-made fixtures.
 Owns only engine/src/test/kotlin/com/datathecodie/witgrid/engine/$gameId/spec/**. Write the tests from the plan section for this game, not from the code;
 read the main code only for public function names and fixture formats.
 Done when: the tests compile and run. A failure that shows a real engine bug stays failing and goes in the handoff; do not change engine code.

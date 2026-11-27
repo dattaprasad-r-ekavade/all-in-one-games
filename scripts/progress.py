@@ -22,12 +22,19 @@ IN_PROGRESS = {"active", "review"}
 WIDTH = 20
 
 GAMES = {
-    "SU": "Sudoku 9x9", "KS": "Killer Sudoku", "FU": "Futoshiki", "SK": "Skyscrapers",
-    "MO": "Mosaic", "CS": "Colour Sort", "PA": "Path", "AR": "Arrows", "KL": "Klondike",
-    "CT": "Chess tactics",
+    # Wave 1
+    "NB": "Nuts & Bolts", "MI": "Minesweeper", "MP": "Maze Paint", "NM": "Number Merge",
+    "SL": "Sliding Puzzle", "ME": "Memory Pairs", "BE": "Block Escape", "YA": "Yatzy",
+    "SH": "Shikaku", "SP": "Spider Solitaire", "FC": "FreeCell",
+    # Wave 2
+    "TT": "Tic-Tac-Toe", "FR": "Four in a Row", "MA": "Mancala", "RV": "Reversi",
+    "DB": "Dots and Boxes", "SB": "Sea Battle", "CK": "Checkers", "CH": "Chain Burst",
+    "HE": "Hearts", "SD": "Spades", "CE": "Crazy Eights", "DO": "Dominoes", "LU": "Ludo",
+    "CC": "Chess",
+    # Wave 3
+    "WS": "Word Search", "HM": "Secret Word",
 }
-BUILT_GAMES = 4  # Crowns, Binary, Nonogram, Mini Sudoku
-LAUNCH_TARGET = 14
+LAUNCH_GAMES = 14  # the v1 launch catalog, all playable (plan section 12)
 
 
 def normalise(status):
@@ -101,19 +108,19 @@ def render(groups):
     for name, cards in groups.items():
         out.append(line(re.sub(r" \(.*\)", "", name), cards))
 
-    catalog = next((cards for name, cards in groups.items() if "catalog" in name.lower()), [])
-    ready_games = BUILT_GAMES
-    out += ["", "Launch catalog, by game"]
+    waves = [cards for name, cards in groups.items() if name.lower().startswith("wave")]
+    expansion = [card for cards in waves for card in cards]
+    ready_games = LAUNCH_GAMES
+    out += ["", "Expansion games, by lane"]
     for prefix, game in GAMES.items():
-        cards = game_cards(catalog, prefix)
+        cards = game_cards(expansion, prefix)
         if cards and all(state in DONE for _, state, _ in cards):
             ready_games += 1
         out.append(line(f"  {game}", cards))
-    shared = [c for c in catalog if not any(game_cards([c], p) for p in GAMES)]
-    out.append(line("  Shared (B6, E3, H7)", shared))
 
-    games_bar = [("g", "done", False)] * ready_games + [("g", "todo", False)] * (LAUNCH_TARGET - ready_games)
-    out += ["", line("Launch games playable", games_bar).replace("done", "ready")]
+    target = LAUNCH_GAMES + len(GAMES)
+    games_bar = [("g", "done", False)] * ready_games + [("g", "todo", False)] * (target - ready_games)
+    out += ["", line("Games playable", games_bar).replace("done", "ready")]
 
     human_open = [card for card, state, human in every if human and state not in DONE]
     today = datetime.date.today().strftime("%d %b %Y")
