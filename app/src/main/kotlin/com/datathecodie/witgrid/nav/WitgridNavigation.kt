@@ -583,6 +583,13 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                 }
                             },
                             onBack = { navigator.goBack() },
+                            onSkipIntro = {
+                                val next = module.nextLevelRef(levelRef, bankSource)
+                                if (next != null) {
+                                    navigator.goBack()
+                                    navigator.navigate(AppDestination.Play(next))
+                                }
+                            },
                         )
                     } else {
                         PlayScreenRoute(
@@ -615,6 +622,13 @@ fun WitgridNavigation(navigator: AppNavigator) {
                                 }
                             },
                             onBack = { navigator.goBack() },
+                            onSkipIntro = {
+                                val next = playModule?.nextLevelRef(levelRef, bankSource)
+                                if (next != null) {
+                                    navigator.goBack()
+                                    navigator.navigate(AppDestination.Play(next))
+                                }
+                            },
                         )
                     }
                 }

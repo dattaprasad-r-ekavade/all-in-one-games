@@ -91,6 +91,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
     onRestartRequestConsumed: (Long) -> Unit,
     onSolved: (LevelSolvedEvent) -> Unit,
     onBack: () -> Unit,
+    onSkipIntro: () -> Unit = {},
     onRegisterBackAction: ((suspend () -> Unit) -> Unit) = {},
     mistakeLimitEnabled: Boolean = false,
     continueRequestId: String? = null,
@@ -267,6 +268,13 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
         var feedbackGeneration by remember(controller) { mutableStateOf(0L) }
         var hintOperationPending by remember(controller) { mutableStateOf(false) }
         var enlargedBoardMode by remember(controller) { mutableStateOf(false) }
+        var introMoves by remember(controller) { mutableStateOf(0) }
+        var introCells by remember(controller) { mutableStateOf(emptySet<Cell>()) }
+        LaunchedEffect(controller, snapshot.state, levelRef.isIntro) {
+            introCells = if (levelRef.isIntro && introMoves < INTRO_SPOTLIGHT_FREE_AFTER_MOVES) {
+                controller.nextHint()?.cells?.toSet().orEmpty()
+            } else emptySet()
+        }
 
         fun clearFeedback() {
             feedbackGeneration += 1
@@ -276,7 +284,7 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
 
         val onMoves: (List<Move>) -> Unit = { moves ->
             clearFeedback()
-            perform { controller.applyGesture(moves) }
+            perform { controller.applyGesture(moves); introMoves += 1 }
         }
         val onUndo: () -> Unit = {
             clearFeedback()
@@ -344,12 +352,13 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 onRedo = onRedo,
                 onRequestHint = onRequestHint,
                 onBack = leave,
+                onSkipIntro = onSkipIntro,
             )
         }
         val flaggedCells = if (snapshot.mistakeLimitEnabled) snapshot.mistakes.toSet() else emptySet()
         val ruleConflictCells = RuleConflicts.cells(snapshot.state)
         CompositionLocalProvider(
-            LocalBoardHighlightCells provides (highlightedCells + flaggedCells + ruleConflictCells),
+            LocalBoardHighlightCells provides (highlightedCells + flaggedCells + ruleConflictCells + introSpotlightCells(levelRef.isIntro, introMoves, introCells)),
             LocalBoardViewportMode provides BoardViewportMode(enlargedBoardMode, embedded = true),
         ) {
             when (val state = snapshot.state) {
@@ -428,6 +437,7 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
     onRestartRequestConsumed: (Long) -> Unit,
     onSolved: (LevelSolvedEvent) -> Unit,
     onBack: () -> Unit,
+    onSkipIntro: () -> Unit = {},
     onRegisterBackAction: ((suspend () -> Unit) -> Unit) = {},
     continueRequestId: String? = null,
     onContinueRequestConsumed: (String) -> Unit = {},
@@ -589,6 +599,13 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
         var feedbackGeneration by remember(controller) { mutableStateOf(0L) }
         var hintOperationPending by remember(controller) { mutableStateOf(false) }
         var enlargedBoardMode by remember(controller) { mutableStateOf(false) }
+        var introMoves by remember(controller) { mutableStateOf(0) }
+        var introCells by remember(controller) { mutableStateOf(emptySet<Cell>()) }
+        LaunchedEffect(controller, snapshot.state, levelRef.isIntro) {
+            introCells = if (levelRef.isIntro && introMoves < INTRO_SPOTLIGHT_FREE_AFTER_MOVES) {
+                controller.hintAction()?.let(::hintCellsForAction).orEmpty()
+            } else emptySet()
+        }
 
         fun clearFeedback() {
             feedbackGeneration += 1
@@ -598,7 +615,7 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
 
         val onAction: (A) -> Unit = { action ->
             clearFeedback()
-            perform { controller.applyAction(action) }
+            perform { controller.applyAction(action); introMoves += 1 }
         }
         val onUndo: () -> Unit = {
             clearFeedback()
@@ -671,10 +688,11 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
                 onRedo = onRedo,
                 onRequestHint = onRequestHint,
                 onBack = leave,
+                onSkipIntro = onSkipIntro,
             )
         }
         CompositionLocalProvider(
-            LocalBoardHighlightCells provides (highlightedCells + RuleConflicts.cells(snapshot.state)),
+            LocalBoardHighlightCells provides (highlightedCells + RuleConflicts.cells(snapshot.state) + introSpotlightCells(levelRef.isIntro, introMoves, introCells)),
             LocalBoardViewportMode provides BoardViewportMode(enlargedBoardMode, embedded = true),
         ) {
             when (val state = snapshot.state) {

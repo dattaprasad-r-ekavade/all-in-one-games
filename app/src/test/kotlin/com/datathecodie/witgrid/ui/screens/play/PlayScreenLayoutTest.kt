@@ -40,6 +40,13 @@ class PlayScreenLayoutTest {
     }
 
     @Test
+    fun tallPlayBoardsAreUsedForKlondikeAndColourSort() {
+        assertFalse(playBoardForcesSquare("klondike"))
+        assertFalse(playBoardForcesSquare("coloursort"))
+        assertTrue(playBoardForcesSquare("crowns"))
+    }
+
+    @Test
     fun hintBadgeDoesNotShowZeroWhenFreeDailyHintIsAvailable() {
         assertEquals(null, visibleHintBadge("0"))
         assertEquals("2", visibleHintBadge("2"))
