@@ -6,7 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /** Keeps accepted edits alive when the player leaves the screen. */
-internal class PlayPersistenceScope(context: CoroutineContext) {
+class PlayPersistenceScope(context: CoroutineContext) {
     private val operationsJob = SupervisorJob()
     val scope = CoroutineScope(context + operationsJob)
     private val cleanupScope = CoroutineScope(context)

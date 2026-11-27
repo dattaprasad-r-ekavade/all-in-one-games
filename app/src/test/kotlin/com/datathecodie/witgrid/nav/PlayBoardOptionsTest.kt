@@ -13,16 +13,16 @@ class PlayBoardOptionsTest {
         val options = sudokuBoardOptionsFromSettings(settings)
         assertFalse(options.hapticsEnabled)
         assertTrue(options.reduceMotion)
-        assertFalse(options.autoNotesEnabled) // Should use default
+        assertFalse(options.autoNotesEnabled)
     }
 
     @Test
-    fun sudokuBoardOptionsFromSettings_usesDefaultAutoNotes() {
-        val settings = AppSettings(hapticsEnabled = true, reduceMotion = false)
+    fun sudokuBoardOptionsFromSettings_mapsAutoNotes() {
+        val settings = AppSettings(hapticsEnabled = true, reduceMotion = false, autoNotesEnabled = true)
         val options = sudokuBoardOptionsFromSettings(settings)
         assertTrue(options.hapticsEnabled)
         assertFalse(options.reduceMotion)
-        assertFalse(options.autoNotesEnabled)
+        assertTrue(options.autoNotesEnabled)
     }
 
     @Test
@@ -31,7 +31,7 @@ class PlayBoardOptionsTest {
         val options = killerSudokuBoardOptionsFromSettings(settings)
         assertTrue(options.hapticsEnabled)
         assertFalse(options.reduceMotion)
-        assertFalse(options.autoNotesEnabled) // Should use default
+        assertFalse(options.autoNotesEnabled)
     }
 
     @Test

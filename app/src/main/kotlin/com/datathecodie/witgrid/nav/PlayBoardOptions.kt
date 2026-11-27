@@ -12,6 +12,7 @@ import com.datathecodie.witgrid.games.sudoku.SudokuBoardOptions
 /** Map player settings to SudokuBoardOptions for the play route. */
 internal fun sudokuBoardOptionsFromSettings(settings: AppSettings): SudokuBoardOptions =
     SudokuBoardOptions(
+        autoNotesEnabled = settings.autoNotesEnabled,
         hapticsEnabled = settings.hapticsEnabled,
         reduceMotion = settings.reduceMotion,
     )
@@ -19,6 +20,7 @@ internal fun sudokuBoardOptionsFromSettings(settings: AppSettings): SudokuBoardO
 /** Map player settings to KillerSudokuBoardOptions for the play route. */
 internal fun killerSudokuBoardOptionsFromSettings(settings: AppSettings): KillerSudokuBoardOptions =
     KillerSudokuBoardOptions(
+        autoNotesEnabled = settings.autoNotesEnabled,
         hapticsEnabled = settings.hapticsEnabled,
         reduceMotion = settings.reduceMotion,
     )
@@ -26,6 +28,7 @@ internal fun killerSudokuBoardOptionsFromSettings(settings: AppSettings): Killer
 /** Map player settings to FutoshikiBoardOptions for the play route. */
 internal fun futoshikiBoardOptionsFromSettings(settings: AppSettings): FutoshikiBoardOptions =
     FutoshikiBoardOptions(
+        autoNotesEnabled = settings.autoNotesEnabled,
         hapticsEnabled = settings.hapticsEnabled,
         reduceMotion = settings.reduceMotion,
     )
@@ -33,6 +36,7 @@ internal fun futoshikiBoardOptionsFromSettings(settings: AppSettings): Futoshiki
 /** Map player settings to SkyscrapersBoardOptions for the play route. */
 internal fun skyscrapersBoardOptionsFromSettings(settings: AppSettings): SkyscrapersBoardOptions =
     SkyscrapersBoardOptions(
+        autoNotesEnabled = settings.autoNotesEnabled,
         hapticsEnabled = settings.hapticsEnabled,
         reduceMotion = settings.reduceMotion,
     )

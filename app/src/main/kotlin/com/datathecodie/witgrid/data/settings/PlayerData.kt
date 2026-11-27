@@ -1,7 +1,7 @@
 package com.datathecodie.witgrid.data.settings
 
 data class AppSettings(
-    val soundEnabled: Boolean = true,
+    val soundEnabled: Boolean = false,
     val hapticsEnabled: Boolean = true,
     val mistakeLimitEnabled: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -9,6 +9,7 @@ data class AppSettings(
     val crownsShowRegionAids: Boolean = false,
     val crownsAutoXEnabled: Boolean = true,
     val nonogramAutoCrossEnabled: Boolean = false,
+    val autoNotesEnabled: Boolean = false,
     val reduceMotion: Boolean = false,
     val welcomeSeen: Boolean = false,
 )

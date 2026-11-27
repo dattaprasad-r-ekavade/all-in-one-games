@@ -65,7 +65,7 @@ class DataStorePlayerDataRepository(
         val monetisation = readMonetisationData(preferences)
         PlayerData(
             settings = AppSettings(
-                soundEnabled = preferences[SOUND_ENABLED] ?: true,
+                soundEnabled = preferences[SOUND_ENABLED] ?: false,
                 hapticsEnabled = preferences[HAPTICS_ENABLED] ?: true,
                 mistakeLimitEnabled = preferences[MISTAKE_LIMIT_ENABLED] ?: false,
                 themeMode = ThemeMode.entries.firstOrNull {
@@ -75,6 +75,7 @@ class DataStorePlayerDataRepository(
                 crownsShowRegionAids = preferences[CROWNS_SHOW_REGION_AIDS] ?: AppSettings().crownsShowRegionAids,
                 crownsAutoXEnabled = preferences[CROWNS_AUTO_X_ENABLED] ?: true,
                 nonogramAutoCrossEnabled = preferences[NONOGRAM_AUTO_CROSS_ENABLED] ?: false,
+                autoNotesEnabled = preferences[AUTO_NOTES_ENABLED] ?: false,
                 reduceMotion = preferences[REDUCE_MOTION] ?: false,
                 welcomeSeen = preferences[WELCOME_SEEN] ?: false,
             ),
@@ -106,6 +107,7 @@ class DataStorePlayerDataRepository(
                 preferences[CROWNS_SHOW_REGION_AIDS] = settings.crownsShowRegionAids
                 preferences[CROWNS_AUTO_X_ENABLED] = settings.crownsAutoXEnabled
                 preferences[NONOGRAM_AUTO_CROSS_ENABLED] = settings.nonogramAutoCrossEnabled
+                preferences[AUTO_NOTES_ENABLED] = settings.autoNotesEnabled
                 preferences[REDUCE_MOTION] = settings.reduceMotion
                 preferences[WELCOME_SEEN] = settings.welcomeSeen
             }
@@ -311,6 +313,7 @@ class DataStorePlayerDataRepository(
         val CROWNS_SHOW_REGION_AIDS = booleanPreferencesKey("crowns_show_region_aids")
         val CROWNS_AUTO_X_ENABLED = booleanPreferencesKey("crowns_auto_x_enabled")
         val NONOGRAM_AUTO_CROSS_ENABLED = booleanPreferencesKey("nonogram_auto_cross_enabled")
+        val AUTO_NOTES_ENABLED = booleanPreferencesKey("auto_notes_enabled")
         val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
         val WELCOME_SEEN = booleanPreferencesKey("welcome_seen")
         val REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")

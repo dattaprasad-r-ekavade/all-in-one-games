@@ -12,7 +12,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -26,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -65,26 +63,20 @@ import com.datathecodie.witgrid.games.coloursort.ColourSortBoardOptions
 import com.datathecodie.witgrid.games.coloursort.LocalColourSortBoardOptions
 import com.datathecodie.witgrid.games.binary.BinaryBoardOptions
 import com.datathecodie.witgrid.games.binary.LocalBinaryBoardOptions
+import com.datathecodie.witgrid.WitgridApp
 import com.datathecodie.witgrid.games.crowns.CrownsBoardOptions
 import com.datathecodie.witgrid.games.crowns.LocalCrownsBoardOptions
-import com.datathecodie.witgrid.games.futoshiki.FutoshikiBoardOptions
 import com.datathecodie.witgrid.games.futoshiki.LocalFutoshikiBoardOptions
-import com.datathecodie.witgrid.games.killersudoku.KillerSudokuBoardOptions
 import com.datathecodie.witgrid.games.killersudoku.LocalKillerSudokuBoardOptions
-import com.datathecodie.witgrid.games.klondike.KlondikeBoardOptions
 import com.datathecodie.witgrid.games.klondike.LocalKlondikeBoardOptions
 import com.datathecodie.witgrid.games.minisudoku.LocalMiniSudokuBoardOptions
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoardOptions
 import com.datathecodie.witgrid.games.mosaic.LocalMosaicBoardOptions
-import com.datathecodie.witgrid.games.mosaic.MosaicBoardOptions
 import com.datathecodie.witgrid.games.nonogram.LocalNonogramBoardOptions
 import com.datathecodie.witgrid.games.nonogram.NonogramBoardOptions
 import com.datathecodie.witgrid.games.path.LocalPathBoardOptions
-import com.datathecodie.witgrid.games.path.PathBoardOptions
 import com.datathecodie.witgrid.games.skyscrapers.LocalSkyscrapersBoardOptions
-import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersBoardOptions
 import com.datathecodie.witgrid.games.sudoku.LocalSudokuBoardOptions
-import com.datathecodie.witgrid.games.sudoku.SudokuBoardOptions
 import com.datathecodie.witgrid.games.tactics.LocalTacticsBoardOptions
 import com.datathecodie.witgrid.games.tactics.TacticsBoardOptions
 import com.datathecodie.witgrid.reminder.AndroidReminderAlarmScheduler
@@ -121,25 +113,32 @@ import java.util.UUID
 fun WitgridNavigation(navigator: AppNavigator) {
     val destination by navigator.destination.collectAsState()
     val applicationContext = LocalContext.current.applicationContext
+    val app = applicationContext as? WitgridApp
     val bankSource = remember(applicationContext) { AssetBankSource(applicationContext.assets) }
-    val database = remember(applicationContext) { WitgridDatabase.create(applicationContext) }
-    val persistence = remember(database) { PlayPersistenceScope(Dispatchers.Main.immediate) }
-    DisposableEffect(database, persistence) {
-        onDispose { persistence.close(database::close) }
+    val database = remember(applicationContext) { app?.database ?: WitgridDatabase.create(applicationContext) }
+    val persistence = remember(app, database) {
+        app?.playPersistence ?: PlayPersistenceScope(Dispatchers.Main.immediate)
+    }
+    if (app == null) {
+        DisposableEffect(database, persistence) {
+            onDispose { persistence.close(database::close) }
+        }
     }
     val progressRepository = remember(database) { RoomProgressRepository(database.levelProgressDao()) }
     val dailyCompletionRepository = remember(database) {
         RoomDailyPuzzleCompletionRepository(database.dailyPuzzleCompletionDao())
     }
     val playerDataRepository = remember(applicationContext) {
-        DataStorePlayerDataRepository(applicationContext)
+        app?.playerDataRepository ?: DataStorePlayerDataRepository(applicationContext)
     }
     val billingService = remember(applicationContext, playerDataRepository) {
-        PlayBillingService(applicationContext, playerDataRepository)
+        app?.billingService ?: PlayBillingService(applicationContext, playerDataRepository)
     }
     val billingState by billingService.state.collectAsState()
-    DisposableEffect(billingService) {
-        onDispose { billingService.close() }
+    if (app == null) {
+        DisposableEffect(billingService) {
+            onDispose { billingService.close() }
+        }
     }
     val reminderController = remember(applicationContext, playerDataRepository) {
         ReminderController(
@@ -148,10 +147,12 @@ fun WitgridNavigation(navigator: AppNavigator) {
             alarmScheduler = AndroidReminderAlarmScheduler(applicationContext),
         )
     }
-    val adService = remember(applicationContext) { GoogleAdService(applicationContext) }
+    val adService = remember(applicationContext) { app?.adService ?: GoogleAdService(applicationContext) }
     val consentState by adService.consentState.collectAsState()
-    DisposableEffect(adService) {
-        onDispose { adService.close() }
+    if (app == null) {
+        DisposableEffect(adService) {
+            onDispose { adService.close() }
+        }
     }
     val activity = LocalActivity.current
     LaunchedEffect(adService, activity) {
@@ -265,15 +266,40 @@ fun WitgridNavigation(navigator: AppNavigator) {
     }
     var resultNextInProgress by remember { mutableStateOf(false) }
     val allGameIds = remember { GameRegistry.games.map { it.id } + PlayRegistry.games.map { it.id } }
-    val catalog by produceState<Map<String, List<LevelRef>>?>(null, bankSource) {
-        value = withContext(Dispatchers.IO) {
-            val familyA = GameRegistry.games.associate { module ->
-                module.id to Pack.entries.flatMap { pack -> module.levelRefs(pack, bankSource) }
+    var catalog by remember { mutableStateOf<Map<String, List<LevelRef>>>(emptyMap()) }
+    LaunchedEffect(bankSource) {
+        val loaded = linkedMapOf<String, List<LevelRef>>()
+        suspend fun publish(gameId: String, refs: List<LevelRef>) {
+            loaded[gameId] = refs
+            catalog = loaded.toMap()
+        }
+        for (module in GameRegistry.games) {
+            val refs = withContext(Dispatchers.IO) {
+                Pack.entries.flatMap { pack ->
+                    try {
+                        module.levelRefs(pack, bankSource)
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Exception) {
+                        emptyList()
+                    }
+                }
             }
-            val familyB = PlayRegistry.games.associate { module ->
-                module.id to Pack.entries.flatMap { pack -> module.levelRefs(pack, bankSource) }
+            publish(module.id, refs)
+        }
+        for (module in PlayRegistry.games) {
+            val refs = withContext(Dispatchers.IO) {
+                Pack.entries.flatMap { pack ->
+                    try {
+                        module.levelRefs(pack, bankSource)
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Exception) {
+                        emptyList()
+                    }
+                }
             }
-            familyA + familyB
+            publish(module.id, refs)
         }
     }
 
@@ -325,12 +351,6 @@ fun WitgridNavigation(navigator: AppNavigator) {
     }
 
     val levelRefsByGame = catalog
-    if (levelRefsByGame == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-        return
-    }
     val goBack: () -> Unit = { navigator.goBack() }
 
     Box(
@@ -506,6 +526,7 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         reduceMotion = playerData.settings.reduceMotion,
                     ),
                     LocalMiniSudokuBoardOptions provides MiniSudokuBoardOptions(
+                        autoNotesEnabled = playerData.settings.autoNotesEnabled,
                         hapticsEnabled = playerData.settings.hapticsEnabled,
                         reduceMotion = playerData.settings.reduceMotion,
                     ),

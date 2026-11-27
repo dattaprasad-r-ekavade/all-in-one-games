@@ -288,7 +288,7 @@
     <string name="welcome_start">Start playing</string>
     <string name="welcome_page_position">Page %1$d of %2$d</string>
     <string name="welcome_offline_title">Logic puzzles. No connection needed.</string>
-    <string name="welcome_offline_body">Every puzzle has one answer that you can reach by logic alone.</string>
+    <string name="welcome_offline_body">Grid puzzles have one logical answer. Colour Sort, Arrows and Klondike are play games you can finish without a unique solution.</string>
     <string name="welcome_point_offline">Plays with no connection</string>
     <string name="welcome_point_daily">A new daily puzzle every day</string>
     <string name="welcome_point_endless">Puzzles that never run out</string>
@@ -390,9 +390,11 @@
     <string name="calendar_empty_mark"> </string>
     <string name="settings_theme">Theme</string>
     <string name="settings_colourway_selected">Colourway · %1$s</string>
-    <string name="settings_region_aids_subtitle">Letters and patterns on Crowns regions</string>
+    <string name="settings_region_aids_subtitle">Letters and patterns on Crowns regions and Colour Sort tubes</string>
     <string name="settings_auto_x_subtitle">Cross out cells a crown blocks</string>
     <string name="settings_auto_cross_subtitle">Fill finished lines with crosses</string>
+    <string name="settings_auto_notes">Auto-update notes</string>
+    <string name="settings_auto_notes_subtitle">Clear a digit from notes in the same row, column and box</string>
     <string name="settings_mistake_subtitle">Three mistakes end the level</string>
     <string name="settings_haptics_subtitle">A light tick on each mark</string>
     <string name="settings_sound_subtitle">Play a sound when you mark a cell</string>

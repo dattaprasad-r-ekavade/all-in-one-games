@@ -46,9 +46,10 @@ class AllowanceLedgerTest {
         assertEquals(1, repository.current.allowanceUsage.hintsUsedToday)
 
         day.incrementAndGet()
-        assertEquals(HintAllowanceDecision.AlreadyCharged, secondGame.allowHint("same-board-hint"))
-        assertEquals(0, repository.current.allowanceUsage.hintsUsedToday)
-        assertEquals(HintAllowanceDecision.Allowed, secondGame.allowHint("new-day-hint"))
+        assertEquals(HintAllowanceDecision.Allowed, secondGame.allowHint("same-board-hint"))
+        assertEquals(1, repository.current.allowanceUsage.hintsUsedToday)
+        assertEquals(setOf("same-board-hint"), repository.current.allowanceUsage.chargedHintKeys)
+        assertEquals(HintAllowanceDecision.Denied, secondGame.allowHint("new-day-hint"))
         assertEquals(1, repository.current.allowanceUsage.hintsUsedToday)
     }
 
