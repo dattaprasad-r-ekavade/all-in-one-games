@@ -137,6 +137,10 @@ fun GameScreen(
             if (state.isLoading) {
                 CircularProgressIndicator()
             } else {
+                Text(stringResource(gameNameResource(state.gameId)), style = MaterialTheme.typography.headlineSmall)
+                gameDescriptorResource(state.gameId)?.let { descriptor ->
+                    Text(stringResource(descriptor), color = colors.mutedInk, style = MaterialTheme.typography.bodyMedium)
+                }
                 state.continueLevelRef?.let { level ->
                     WitgridCard(Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -208,8 +212,12 @@ fun GameScreen(
                             subtitle = next?.let { if (it.isIntro) stringResource(R.string.game_guided_intro)
                                 else stringResource(R.string.game_next_level, requireNotNull(it.levelNumber)) },
                             trailingValue = pack.boardSizes?.let { sizes ->
-                                if (sizes.first == sizes.last) stringResource(R.string.game_board_size, sizes.first)
-                                else stringResource(R.string.game_board_size_range, sizes.first, sizes.last)
+                                val label = packLabel(state.gameId, sizes)
+                                when (label.arguments.size) {
+                                    0 -> stringResource(label.resourceId)
+                                    1 -> stringResource(label.resourceId, label.arguments[0])
+                                    else -> stringResource(label.resourceId, label.arguments[0], label.arguments[1])
+                                }
                             }, onClick = { next?.let(onSelectPack) }, enabled = next != null)
                     }
                 }
@@ -232,6 +240,15 @@ fun GameScreen(
             }
         }
     }
+}
+
+private fun gameDescriptorResource(gameId: String): Int? = when (gameId) {
+    "binary" -> R.string.game_descriptor_binary
+    "futoshiki" -> R.string.game_descriptor_futoshiki
+    "mosaic" -> R.string.game_descriptor_mosaic
+    "path" -> R.string.game_descriptor_path
+    "tactics" -> R.string.game_descriptor_tactics
+    else -> null
 }
 
 @Composable

@@ -91,6 +91,14 @@
     <string name="game_daily_solved">Solved today · play again</string>
     <string name="game_board_size">%1$d×%1$d</string>
     <string name="game_board_size_range">%1$d×%1$d to %2$d×%2$d</string>
+    <string name="game_tube_count">%1$d tubes</string>
+    <string name="game_tube_count_range">%1$d to %2$d tubes</string>
+    <string name="game_klondike_deal">Draw 1</string>
+    <string name="game_descriptor_binary">Fill each row and column with equal numbers of both symbols.</string>
+    <string name="game_descriptor_futoshiki">Fill the grid with numbers, following the inequality clues.</string>
+    <string name="game_descriptor_mosaic">Reveal the pattern using the numbered cell clues.</string>
+    <string name="game_descriptor_path">Connect the numbered endpoints in order through the grid.</string>
+    <string name="game_descriptor_tactics">Find the forced checkmate in the given position.</string>
     <plurals name="game_hint_credit_count">
         <item quantity="one">%d hint</item>
         <item quantity="other">%d hints</item>

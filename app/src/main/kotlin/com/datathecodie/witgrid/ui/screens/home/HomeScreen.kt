@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
@@ -111,7 +112,10 @@ fun HomeScreen(
                         Chip(stringResource(R.string.home_streak_days, streak.currentDays), highlighted = true)
                     }
                     Spacer(Modifier.height(14.dp))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         state.games.forEach { game ->
                             val completed = game.gameId in completedDailyGameIds
                             Chip(stringResource(if (completed) R.string.home_daily_done else R.string.home_daily_ready,

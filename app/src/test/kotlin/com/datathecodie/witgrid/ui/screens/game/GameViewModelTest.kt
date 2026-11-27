@@ -9,9 +9,26 @@ import com.datathecodie.witgrid.games.LevelRef
 import java.io.ByteArrayInputStream
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Test
 
 class GameViewModelTest {
+    @Test
+    fun colourSortPackLabelUsesTubeCount() {
+        val label = packLabel("coloursort", 4..4)
+        assertEquals(com.datathecodie.witgrid.R.string.game_tube_count, label.resourceId)
+        assertEquals(listOf(4), label.arguments)
+        assertNotEquals(com.datathecodie.witgrid.R.string.game_board_size, label.resourceId)
+    }
+
+    @Test
+    fun klondikePackLabelUsesDrawDeal() {
+        val label = packLabel("klondike", 52..52)
+        assertEquals(com.datathecodie.witgrid.R.string.game_klondike_deal, label.resourceId)
+        assertEquals(emptyList<Int>(), label.arguments)
+        assertNotEquals(com.datathecodie.witgrid.R.string.game_board_size, label.resourceId)
+    }
+
     private val intro = LevelRef("binary", "intro", Pack.EASY, introCoachLineResourceId = 1)
     private val easy = LevelRef("binary", "easy", Pack.EASY)
     private val easyTwo = LevelRef("binary", "easy-two", Pack.EASY)
