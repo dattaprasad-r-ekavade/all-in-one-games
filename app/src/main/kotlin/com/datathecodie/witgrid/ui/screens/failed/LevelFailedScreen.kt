@@ -51,7 +51,7 @@ fun LevelFailedScreen(
         BoardThumbnail(boardState, Modifier.size(168.dp))
         Text(stringResource(R.string.screen_level_failed), style = MaterialTheme.typography.headlineLarge)
         levelRef?.let { FinishLevelLabel(it) }
-        Text(stringResource(R.string.failed_explanation), style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(failedExplanationResource(levelRef?.gameId)), style = MaterialTheme.typography.bodyLarge)
         Spacer(Modifier.weight(1f))
         RewardedActionButton(
             titleResource = continueTitleResource(
@@ -76,6 +76,12 @@ fun LevelFailedScreen(
         )
         SecondaryButton(stringResource(R.string.button_restart), onRestart, Modifier.fillMaxWidth())
     }
+}
+
+private fun failedExplanationResource(gameId: String?): Int = when (gameId) {
+    "coloursort" -> R.string.failed_explanation_tube
+    "klondike" -> R.string.failed_explanation_undo
+    else -> R.string.failed_explanation
 }
 
 private fun continueTitleResource(

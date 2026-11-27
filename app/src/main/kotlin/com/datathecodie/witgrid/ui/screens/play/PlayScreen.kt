@@ -31,6 +31,11 @@ import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.data.progress.ProgressRepository
 import com.datathecodie.witgrid.engine.arrows.ArrowsAction
 import com.datathecodie.witgrid.engine.arrows.ArrowsState
+import com.datathecodie.witgrid.engine.coloursort.ColourSortAction
+import com.datathecodie.witgrid.engine.klondike.CardMove
+import com.datathecodie.witgrid.engine.klondike.KlondikeState
+import com.datathecodie.witgrid.engine.klondike.Rank
+import com.datathecodie.witgrid.engine.klondike.Suit
 import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
@@ -723,6 +728,12 @@ private sealed interface ActionHintRequest<out A : Any> {
 
 private fun hintCellsForAction(action: Any): Set<Cell> = when (action) {
     is ArrowsAction -> setOf(action.cell)
+    is ColourSortAction -> setOf(Cell(action.from), Cell(action.to))
+    is CardMove.WasteToTableau -> setOf(Cell(1), Cell(7 + action.toColumn))
+    is CardMove.WasteToFoundation -> setOf(Cell(1), Cell(3))
+    is CardMove.TableauToTableau -> setOf(Cell(7 + action.fromColumn), Cell(7 + action.toColumn))
+    is CardMove.TableauToFoundation -> setOf(Cell(7 + action.fromColumn), Cell(3))
+    is CardMove.FoundationToTableau -> setOf(Cell(3 + action.suit.ordinal), Cell(7 + action.toColumn))
     else -> emptySet()
 }
 
@@ -760,6 +771,8 @@ private fun ActionHintDialog(
             val size = (state as? ArrowsState)?.puzzle?.size ?: 1
             stringResource(R.string.hint_arrows_body, action.cell.index / size + 1, action.cell.index % size + 1)
         }
+        is ColourSortAction -> stringResource(R.string.hint_colour_sort_pour, action.from + 1, action.to + 1)
+        is CardMove -> klondikeHintBody(action, state as? KlondikeState)
         else -> stringResource(R.string.hint_play_action_body)
     }
     AlertDialog(
@@ -773,6 +786,56 @@ private fun ActionHintDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.button_dismiss_hint)) }
         },
     )
+}
+
+@Composable
+private fun klondikeHintBody(action: CardMove, state: KlondikeState?): String {
+    val card = when (action) {
+        CardMove.WasteToFoundation -> state?.waste?.lastOrNull()
+        is CardMove.WasteToTableau -> state?.waste?.lastOrNull()
+        is CardMove.TableauToFoundation -> state?.tableau?.getOrNull(action.fromColumn)?.lastOrNull()
+        is CardMove.TableauToTableau -> state?.tableau?.getOrNull(action.fromColumn)
+            ?.getOrNull(if (action.cardIndex < 0) state.tableau[action.fromColumn].lastIndex else action.cardIndex)
+        is CardMove.FoundationToTableau -> state?.foundations?.get(action.suit)?.lastOrNull()
+        else -> null
+    }
+    if (card == null) return stringResource(R.string.hint_klondike_draw)
+    val rank = stringResource(klondikeRankResource(Rank.fromValue(card.rank)))
+    val suit = stringResource(klondikeSuitResource(card.suit))
+    val destination = when (action) {
+        is CardMove.WasteToTableau, is CardMove.TableauToTableau, is CardMove.FoundationToTableau ->
+            stringResource(R.string.hint_klondike_column, when (action) {
+                is CardMove.WasteToTableau -> action.toColumn + 1
+                is CardMove.TableauToTableau -> action.toColumn + 1
+                is CardMove.FoundationToTableau -> action.toColumn + 1
+                else -> 1
+            })
+        else -> stringResource(R.string.hint_klondike_foundation)
+    }
+    return stringResource(R.string.hint_klondike_move_card, rank, suit, destination)
+}
+
+private fun klondikeRankResource(rank: Rank): Int = when (rank) {
+    Rank.ACE -> R.string.klondike_rank_ace
+    Rank.TWO -> R.string.klondike_rank_2
+    Rank.THREE -> R.string.klondike_rank_3
+    Rank.FOUR -> R.string.klondike_rank_4
+    Rank.FIVE -> R.string.klondike_rank_5
+    Rank.SIX -> R.string.klondike_rank_6
+    Rank.SEVEN -> R.string.klondike_rank_7
+    Rank.EIGHT -> R.string.klondike_rank_8
+    Rank.NINE -> R.string.klondike_rank_9
+    Rank.TEN -> R.string.klondike_rank_10
+    Rank.JACK -> R.string.klondike_rank_jack
+    Rank.QUEEN -> R.string.klondike_rank_queen
+    Rank.KING -> R.string.klondike_rank_king
+}
+
+private fun klondikeSuitResource(suit: Suit): Int = when (suit) {
+    Suit.CLUBS -> R.string.klondike_suit_clubs
+    Suit.DIAMONDS -> R.string.klondike_suit_diamonds
+    Suit.HEARTS -> R.string.klondike_suit_hearts
+    Suit.SPADES -> R.string.klondike_suit_spades
 }
 
 @Composable
