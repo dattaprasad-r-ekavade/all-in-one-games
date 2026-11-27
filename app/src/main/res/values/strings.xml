@@ -179,6 +179,7 @@
     <string name="game_arrows">Arrows</string>
     <string name="game_coloursort">Colour Sort</string>
     <string name="game_mosaic">Mosaic</string>
+    <string name="game_klondike">Klondike</string>
     <string name="game_unknown">Game</string>
     <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally.</string>
     <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
@@ -192,6 +193,7 @@
     <string name="intro_coach_arrows">Tap an arrow with a clear path to the edge to slide it off the board; three blocked taps end the level.</string>
     <string name="intro_coach_coloursort">Tap a tube, then tap another to pour. Matching colours stack, and an empty tube takes any colour. Fill each tube with one colour.</string>
     <string name="intro_coach_mosaic">A number is how many filled cells sit in that cell and its neighbours. Fill or Cross until every clue is true.</string>
+    <string name="intro_coach_klondike">Build each foundation up in suit from ace to king. Flip tableau cards, and draw from the stock one at a time.</string>
     <string name="reminder_notification_channel_name">Daily puzzle reminder</string>
     <string name="reminder_notification_channel_description">A reminder at the time you choose.</string>
     <string name="reminder_notification_title">Your daily puzzle is ready</string>
@@ -259,11 +261,14 @@
     <string name="premium_restore_failed">Purchases could not be restored. Check Google Play and try again.</string>
     <string name="ads_continue_rewarded">Watch an ad to continue with one extra mistake</string>
     <string name="ads_continue_rewarded_tube">Watch an ad to continue with one extra empty tube</string>
+    <string name="ads_continue_rewarded_undo">Watch an ad to continue with one extra undo</string>
     <string name="ads_continue_granted">Continue is ready.</string>
     <string name="failed_continue_premium">Continue with Premium and one extra mistake</string>
     <string name="failed_continue_premium_tube">Continue with Premium and one extra empty tube</string>
+    <string name="failed_continue_premium_undo">Continue with Premium and one extra undo</string>
     <string name="failed_continue_credit">Continue with a saved credit and one extra mistake</string>
     <string name="failed_continue_credit_tube">Continue with a saved credit and one extra empty tube</string>
+    <string name="failed_continue_credit_undo">Continue with a saved credit and one extra undo</string>
     <string name="calendar_repair_streak_watch_ad">Watch an ad to repair your streak</string>
     <string name="calendar_repair_streak_credit">Repair your streak with a saved credit</string>
     <string name="calendar_repair_streak_premium">Repair your streak with Premium</string>
@@ -302,6 +307,7 @@
     <string name="play_rules_arrows">Each cell holds one arrow or is empty. Tap an arrow to slide it off the board in its direction if every cell on its path is empty. Win when the board is empty. Tapping an arrow that cannot slide is a mistake and costs one life; three mistakes fail the level.</string>
     <string name="play_rules_coloursort">Pour from one tube onto another when the destination is empty or its top colour matches, and there is space. Win when every tube is empty or a single colour. If you get stuck, Continue adds one extra empty tube.</string>
     <string name="play_rules_mosaic">Each number is how many cells are filled in its 3 by 3 area (the cell and its neighbours). Fill or Cross cells until every clue is satisfied. Drag to paint, or long press to clear.</string>
+    <string name="play_rules_klondike">Draw-1 Klondike. Build tableau down in alternating colours and foundations up in suit from ace to king. Tap a card, then tap a legal pile. If you get stuck, Continue grants one extra undo.</string>
     <string name="play_restart_message">Clear your entries and start this puzzle again?</string>
     <string name="play_cancel">Cancel</string>
     <string name="play_crowns_count">%1$d of %2$d crowns placed</string>

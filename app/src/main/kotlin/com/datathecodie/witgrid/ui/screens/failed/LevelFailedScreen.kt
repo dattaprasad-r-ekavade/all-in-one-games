@@ -84,12 +84,16 @@ private fun continueTitleResource(
     continueCreditAvailable: Boolean,
 ): Int {
     val extraTube = gameId == "coloursort"
+    val extraUndo = gameId == "klondike"
     return when {
         premiumEnabled && extraTube -> R.string.failed_continue_premium_tube
+        premiumEnabled && extraUndo -> R.string.failed_continue_premium_undo
         premiumEnabled -> R.string.failed_continue_premium
         continueCreditAvailable && extraTube -> R.string.failed_continue_credit_tube
+        continueCreditAvailable && extraUndo -> R.string.failed_continue_credit_undo
         continueCreditAvailable -> R.string.failed_continue_credit
         extraTube -> R.string.ads_continue_rewarded_tube
+        extraUndo -> R.string.ads_continue_rewarded_undo
         else -> R.string.ads_continue_rewarded
     }
 }

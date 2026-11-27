@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.klondike.KlondikeState
 import com.datathecodie.witgrid.games.EnginePlayGameModule
 import com.datathecodie.witgrid.games.PlayGameModule
 
-/** Klondike bank behaviour and its card table. Registration lives in KLC. */
+/** Klondike bank behaviour and its card table. */
 object KlondikeGameModule : PlayGameModule<KlondikePuzzle, KlondikeState, CardMove> by EnginePlayGameModule(
     engine = KlondikeEngine,
     puzzleOf = KlondikeState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 1 },
 ) {
     @Composable

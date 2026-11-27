@@ -25,10 +25,14 @@ class KlondikeGameModuleTest {
             difficulty = "d1",
             seed = 99L,
         )
+        val intro = puzzle.copy(bankId = "KL-INTRO-01")
         val bank = FakeBankSource(
-            mapOf("bank/klondike-easy.txt.gz" to KlondikeCodec.encodePuzzle(puzzle)),
+            mapOf(
+                "bank/klondike-intro.txt" to KlondikeCodec.encodePuzzle(intro),
+                "bank/klondike-easy.txt.gz" to KlondikeCodec.encodePuzzle(puzzle),
+            ),
         )
-        val level = module.loadLevel(module.firstLevelRef(Pack.EASY, bank), bank)
+        val level = module.loadLevel(module.levelRefs(Pack.EASY, bank)[1], bank)
         assertEquals("klondike", module.id)
         assertEquals(1, module.levelsPerInterstitial(level))
         assertEquals(puzzle, level.puzzle)

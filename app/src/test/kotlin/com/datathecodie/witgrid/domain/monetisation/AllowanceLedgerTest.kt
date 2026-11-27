@@ -227,6 +227,7 @@ class AllowanceLedgerTest {
 
         assertEquals(RewardType.EXTRA_TUBE, ContinueReward.typeFor("coloursort"))
         assertEquals(RewardType.EXTRA_LIFE, ContinueReward.typeFor("arrows"))
+        assertEquals(RewardType.EXTRA_LIFE, ContinueReward.typeFor("klondike"))
         assertFalse(ledger.allowContinue("tube-transaction", RewardType.EXTRA_LIFE))
         assertTrue(ledger.allowContinue("tube-transaction", ContinueReward.typeFor("coloursort")))
         assertEquals(0, repository.current.rewardBalances[RewardType.EXTRA_TUBE])

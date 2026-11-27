@@ -71,6 +71,8 @@ class PlayScreenLayoutTest {
         assertEquals(R.string.play_rules_coloursort, playRulesResource("coloursort"))
         assertEquals(R.string.game_mosaic, gameNameResource("mosaic"))
         assertEquals(R.string.play_rules_mosaic, playRulesResource("mosaic"))
+        assertEquals(R.string.game_klondike, gameNameResource("klondike"))
+        assertEquals(R.string.play_rules_klondike, playRulesResource("klondike"))
         assertEquals(R.string.play_rules_minisudoku, playRulesResource("unknown"))
     }
 }

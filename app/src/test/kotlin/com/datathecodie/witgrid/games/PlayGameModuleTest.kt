@@ -6,6 +6,7 @@ import com.datathecodie.witgrid.engine.core.PlayEngine
 import com.datathecodie.witgrid.engine.core.SplitMix64
 import com.datathecodie.witgrid.games.arrows.ArrowsGameModule
 import com.datathecodie.witgrid.games.coloursort.ColourSortGameModule
+import com.datathecodie.witgrid.games.klondike.KlondikeGameModule
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -65,8 +66,10 @@ class PlayGameModuleTest {
         assertEquals(null, PlayRegistry.find("not-registered"))
         assertEquals(ColourSortGameModule, PlayRegistry.find("coloursort"))
         assertEquals(ArrowsGameModule, PlayRegistry.find("arrows"))
+        assertEquals(KlondikeGameModule, PlayRegistry.find("klondike"))
         assertTrue(PlayRegistry.games.contains(ColourSortGameModule))
         assertTrue(PlayRegistry.games.contains(ArrowsGameModule))
+        assertTrue(PlayRegistry.games.contains(KlondikeGameModule))
     }
 
     private fun testModule() = EnginePlayGameModule(
