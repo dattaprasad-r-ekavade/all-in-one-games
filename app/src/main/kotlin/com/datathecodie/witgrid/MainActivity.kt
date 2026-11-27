@@ -15,30 +15,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.datathecodie.witgrid.nav.AppNavigator
 import com.datathecodie.witgrid.nav.WitgridNavigation
-import com.datathecodie.witgrid.data.settings.DataStorePlayerDataRepository
 import com.datathecodie.witgrid.data.settings.PlayerData
 import com.datathecodie.witgrid.data.settings.ThemeMode
 import com.datathecodie.witgrid.ui.theme.Colourway
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
 
 class MainActivity : ComponentActivity() {
-    private val navigator: AppNavigator by lazy {
-        lastCustomNonConfigurationInstance as? AppNavigator ?: AppNavigator()
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onRetainCustomNonConfigurationInstance(): Any = navigator
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val app = application as WitgridApp
         enableEdgeToEdge()
         setContent {
-            val playerDataRepository = remember(this) { DataStorePlayerDataRepository(this) }
-            val playerData by playerDataRepository
+            val playerData by app.playerDataRepository
                 .playerData.collectAsState(initial = PlayerData())
             val settings = playerData.settings
             val colourway = Colourway.entries.firstOrNull { it.id == settings.colourwayId }
@@ -61,7 +51,7 @@ class MainActivity : ComponentActivity() {
                             .windowInsetsPadding(WindowInsets.safeDrawing)
                             .imePadding(),
                     ) {
-                        WitgridNavigation(navigator)
+                        WitgridNavigation(app.navigator)
                     }
                 }
             }

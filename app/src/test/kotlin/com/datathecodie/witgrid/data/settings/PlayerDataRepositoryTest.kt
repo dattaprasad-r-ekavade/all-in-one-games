@@ -153,6 +153,7 @@ class PlayerDataRepositoryTest {
                     crownsShowRegionAids = false,
                     crownsAutoXEnabled = true,
                     nonogramAutoCrossEnabled = true,
+                    autoNotesEnabled = true,
                     reduceMotion = true,
                 ),
             )
@@ -196,6 +197,7 @@ class PlayerDataRepositoryTest {
                     crownsShowRegionAids = false,
                     crownsAutoXEnabled = true,
                     nonogramAutoCrossEnabled = true,
+                    autoNotesEnabled = true,
                     reduceMotion = true,
                 ),
                 streak = StreakData(

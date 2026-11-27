@@ -9,6 +9,7 @@ data class AppSettings(
     val crownsShowRegionAids: Boolean = false,
     val crownsAutoXEnabled: Boolean = false,
     val nonogramAutoCrossEnabled: Boolean = false,
+    val autoNotesEnabled: Boolean = false,
     val reduceMotion: Boolean = false,
     val welcomeSeen: Boolean = false,
 )

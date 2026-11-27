@@ -275,6 +275,8 @@ fun SettingsScreen(
                     editedSettings.crownsAutoXEnabled) { updateSettings(editedSettings.copy(crownsAutoXEnabled = it)) }
                 AssistSetting(R.string.settings_nonogram_auto_cross, R.string.settings_auto_cross_subtitle,
                     editedSettings.nonogramAutoCrossEnabled) { updateSettings(editedSettings.copy(nonogramAutoCrossEnabled = it)) }
+                AssistSetting(R.string.settings_auto_notes, R.string.settings_auto_notes_subtitle,
+                    editedSettings.autoNotesEnabled) { updateSettings(editedSettings.copy(autoNotesEnabled = it)) }
                 AssistSetting(R.string.settings_mistake_limit, R.string.settings_mistake_subtitle,
                     editedSettings.mistakeLimitEnabled) { updateSettings(editedSettings.copy(mistakeLimitEnabled = it)) }
                 AssistSetting(R.string.settings_haptics, R.string.settings_haptics_subtitle,
