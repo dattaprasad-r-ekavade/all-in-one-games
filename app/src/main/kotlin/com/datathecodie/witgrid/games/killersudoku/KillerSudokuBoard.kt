@@ -124,6 +124,9 @@ fun KillerSudokuBoard(
                     bounds
                 }
                 val digit = state.digits[cell.index]
+                if (selectedCellIndex != cell.index && digit != null && digit == selectedCell?.let { state.digits[it.index] }) {
+                    drawRect(colors.accent.copy(alpha = MATCHING_DIGIT_FILL_ALPHA), bounds.topLeft, bounds.size)
+                }
                 if (digit != null) {
                     val style = if (isGiven) givenStyle else digitStyle
                     val text = textMeasurer.measure(AnnotatedString(digit.toString()), style = style)
@@ -458,6 +461,7 @@ private const val NOTES_ROWS = 3
 private const val BOX_BORDER_WIDTH_DP = 3f
 private const val SELECTION_FILL_ALPHA = 0.12f
 private const val SELECTION_BORDER_WIDTH_DP = 2f
+private const val MATCHING_DIGIT_FILL_ALPHA = 0.22f
 private const val LABEL_SIZE_FRACTION = 0.78f
 private const val CAGE_INSET_FRACTION = 0.10f
 private const val CAGE_SUM_BAND_FRACTION = 0.38f
