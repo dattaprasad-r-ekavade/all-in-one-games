@@ -1,18 +1,27 @@
 package com.datathecodie.witgrid.games.arrows
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -46,11 +55,33 @@ fun ArrowsBoard(
     val haptics = rememberBoardHaptics(options.hapticsEnabled)
     val livesLeft = ArrowsBoardInput.livesLeft(state)
     val livesTotal = ArrowsRules.MAX_MISTAKES
+    var sliding by remember { mutableStateOf<Pair<Int, ArrowsDirection>?>(null) }
+    val slideProgress = remember { Animatable(0f) }
+    val blockedShake = remember { Animatable(0f) }
+    var blockedShakeToken by remember { mutableStateOf(0) }
+    val latestOnAction = androidx.compose.runtime.rememberUpdatedState(onAction)
+    LaunchedEffect(blockedShakeToken, options.reduceMotion) {
+        if (blockedShakeToken == 0) return@LaunchedEffect
+        if (options.reduceMotion) {
+            blockedShake.snapTo(0f)
+            return@LaunchedEffect
+        }
+        val offsets = floatArrayOf(8f, -8f, 6f, -6f, 0f)
+        for (offset in offsets) {
+            blockedShake.animateTo(offset, tween(35))
+        }
+    }
+    LaunchedEffect(sliding) {
+        val move = sliding ?: return@LaunchedEffect
+        slideProgress.snapTo(0f)
+        slideProgress.animateTo(1f, tween(260))
+        latestOnAction.value(ArrowsAction(Cell(move.first)))
+        sliding = null
+    }
 
-    // A slide removes the arrow in one step. There is no travel animation, so reduce-motion
-    // and full motion show the same board change. The solved wave still follows reduce motion.
     val boardContent: @Composable () -> Unit = {
         BoardCanvas(
+            modifier = Modifier.graphicsLayer { translationX = blockedShake.value },
             gridSize = state.puzzle.size,
             cellDescription = { cell -> describeArrowCell(state, cell) },
             solved = ArrowsRules.isWon(state.arrows),
@@ -59,21 +90,36 @@ fun ArrowsBoard(
             dragPaintEnabled = false,
             drawCell = { cell, bounds ->
                 drawRect(colors.card, topLeft = bounds.topLeft, size = bounds.size)
-                val direction = state.arrows[cell.index]
-                val canSlide = ArrowsBoardInput.canSlideNow(state, cell.index)
-                if (canSlide) {
-                    drawRect(
-                        color = colors.accent.copy(alpha = SLIDEABLE_FILL_ALPHA),
-                        topLeft = bounds.topLeft,
-                        size = bounds.size,
-                    )
-                }
+                val activeSlide = sliding
+                val direction = if (activeSlide?.first == cell.index) null else state.arrows[cell.index]
                 if (direction != null) {
                     drawArrow(
                         direction = direction,
                         bounds = bounds,
-                        color = if (canSlide) colors.accent else colors.ink,
+                        color = colors.ink,
                     )
+                }
+                if (activeSlide != null) {
+                    val (source, movingDirection) = activeSlide
+                    val size = state.puzzle.size
+                    val row = source / size
+                    val column = source % size
+                    val distance = if (movingDirection.columnDelta > 0) size - column
+                    else if (movingDirection.columnDelta < 0) column + 1
+                    else if (movingDirection.rowDelta > 0) size - row else row + 1
+                    val position = (if (movingDirection.columnDelta != 0) column else row) +
+                        (slideProgress.value * (distance + 0.5f)) * (movingDirection.columnDelta + movingDirection.rowDelta)
+                    val rowPosition = if (movingDirection.columnDelta != 0) row.toFloat() else position
+                    val columnPosition = if (movingDirection.columnDelta != 0) position else column.toFloat()
+                    if (rowPosition.toInt() == cell.index / size && columnPosition.toInt() == cell.index % size) {
+                        val center = Offset(
+                            bounds.left + (columnPosition - columnPosition.toInt() + 0.5f) * bounds.width,
+                            bounds.top + (rowPosition - rowPosition.toInt() + 0.5f) * bounds.height,
+                        )
+                        translate(center.x - bounds.center.x, center.y - bounds.center.y) {
+                            drawArrow(movingDirection, bounds, colors.ink)
+                        }
+                    }
                 }
             },
             onCellTap = { cell ->
@@ -81,10 +127,13 @@ fun ArrowsBoard(
                 when (result.feedback) {
                     ArrowTapFeedback.SLID -> {
                         haptics.placement()
-                        result.action?.let(onAction)
+                        val direction = state.arrows[cell.index]
+                        if (options.reduceMotion || direction == null) result.action?.let(onAction)
+                        else sliding = cell.index to direction
                     }
                     ArrowTapFeedback.BLOCKED -> {
                         haptics.mark()
+                        blockedShakeToken += 1
                         result.action?.let(onAction)
                     }
                     ArrowTapFeedback.NONE -> Unit
