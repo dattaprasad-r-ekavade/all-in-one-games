@@ -11,6 +11,7 @@ import com.datathecodie.witgrid.engine.nonogram.NonogramEngine
 import com.datathecodie.witgrid.engine.path.PathEngine
 import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersEngine
 import com.datathecodie.witgrid.engine.sudoku.SudokuEngine
+import com.datathecodie.witgrid.engine.tactics.TacticsEngine
 
 /** Launch engines in product order; concrete objects retain each lane's puzzle/state types. */
 object Registry {
@@ -29,5 +30,6 @@ object Registry {
         SudokuEngine,
         KillerSudokuEngine,
         MosaicEngine,
+        TacticsEngine,
     )
 }
