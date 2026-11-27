@@ -2,7 +2,7 @@
 
 > **Keep the progress bars current.** The "Progress" section below is generated from the Status column in `docs/TASKS.md`. Do not edit the bars by hand. After you change any status in `docs/TASKS.md`, run `python scripts/progress.py` from the repo root, and commit `DEVELOPMENT_PLAN.md` together with `docs/TASKS.md`.
 
-Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14). Launch-catalog engine status and rule decisions from review added 22 Nov 2026 (sections 12, 12.3, 12.6, 12.8, 12.10, 14, 16). Engine status, generator-quality lessons and machine-load rule updated 23 Nov 2026 (sections 12, 14, 16.3). Catalog snapshot updated 27 Nov 2026 (section 12).
+Plan date: 16 Nov 2026. Four launch games are implemented. Agent workflow and task backlog added 16 Nov 2026 (section 16). UI cleanup decisions added 17 Nov 2026 (sections 2, 4.1, 5, 7.5, 9 and Phase 5). Prototype hub catalog added 21 Nov 2026 (sections 6.5, 7.3, 8.1, 8.4, 12 and Phase 7). Owner direction: `docs/decisions/prototype-catalog.md`. Launch set of 14 games decided 21 Nov 2026 (sections 1, 2, 5, 11, 12, 14). Launch-catalog engine status and rule decisions from review added 22 Nov 2026 (sections 12, 12.3, 12.6, 12.8, 12.10, 14, 16). Engine status, generator-quality lessons and machine-load rule updated 23 Nov 2026 (sections 12, 14, 16.3). Catalog snapshot updated 27 Nov 2026 (section 12). Device-play feedback candidates added 27 Nov 2026 (section 12.12).
 
 This plan replaces the game design document (the GDD PDF in this folder) where the two differ. Section 2 lists the differences.
 
@@ -58,7 +58,7 @@ Labels used in this plan:
 | Title | Witgrid: Offline Logic Puzzles (30 characters, the Play limit) |
 | Platform | Android, Google Play. No iOS at launch. |
 | Product | A growing puzzle hub. All games work with no connection. |
-| Built games | Crowns, Binary, Nonogram, Mini Sudoku 6x6 |
+| Built games | Pet Crowns, Binary, Nonogram, Mini Sudoku 6x6 |
 | Production launch set | The 4 built games plus 10 from section 12: Sudoku 9x9, Killer Sudoku, Futoshiki, Skyscrapers, Mosaic, Colour Sort, Path, Arrows, Klondike, Chess tactics. Target 14, minimum 12. |
 | USP | Clean UI, low distraction, no ad during a puzzle, hints that explain the logic |
 | Income | Interstitial ad at level finish, rewarded ads for hints / checks / lives, one-time Premium at $7.99 |
@@ -181,6 +181,7 @@ Level content for each game: 4 packs x 150 levels = 600 regular levels, plus 365
 | Generator | Place a random valid crown layout. Grow the regions with a random flood fill. Run the solver. Reject the puzzle unless it is unique and the technique set solves it. |
 | Solver techniques | Region confined to one line, touch exclusion, k regions confined to k lines. No look-ahead. |
 | Level time | 60 to 150 seconds |
+| Name rule | Display name **"Pet Crowns"**. Engine id stays `crowns`. Do not use "Queens", "Meowdoku" or "Petdoku". Owner decision 27 Nov 2026: Pet Crowns (section 12.12). Home tile and store art: original crowned-cat mark (H5), not Oakever/Meowdoku assets. |
 
 ### 6.2 Binary
 
@@ -660,9 +661,32 @@ After the launch: Tents, no-guess Minesweeper, generic 8x8 block puzzle (third f
 
 **Do not add:** match-3, mahjong, tile match, full online chess, 50-variant solitaire, screw sort, hexa sort, jigsaw, five-letter word guess, sliding block escape, number merge, word search as a near-term game.
 
-**Names to avoid in the app and the store listing:** Queens, Tango, Zip, LinkedIn, NYT, Takuzu, Binairo, Picross, KenKen, Tetris, Block Blast, 2048, Flow Free, Rush Hour, Wordle.
+**Names to avoid in the app and the store listing:** Queens, Tango, Zip, LinkedIn, NYT, Takuzu, Binairo, Picross, KenKen, Tetris, Block Blast, 2048, Flow Free, Rush Hour, Wordle, Meowdoku, Petdoku.
 
 **After the income goal is met:** share card, home-screen widget, nonogram picture packs, more ad networks through AdMob mediation (after about 1,000 to 2,000 daily players), iOS.
+
+### 12.12 Device-play polish (owner feedback, 27 Nov 2026)
+
+Possible tasks from the first sideload (`FEEDBACK.md`). Not in `docs/TASKS.md` until the owner picks them. Do not start these while H7 is the next catalog gate unless the owner says so.
+
+**Crowns display name — Pet Crowns, not Petdoku.** Meowdoku is Oakever's registered mark (US 99829493, EU, UK). Petdoku is already other apps' name for these rules. **Pet Crowns** is original: it keeps "Crowns", drops *-doku*, and is not Queens. Engine id stays `crowns`. User-visible name is Pet Crowns. Board mark stays a drawn crown until H5 ships a crowned-cat tile (original drawing, no Meowdoku sprites). Store listing still leads with Sudoku, Nonogram, Path and Colour Sort (section 13).
+
+| ID | From | Work | Why it is a task | Suggested tier |
+|---|---|---|---|---|
+| P1 | Names | Done in strings: Crowns → **Pet Crowns**. Remaining: Binary/Path/Tactics copy only if the owner writes new words. H5: crowned-cat Home tile and store art (original, not Meowdoku). | Crowns was not identifiable. Petdoku/Meowdoku/Queens stay banned. | L done; art Human |
+| P2 | Crowns | Drag-paint draws a real X on each cell as the finger enters it, not a tint that becomes all X on lift. Shared `BoardCanvas` drag preview (also Nonogram, Mosaic, Binary). | Drag commits only on finger-up; preview is an accent fill. | M |
+| P3 | Crowns | Two-tap (empty → X → crown) called out in `play_rules_crowns` and the intro coach line. Auto-X on a placed crown: on by default, X the rest of that row, column, region and touching cells; one history record. | Spec 6.1 already is two-tap; rules text does not say so. Auto-X is off and neighbours-only. | M |
+| P4 | Check | Product choice, then one card: (A) keep Check as a credit and hide it on Family B, or (B) live conflict marks, Check becomes a no-op / removed. Family B Check today always returns "no mistakes". | Check is monetised (8.2). Live-only check drops that reward. The Family B stub is a bug either way. | H (policy) then M |
+| P5 | Intro | Stepped first level: highlight the first cell, require the first legal move, then the next, then the rest of the intro puzzle. One pattern reused by every game. | Intro is one coach sentence plus a puzzle. | H |
+| P6 | Sudoku | Split Sudoku 9×9, Killer Sudoku and Futoshiki like Mini Sudoku: grid in `PlayBoard`, digit pad / Notes in `gameControls`. | `PlayBoard` is a square; those three boards embed the pad, so Notes/digits sit on the grid. | M |
+| P7 | Klondike | Drag a card or run onto a legal pile. Keep tap-tap. Animate the card to the destination unless reduce-motion. | KLA asked for tap/drag. Board is tap-only; moves snap. | H |
+| P8 | Klondike | Same as P4 for this board: hide Check or make it mean something (for example highlight a stuck tableau). | Check on Family B is a stub. | L (if P4 is hide) |
+| P9 | Tactics | Code-drawn piece silhouettes (king, queen, rook, bishop, knight, pawn), not FEN letters. No photo sprites, no new library. | CTA allowed letters. Players read it as unfinished. | M |
+| P10 | Colour Sort | Tube with a 3D-looking glass (rim, inner shadow, liquid meniscus) and a pour animation into the destination. Reduce-motion keeps the snap. Paper-and-ink colourways. No new library. | Select lifts; pours jump. Tubes are flat rounded rects. | H |
+| P11 | Arrows | Slide the arrow along empty cells to the edge, then remove it. Reduce-motion keeps the snap. | `ArrowsBoard` comment: one-step remove, no travel. | M |
+| P12 | Play | Wire remaining `Local*BoardOptions` (Sudoku, Killer Sudoku, Futoshiki, Mosaic, Path, Klondike) from player settings, same as Crowns/Tactics. | Haptics and reduce-motion ignore Settings on those boards. | L |
+
+P6, Family B Check in P4, and P2 are the three that fix broken play. P5, P7, P9, P10, P11 are look-and-feel. P1 display name is Pet Crowns; crowned-cat art is H5.
 
 ## 13. Store listing
 
@@ -673,7 +697,7 @@ After the launch: Tents, no-guess Minesweeper, generic 8x8 block puzzle (third f
 | Category | Puzzle |
 | Target audience | 13 and older |
 
-- Lead the listing with Sudoku, Nonogram, Path and Colour Sort once those hub games ship. Crowns, Binary, Tactics and Klondike sit in the list, not in the title. Never state a game count.
+- Lead the listing with Sudoku, Nonogram, Path and Colour Sort once those hub games ship. Pet Crowns, Binary, Tactics and Klondike sit in the list, not in the title. Never state a game count.
 - The head search terms "offline games" and "no wifi games" belong to apps with 100M+ installs. Aim at long terms: "offline logic puzzles", "nonogram offline", "sudoku offline", "colour sort", "path puzzle".
 - Play rules: no emoji in the title, no repeated keywords, no ranking claims, no other company's brand.
 - Screenshots: show one clean board for each game, the dark mode, and the "works offline" message.
@@ -707,6 +731,7 @@ After the launch: Tents, no-guess Minesweeper, generic 8x8 block puzzle (third f
 6. ~~Minimum Android version?~~ - minSdk 24 is set in T0.1.
 7. ~~JDK version~~ — settled in T0.1: AGP 9.5.1 works with JDK 17. Versions: Gradle 9.9.1, AGP 9.5.1, Kotlin 2.4.21, Compose BOM 2026.09.00, compileSdk 37, targetSdk 36, minSdk 24, JUnit 6.1.3.
 8. Codex sandbox flags for Gradle (`network_access`, `--add-dir ~/.gradle`) on your Codex version. Settle at the first Codex task.
+9. ~~Rename Crowns to Petdoku?~~ — no. Display name **Pet Crowns** (27 Nov 2026, section 12.12). Engine id `crowns`. Crowned-cat tile is H5 art.
 
 ## 16. Build method: AI agents
 

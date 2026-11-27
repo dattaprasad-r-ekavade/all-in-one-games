@@ -128,7 +128,7 @@ class HomeGameScreensTest {
                     Surface(Modifier.requiredSize(390.dp, 844.dp).testTag("sample"),
                         color = WitgridTheme.colors.paper, contentColor = WitgridTheme.colors.ink) {
                         WitgridScreenFrame(topBar = {
-                            WitgridTopBar(if (game) "Crowns" else "Witgrid", onBack = if (game) ({}) else null,
+                            WitgridTopBar(if (game) "Pet Crowns" else "Witgrid", onBack = if (game) ({}) else null,
                                 showLogo = !game, actions = if (game) listOf(TopBarAction(R.drawable.ic_info, "Rules", {})) else listOf(
                                     TopBarAction(R.drawable.ic_calendar, "Calendar", {}),
                                     TopBarAction(R.drawable.ic_statistics, "Statistics", {}),
