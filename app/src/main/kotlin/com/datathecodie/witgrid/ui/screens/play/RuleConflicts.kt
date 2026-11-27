@@ -9,7 +9,11 @@ import com.datathecodie.witgrid.engine.futoshiki.FutoshikiState
 import com.datathecodie.witgrid.engine.killersudoku.KillerSudokuState
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
 import com.datathecodie.witgrid.engine.mosaic.MosaicState
+import com.datathecodie.witgrid.engine.nonogram.NonogramState
+import com.datathecodie.witgrid.engine.path.PathState
+import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 import com.datathecodie.witgrid.engine.sudoku.SudokuState
+import com.datathecodie.witgrid.engine.tactics.TacticsState
 
 /** Player entries that visibly break a puzzle's local rules. Never inspects stored solutions. */
 object RuleConflicts {
@@ -21,6 +25,10 @@ object RuleConflicts {
         is KillerSudokuState -> sudoku(state.puzzle.size, state.digits)
         is FutoshikiState -> futoshiki(state)
         is MosaicState -> mosaic(state)
+        is SkyscrapersState -> skyscrapers(state)
+        is PathState -> path(state)
+        is NonogramState -> nonogram(state)
+        is TacticsState -> emptySet()
         else -> emptySet()
     }
 
@@ -78,6 +86,26 @@ object RuleConflicts {
         return conflicts
     }
 
+    private fun skyscrapers(state: SkyscrapersState): Set<Cell> {
+        val size = state.puzzle.size
+        val conflicts = mutableSetOf<Cell>()
+        for (row in 0 until size) {
+            state.digits.subList(row * size, (row + 1) * size).withIndex()
+                .filter { it.value != null }
+                .groupBy { it.value }
+                .filterValues { it.size > 1 }
+                .values.flatten().forEach { conflicts += Cell(row * size + it.index) }
+        }
+        for (column in 0 until size) {
+            (0 until size).map { it * size + column }
+                .filter { state.digits[it] != null }
+                .groupBy { state.digits[it] }
+                .filterValues { it.size > 1 }
+                .values.flatten().forEach { conflicts += Cell(it) }
+        }
+        return conflicts
+    }
+
     private fun futoshiki(state: FutoshikiState): Set<Cell> = state.puzzle.inequalities
         .filter { inequality ->
             val lesser = state.digits[inequality.lesser.index]
@@ -97,6 +125,43 @@ object RuleConflicts {
                 (maxOf(0, column - 1)..minOf(size - 1, column + 1)).map { c -> r * size + c }
             }.filter { state.marks[it] == Mark.FILLED }
             if (filled.size > clue) filled.forEach { conflicts += Cell(it) }
+        }
+        return conflicts
+    }
+
+    private fun path(state: PathState): Set<Cell> {
+        val size = state.puzzle.size
+        val conflicts = mutableSetOf<Cell>()
+        state.digits.forEachIndexed { index, digit ->
+            if (digit == null) return@forEachIndexed
+            val row = index / size
+            val column = index % size
+            if (column + 1 < size && state.digits[index + 1]?.let { it != digit } == true) {
+                conflicts += Cell(index)
+                conflicts += Cell(index + 1)
+            }
+            if (row + 1 < size && state.digits[index + size]?.let { it != digit } == true) {
+                conflicts += Cell(index)
+                conflicts += Cell(index + size)
+            }
+        }
+        return conflicts
+    }
+
+    private fun nonogram(state: NonogramState): Set<Cell> {
+        val size = state.puzzle.size
+        val conflicts = mutableSetOf<Cell>()
+        for (row in 0 until size) {
+            val clueCapacity = state.puzzle.rowClues[row].sum()
+            val filled = (0 until size).map { row * size + it }
+                .filter { state.marks[it] == Mark.FILLED }
+            if (filled.size > clueCapacity) filled.forEach { conflicts += Cell(it) }
+        }
+        for (column in 0 until size) {
+            val clueCapacity = state.puzzle.columnClues[column].sum()
+            val filled = (0 until size).map { it * size + column }
+                .filter { state.marks[it] == Mark.FILLED }
+            if (filled.size > clueCapacity) filled.forEach { conflicts += Cell(it) }
         }
         return conflicts
     }
