@@ -15,7 +15,7 @@ import java.io.InputStream
 
 class TacticsGameModuleTest {
     @Test
-    fun registersTacticsWithGuidedIntroAndTwoLevelAdInterval() {
+    fun registersTacticsWithNumberedLevelsAndTwoLevelAdInterval() {
         val module = TacticsGameModule
         val introLine = java.io.File("src/main/assets/bank/tactics-intro.txt").readText().trim()
         val bank = FakeBankSource(
@@ -29,14 +29,13 @@ class TacticsGameModuleTest {
         assertTrue(Registry.engines.any { it.id == "tactics" })
 
         val firstReference = module.firstLevelRef(Pack.EASY, bank)
-        assertTrue(firstReference.isIntro)
-        assertEquals("CT-INTRO-01", firstReference.levelId)
-        assertEquals(R.string.intro_coach_tactics, firstReference.introCoachLineResourceId)
+        assertTrue(!firstReference.isIntro)
+        assertEquals(1L, firstReference.levelNumber)
 
-        val introLevel = module.loadLevel(firstReference, bank)
-        assertEquals(2, module.levelsPerInterstitial(introLevel))
-        assertEquals(8, introLevel.size)
-        assertNotNull(introLevel.puzzle)
+        val level = module.loadLevel(firstReference, bank)
+        assertEquals(2, module.levelsPerInterstitial(level))
+        assertEquals(8, level.size)
+        assertNotNull(level.puzzle)
     }
 
     private class FakeBankSource(private val files: Map<String, String>) : BankSource {

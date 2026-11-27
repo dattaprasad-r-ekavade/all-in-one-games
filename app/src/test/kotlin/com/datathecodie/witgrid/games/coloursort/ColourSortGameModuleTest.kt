@@ -42,7 +42,7 @@ class ColourSortGameModuleTest {
             ),
         )
 
-        val levelRef = module.levelRefs(Pack.EASY, bank)[1]
+        val levelRef = module.levelRefs(Pack.EASY, bank).first { !it.isIntro }
         val level = module.loadLevel(levelRef, bank)
         assertEquals(2, module.levelsPerInterstitial(level))
 

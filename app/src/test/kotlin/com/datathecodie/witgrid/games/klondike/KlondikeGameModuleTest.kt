@@ -32,7 +32,9 @@ class KlondikeGameModuleTest {
                 "bank/klondike-easy.txt.gz" to KlondikeCodec.encodePuzzle(puzzle),
             ),
         )
-        val level = module.loadLevel(module.levelRefs(Pack.EASY, bank)[1], bank)
+        val references = module.levelRefs(Pack.EASY, bank)
+        assertFalse(references.first().isIntro)
+        val level = module.loadLevel(references.first(), bank)
         assertEquals("klondike", module.id)
         assertEquals(1, module.levelsPerInterstitial(level))
         assertEquals(puzzle, level.puzzle)
