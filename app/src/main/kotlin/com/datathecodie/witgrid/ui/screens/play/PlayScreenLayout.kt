@@ -33,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
@@ -77,6 +78,7 @@ internal fun PlayScreenLayout(
     onRestart: () -> Unit = {},
     hintCredits: String? = null,
     modeTools: (@Composable () -> Unit)? = null,
+    onSkipIntro: () -> Unit = {},
 ) {
     var timerVisible by remember(levelRef) { mutableStateOf(true) }
     var rulesVisible by remember(levelRef) { mutableStateOf(false) }
@@ -125,6 +127,7 @@ internal fun PlayScreenLayout(
                                 .fillMaxHeight()
                                 .aspectRatio(1f),
                             verticalPadding = 4.dp,
+                            spotlight = levelRef.isIntro,
                         )
                         Column(
                             modifier = Modifier
@@ -135,6 +138,7 @@ internal fun PlayScreenLayout(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
                         ) {
+                            if (levelRef.isIntro) TextButton(onClick = onSkipIntro) { Text(stringResource(R.string.welcome_skip)) }
                             introCoachLine?.let {
                                 Text(
                                     it,
@@ -166,6 +170,7 @@ internal fun PlayScreenLayout(
                         Modifier.fillMaxSize().widthIn(max = 840.dp).padding(horizontal = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
+                        if (levelRef.isIntro) TextButton(onClick = onSkipIntro) { Text(stringResource(R.string.welcome_skip)) }
                         introCoachLine?.let {
                             Text(it, Modifier.fillMaxWidth().padding(vertical = 8.dp), style = MaterialTheme.typography.bodyMedium)
                         }
@@ -174,7 +179,8 @@ internal fun PlayScreenLayout(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
                         ) {
-                            PlayBoard(board, Modifier.weight(1f, fill = false).fillMaxWidth(), verticalPadding = 16.dp)
+                            PlayBoard(board, Modifier.weight(1f, fill = false).fillMaxWidth(), verticalPadding = 16.dp,
+                                forceSquare = playBoardForcesSquare(levelRef.gameId), spotlight = levelRef.isIntro)
                             PlayMessages(null, statusMessage, saveFailed, enlargedBoardMode)
                             Box(Modifier.fillMaxWidth().padding(bottom = 12.dp)) { gameControls() }
                         }
@@ -303,10 +309,20 @@ private fun PlayToolbar(
 }
 
 @Composable
-private fun PlayBoard(board: @Composable () -> Unit, modifier: Modifier, verticalPadding: Dp = 16.dp) {
+private fun PlayBoard(
+    board: @Composable () -> Unit,
+    modifier: Modifier,
+    verticalPadding: Dp = 16.dp,
+    forceSquare: Boolean = true,
+    spotlight: Boolean = false,
+) {
     BoxWithConstraints(modifier.padding(vertical = verticalPadding), contentAlignment = Alignment.Center) {
-        val side = minOf(maxWidth, maxHeight).coerceAtLeast(1.dp)
-        Box(Modifier.size(side).testTag("play-board"), contentAlignment = Alignment.Center) { board() }
+        val boardModifier = if (forceSquare) Modifier.size(minOf(maxWidth, maxHeight).coerceAtLeast(1.dp)) else Modifier.fillMaxSize()
+        Box(boardModifier.testTag("play-board"), contentAlignment = Alignment.Center) {
+            if (spotlight) {
+                IntroSpotlight(Modifier.fillMaxSize().alpha(0.72f)) { board() }
+            } else board()
+        }
     }
 }
 
@@ -382,6 +398,8 @@ internal fun isPlayHeaderCompact(maxWidth: Dp, fontScale: Float): Boolean =
     (maxWidth < 440.dp || fontScale > 1.1f) && maxWidth < 600.dp
 
 internal fun supportsBoardZoom(gameId: String): Boolean = gameId != "coloursort" && gameId != "klondike"
+
+internal fun playBoardForcesSquare(gameId: String): Boolean = gameId != "klondike" && gameId != "coloursort"
 
 internal fun visibleHintBadge(credits: String?): String? = credits?.takeIf { it.isNotBlank() && it != "0" }
 
