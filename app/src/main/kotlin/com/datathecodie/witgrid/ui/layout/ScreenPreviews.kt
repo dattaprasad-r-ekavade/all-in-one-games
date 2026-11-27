@@ -226,7 +226,6 @@ private fun PreviewPlayLayout(
         onUndo = {},
         onRedo = {},
         onRequestHint = {},
-        onCheck = {},
         onBack = {},
     )
 }
