@@ -34,6 +34,10 @@ import com.datathecodie.witgrid.engine.arrows.ArrowsState
 import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
+import com.datathecodie.witgrid.engine.sudoku.SudokuState
+import com.datathecodie.witgrid.engine.killersudoku.KillerSudokuState
+import com.datathecodie.witgrid.engine.futoshiki.FutoshikiState
+import com.datathecodie.witgrid.engine.mosaic.MosaicState
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
 import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 import com.datathecodie.witgrid.games.BankSource
@@ -42,6 +46,10 @@ import com.datathecodie.witgrid.games.LevelRef
 import com.datathecodie.witgrid.games.PlayGameModule
 import com.datathecodie.witgrid.games.arrows.ArrowsBoard
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoard
+import com.datathecodie.witgrid.games.sudoku.SudokuBoard
+import com.datathecodie.witgrid.games.killersudoku.KillerSudokuBoard
+import com.datathecodie.witgrid.games.futoshiki.FutoshikiBoard
+import com.datathecodie.witgrid.games.mosaic.MosaicBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
 import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersBoard
 import com.datathecodie.witgrid.play.Allowance
@@ -375,6 +383,18 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
             when (val state = snapshot.state) {
                 is MiniSudokuState -> MiniSudokuBoard(state, onMoves, onUndo, playLayout = { board, actions ->
                     layout(board, { PlaySudokuDigits(state, actions) }, { PlaySudokuTools(actions) })
+                })
+                is SudokuState -> SudokuBoard(state, onMoves, onUndo, playLayout = { board, actions ->
+                    layout(board, { PlaySudokuDigits(state.puzzle.size, state.digits, actions) }, { PlaySudokuTools(actions) })
+                })
+                is KillerSudokuState -> KillerSudokuBoard(state, onMoves, onUndo, playLayout = { board, actions ->
+                    layout(board, { PlaySudokuDigits(state.puzzle.size, state.digits, actions) }, { PlaySudokuTools(actions) })
+                })
+                is FutoshikiState -> FutoshikiBoard(state, onMoves, onUndo, playLayout = { board, actions ->
+                    layout(board, { PlaySudokuDigits(state.puzzle.size, state.digits, actions) }, { PlaySudokuTools(actions) })
+                })
+                is MosaicState -> MosaicBoard(state, onMoves, onUndo, playLayout = { board, controls ->
+                    layout(board, controls, null)
                 })
                 is NonogramState -> NonogramBoard(state, onMoves, onUndo, layout = { board, controls -> layout(board, controls, null) })
                 is SkyscrapersState -> SkyscrapersBoard(state, onMoves, onUndo, layout = { board, controls -> layout(board, controls, null) })

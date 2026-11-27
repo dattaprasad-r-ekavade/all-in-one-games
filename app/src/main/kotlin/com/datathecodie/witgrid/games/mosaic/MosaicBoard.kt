@@ -47,6 +47,7 @@ fun MosaicBoard(
     onUndo: () -> Unit,
     options: MosaicBoardOptions = LocalMosaicBoardOptions.current,
     modifier: Modifier = Modifier,
+    playLayout: (@Composable (board: @Composable () -> Unit, controls: @Composable () -> Unit) -> Unit)? = null,
     layout: (@Composable (board: @Composable () -> Unit, controls: @Composable () -> Unit) -> Unit)? = null,
 ) {
     var mode by remember(state.puzzle.id) { mutableStateOf(MosaicMarkMode.FILL) }
@@ -160,7 +161,9 @@ fun MosaicBoard(
         )
     }
 
-    if (layout == null) {
+    if (playLayout != null) {
+        playLayout(boardContent, controlsContent)
+    } else if (layout == null) {
         MosaicBoardWithControls(modifier, boardContent, controlsContent)
     } else {
         layout(boardContent, controlsContent)
