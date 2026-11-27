@@ -1,6 +1,8 @@
 package com.datathecodie.witgrid.games.klondike
 
 import com.datathecodie.witgrid.engine.klondike.Card
+import com.datathecodie.witgrid.engine.klondike.KlondikeState
+import com.datathecodie.witgrid.engine.klondike.Suit
 
 internal data class KlondikeBoardMetrics(
     val cardWidthDp: Float,
@@ -130,4 +132,44 @@ internal object KlondikeBoardLayout {
 
     fun tapInsideColumn(geometry: TableauColumnGeometry, yDp: Float): Boolean =
         yDp >= 0f && yDp < geometry.columnHeightDp
+
+    fun columnIndexAt(xDp: Float, metrics: KlondikeBoardMetrics, snapGaps: Boolean): Int? {
+        if (xDp < 0f || xDp > metrics.contentWidthDp) return null
+        val stride = metrics.cardWidthDp + metrics.columnGapDp
+        val column = (xDp / stride).toInt().coerceIn(0, COLUMN_COUNT - 1)
+        if (!snapGaps) {
+            val left = columnLeftDp(column, metrics)
+            if (xDp < left || xDp > left + metrics.cardWidthDp) return null
+        }
+        return column
+    }
+
+    fun hitAt(
+        xDp: Float,
+        yDp: Float,
+        state: KlondikeState,
+        metrics: KlondikeBoardMetrics,
+        snapForDrop: Boolean,
+    ): KlondikeHit? {
+        val column = columnIndexAt(xDp, metrics, snapGaps = snapForDrop) ?: return null
+        if (yDp >= 0f && yDp < metrics.cardHeightDp) {
+            return when (column) {
+                0 -> KlondikeHit.Stock
+                1 -> KlondikeHit.Waste
+                2 -> null
+                else -> KlondikeHit.Foundation(Suit.entries[column - 3])
+            }
+        }
+        val tableauTop = metrics.cardHeightDp + metrics.rowGapDp
+        if (yDp < tableauTop) {
+            return if (snapForDrop) KlondikeHit.Tableau(column, null) else null
+        }
+        val localY = yDp - tableauTop
+        val pile = state.tableau[column]
+        val geometry = columnGeometry(pile, metrics)
+        if (snapForDrop) return KlondikeHit.Tableau(column, null)
+        if (!tapInsideColumn(geometry, localY)) return null
+        val index = if (pile.isEmpty()) null else cardIndexAt(geometry, localY)
+        return KlondikeHit.Tableau(column, index)
+    }
 }

@@ -107,6 +107,69 @@ internal object KlondikeBoardInput {
         }
     }
 
+    /** Chooses a legal foundation move first, then the first legal tableau pile. */
+    fun smartMove(state: KlondikeState, selection: KlondikeSelection?): CardMove? {
+        val current = activeSelection(state, selection) ?: return null
+        for (suit in Suit.entries) foundationMove(state, current, suit)?.let { return it }
+        for (column in state.tableau.indices) tableauMove(state, current, column)?.let { return it }
+        return null
+    }
+
+    fun shouldShowRecycle(state: KlondikeState): Boolean = state.stock.isEmpty() && state.waste.isNotEmpty()
+
+    fun dragMove(state: KlondikeState, selection: KlondikeSelection?, destination: KlondikeHit): CardMove? =
+        when (destination) {
+            is KlondikeHit.Tableau -> tableauMove(state, activeSelection(state, selection), destination.column)
+            is KlondikeHit.Foundation -> foundationMove(state, activeSelection(state, selection), destination.suit)
+            KlondikeHit.Stock, KlondikeHit.Waste -> null
+        }
+
+    fun selectionAt(state: KlondikeState, hit: KlondikeHit): KlondikeSelection? {
+        if (isClosed(state)) return null
+        return when (hit) {
+            KlondikeHit.Stock -> null
+            KlondikeHit.Waste -> if (state.waste.isNotEmpty()) KlondikeSelection.Waste else null
+            is KlondikeHit.Foundation -> {
+                if (state.foundations[hit.suit].orEmpty().isNotEmpty()) {
+                    KlondikeSelection.Foundation(hit.suit)
+                } else {
+                    null
+                }
+            }
+            is KlondikeHit.Tableau -> {
+                val pile = state.tableau.getOrNull(hit.column) ?: return null
+                val index = hit.cardIndex ?: return null
+                if (isSelectable(pile, index)) KlondikeSelection.Tableau(hit.column, index) else null
+            }
+        }
+    }
+
+    fun cardsForSelection(state: KlondikeState, selection: KlondikeSelection?): List<Card> = when (selection) {
+        KlondikeSelection.Waste -> listOfNotNull(state.waste.lastOrNull())
+        is KlondikeSelection.Foundation -> listOfNotNull(state.foundations[selection.suit]?.lastOrNull())
+        is KlondikeSelection.Tableau -> {
+            val pile = state.tableau.getOrNull(selection.column).orEmpty()
+            if (selection.cardIndex in pile.indices) pile.subList(selection.cardIndex, pile.size) else emptyList()
+        }
+        else -> emptyList()
+    }
+
+    /** Returns one automatic foundation action once every tableau card is face up. */
+    fun autoCompleteMove(state: KlondikeState): CardMove? {
+        if (state.tableau.flatten().any { !it.faceUp }) return null
+        for ((column, pile) in state.tableau.withIndex()) {
+            val card = pile.lastOrNull() ?: continue
+            if (KlondikeRules.isFoundationPlacementLegal(state.foundations, card)) {
+                return CardMove.TableauToFoundation(column)
+            }
+        }
+        val wasteCard = state.waste.lastOrNull()
+        if (wasteCard != null && KlondikeRules.isFoundationPlacementLegal(state.foundations, wasteCard)) {
+            return CardMove.WasteToFoundation
+        }
+        return null
+    }
+
     fun pileLabel(state: KlondikeState, pile: KlondikePile, selection: KlondikeSelection?): KlondikePileLabel {
         val active = activeSelection(state, selection)
         val cards = cardsOf(state, pile)
@@ -163,12 +226,7 @@ internal object KlondikeBoardInput {
     private fun tapWaste(state: KlondikeState, current: KlondikeSelection?): KlondikeTapResult {
         if (state.waste.isEmpty()) return none(current)
         if (current is KlondikeSelection.Waste) {
-            val card = state.waste.last()
-            return if (KlondikeRules.isFoundationPlacementLegal(state.foundations, card)) {
-                moved(CardMove.WasteToFoundation)
-            } else {
-                deselected()
-            }
+            return smartMove(state, current)?.let(::moved) ?: deselected()
         }
         return selected(KlondikeSelection.Waste)
     }
@@ -213,11 +271,7 @@ internal object KlondikeBoardInput {
             current.column == hit.column &&
             current.cardIndex == index
         if (sameCard) {
-            val card = pile[index]
-            if (index == pile.lastIndex && KlondikeRules.isFoundationPlacementLegal(state.foundations, card)) {
-                return moved(CardMove.TableauToFoundation(hit.column))
-            }
-            return deselected()
+            return smartMove(state, current)?.let(::moved) ?: deselected()
         }
         val move = tableauMove(state, current, hit.column)
         if (move != null) return moved(move)
