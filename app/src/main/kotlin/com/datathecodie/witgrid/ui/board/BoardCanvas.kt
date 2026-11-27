@@ -143,11 +143,16 @@ fun BoardCanvas(
                                 )
                             }
                             if (cell in dragPreviewCells) {
-                                drawRect(
-                                    color = colors.accent.copy(alpha = DRAG_PREVIEW_ALPHA),
-                                    topLeft = bounds.topLeft,
-                                    size = bounds.size,
-                                )
+                                val preview = BoardDragPreview.forCell(bounds)
+                                preview.strokes.forEach { (start, end) ->
+                                    drawLine(
+                                        color = colors.ink.copy(alpha = DRAG_PREVIEW_ALPHA),
+                                        start = start,
+                                        end = end,
+                                        strokeWidth = preview.strokeWidth,
+                                        cap = StrokeCap.Round,
+                                    )
+                                }
                             }
                         }
                     }
@@ -197,7 +202,7 @@ fun BoardCanvas(
 
 private const val GRID_LINE_WIDTH_DP = 1f
 private const val GRID_LINE_ALPHA = 0.45f
-private const val DRAG_PREVIEW_ALPHA = 0.15f
+private const val DRAG_PREVIEW_ALPHA = 0.65f
 private const val MAX_RENDERED_GRID_SIZE = 32
 private const val WAVE_ALPHA = 0.18f
 private const val WAVE_DURATION_MILLIS = 850
