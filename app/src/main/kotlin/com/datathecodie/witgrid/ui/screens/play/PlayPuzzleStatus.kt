@@ -18,6 +18,7 @@ import com.datathecodie.witgrid.engine.nonogram.NonogramState
 import com.datathecodie.witgrid.engine.path.PathState
 import com.datathecodie.witgrid.engine.skyscrapers.SkyscrapersState
 import com.datathecodie.witgrid.engine.sudoku.SudokuState
+import com.datathecodie.witgrid.engine.tactics.PieceColor
 import com.datathecodie.witgrid.engine.tactics.TacticsState
 
 @Composable
@@ -36,7 +37,26 @@ internal fun playPuzzleStatus(state: Any): String? = when (state) {
         state.tubes.count { tube -> tube.isNotEmpty() && tube.all { it == tube.first() } }, state.tubes.size)
     is KlondikeState -> stringResource(R.string.play_cells_count, state.totalFoundationCards, 52)
     is MosaicState -> stringResource(R.string.play_marked_count, state.marks.count { it != Mark.EMPTY }, state.marks.size)
-    is TacticsState -> stringResource(R.string.play_cells_count,
-        state.completedPlayerMoves.size, state.puzzle.mateIn)
+    is TacticsState -> {
+        val copy = tacticsStatusCopy(state)
+        stringResource(
+            R.string.play_tactics_status,
+            stringResource(if (copy.whiteToMove) R.string.play_tactics_white else R.string.play_tactics_black),
+            copy.mateRemaining,
+        )
+    }
     else -> null
 }
+
+internal data class TacticsStatusCopy(
+    val whiteToMove: Boolean,
+    val mateRemaining: Int,
+)
+
+internal fun tacticsStatusCopy(state: TacticsState): TacticsStatusCopy = TacticsStatusCopy(
+    whiteToMove = state.currentBoard.sideToMove == PieceColor.WHITE,
+    mateRemaining = tacticsMateRemaining(state.puzzle.mateIn, state.completedPlayerMoves.size),
+)
+
+internal fun tacticsMateRemaining(mateIn: Int, completedPlayerMoves: Int): Int =
+    (mateIn - completedPlayerMoves).coerceAtLeast(1)

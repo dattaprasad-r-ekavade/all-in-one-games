@@ -48,6 +48,13 @@ class PlayScreenLayoutTest {
     }
 
     @Test
+    fun tacticsMateRemainingUsesHorizonMinusCompletedMoves() {
+        assertEquals(2, tacticsMateRemaining(mateIn = 2, completedPlayerMoves = 0))
+        assertEquals(1, tacticsMateRemaining(mateIn = 2, completedPlayerMoves = 1))
+        assertEquals(1, tacticsMateRemaining(mateIn = 1, completedPlayerMoves = 1))
+    }
+
+    @Test
     fun formatDurationFormatsMinutesAndSeconds() {
         assertEquals("0:00", formatDuration(0L))
         assertEquals("0:05", formatDuration(5_000L))
