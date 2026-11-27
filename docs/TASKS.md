@@ -126,6 +126,26 @@ Each card is one unit of work for one agent in one worktree. The lead updates th
 | MOB | Mosaic bank | L | Codex (luna) | Claude | MO3, B6 | done |
 | MOC | Mosaic intro, config, strings | L | Claude | Codex | MOA, MOB | done |
 | H7 | Hand-test the launch catalog | Human | — | — | All Phase 7 bank cards | todo |
+| **Device-play polish (plan 12.12)** |||||||
+| P2 | Drag-paint draws a real X while moving | M | Codex (luna) | Claude | A4 | done |
+| P3 | Pet Crowns Auto-X and two-tap copy | M | Codex (luna) | Claude | A5 | done |
+| P4 | Remove Check; live rule-conflict highlights | M | Codex (luna) | Claude | A11 | done |
+| P6 | Split Sudoku/Killer/Futoshiki/Mosaic pads | M | Codex (luna) | Claude | A8, SUA | done |
+| P9 | Tactics piece silhouettes | M | Codex (luna) | Claude | CTC | done |
+| P10 | Colour Sort 3D tubes and pour | H | Codex (luna) | Claude | CSA | done |
+| P11 | Arrows: no spoiler highlight; slide animation | M | Codex (luna) | Claude | ARA | done |
+| P12 | Wire remaining board options from Settings | L | Claude (chore) | Codex | CTC | done |
+| P13 | Home motifs and Result thumbnails for all 14 | M | Codex (luna) | Claude | A9, A10 | done |
+| P14 | Pack labels, daily chips, Game descriptors | L | Codex (luna) | Claude | A9 | done |
+| P15 | Family B hint highlights and fail copy | M | Codex (luna) | Claude | A11 | done |
+| P16 | Play Restart, zoom, hint badge, status | M | Codex (luna) | Claude | A10 | done |
+| P17 | Rotation-safe nav, sound default, Settings | M | Codex (luna) | Claude | A3 | done |
+| P5 | Skip intro on known games | M | Codex (luna) | Claude | A12 | done |
+| P7 | Klondike drag, smart move, recycle, auto-complete | H | Codex (luna) | Claude | KLA | done |
+| P18 | Tactics flip, coords, legal-move dots, mate status | M | Codex (luna) | Claude | P9 | done |
+| P19 | Spotlight intros + tall Klondike PlayBoard | H | Codex (luna) | Claude | P16 | done |
+| P21 | Live conflicts for Skyscrapers, Path, Nonogram | M | Codex (luna) | Claude | P4 | done |
+| P22 | Distinct Home motifs and Continue thumbnails | M | Codex (luna) | Claude | P13 | done |
 
 ---
 
@@ -858,6 +878,145 @@ Same shape as SUA, SUB and SUC. Board owns `app/…/games/<package>/**`; reuse t
 **Owns:** `docs/reports/catalog-hand-test.md`.
 **Do:** For each of the 10 new games, solve 5 puzzles in each of the 4 packs (200 solves), plus 2 daily puzzles each. Record puzzle ID, time, whether a guess was needed (Family A) or the level was winnable (Family B), and any issue. Give issue details to the lead.
 **Done when:** The report has 20 records for every new game, and the lead has a bug card for each issue. H6 waits for H7.
+
+## Device-play polish (plan 12.12)
+
+Owner asked to start a first batch on 27 Nov 2026. FEEDBACK.md items 1–14. Parallel cards must not share files.
+
+### P2 — Drag-paint draws a real X while moving
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P2. FEEDBACK 2a.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/BoardCanvas.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/board/BoardDragPreview.kt` (create), `app/src/test/kotlin/com/datathecodie/witgrid/ui/board/BoardDragPreviewTest.kt` (create).
+**Do:** Drag-paint currently tints cells with an accent fill and only commits X marks on finger-up. Draw a real X on each cell as soon as the finger enters it. Put the geometry in `BoardDragPreview`: given a cell `Rect`, return the two stroke segments (start/end `Offset` pairs) and stroke width, inset like Crowns `drawCross` (`radius = min(width,height) * 0.28f`, `stroke = min * 0.12f`). `BoardCanvas` draws those segments in ink (or muted ink) for every `dragPreviewCells` cell instead of the accent fill. Commit on lift stays in `onDragPaint`. Clear the preview on lift (already happens). Do not change `BoardGestures.kt`. Do not edit game boards.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.board.BoardDragPreviewTest" --no-daemon -q` passes. Tests cover a square cell and a non-square cell: both arms cross the centre, stay inside the rect, and stroke width is positive.
+
+### P3 — Pet Crowns Auto-X and two-tap copy
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 6.1 Input, 12.12 P3.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/crowns/CrownsBoardInput.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/crowns/CrownsBoardInputTest.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/crowns/CrownsGestureHistoryTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/crowns/CrownsBoardOptions.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepositoryTest.kt`, `app/src/main/res/values/strings.xml`.
+**Do:** When a tap places a crown (`Mark.FILLED`) and Auto-X is on, add `Move.SetMark(..., CROSSED)` on every other empty cell in that row, that column, that colour region, and the eight touching cells, in one list so History records one gesture. Do not overwrite a cell that is already `FILLED` or `CROSSED`. Leave drag-X and long-press clear as they are. Default Auto-X **on**: `AppSettings.crownsAutoXEnabled`, `CrownsBoardOptions.autoXEnabled`, and the DataStore missing-key fallback (`?: true`). Name the two-tap cycle in `play_rules_crowns` and `intro_coach_crowns` (empty → X → crown). Display name is **Pet Crowns**; do not write Queens, Meowdoku, or Petdoku. Engine id stays `crowns`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.crowns.*" --no-daemon -q` passes. Tests cover Auto-X of row, column, region, and neighbours, and that existing marks are kept.
+
+### P9 — Tactics piece silhouettes
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P9.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/tactics/TacticsBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/tactics/TacticsPieceDrawing.kt` (create if needed), `app/src/test/kotlin/com/datathecodie/witgrid/games/tactics/**` (new drawing tests only).
+**Do:** Draw king, queen, rook, bishop, knight, pawn as code `Path` silhouettes on the Tactics board. No FEN / `piece.toChar()` labels on the board. No bitmaps, no photo sprites, no new library. White pieces: paper/card fill and ink stroke. Black pieces: muted ink fill and a darker or ink stroke. Keep TalkBack on the existing `tactics_*` string resources. Fit each silhouette inside the square with padding; do not cover the whole cell.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.tactics.*" --no-daemon -q` passes. A JVM test (or helper) lists all six `PieceType` values so a missing silhouette fails the build.
+
+### P12 — Wire remaining board options from Settings
+Tier L · Build Claude (`chore`) · Review Codex
+Plan: 12.12 P12.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/PlayBoardOptions.kt` (create), `app/src/test/kotlin/com/datathecodie/witgrid/nav/PlayBoardOptionsTest.kt` (create).
+**Do:** `CompositionLocalProvider` on the play route already supplies Crowns, Binary, Nonogram, Mini Sudoku, Arrows, Colour Sort, and Tactics from `playerData.settings`. Add the same `hapticsEnabled` and `reduceMotion` mapping for Sudoku, Killer Sudoku, Futoshiki, Skyscrapers, Mosaic, Path, and Klondike. Leave `autoNotesEnabled` at its data-class default (there is no player setting yet). Do not add settings rows. Put the mapping in `PlayBoardOptions.kt` so the JVM test can check it without Compose.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.nav.PlayBoardOptionsTest" --no-daemon -q` passes.
+
+### P4 — Remove Check; live rule-conflict highlights
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P4. FEEDBACK 3.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayout.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayoutTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/play/HintController.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/play/HintControllerTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/RuleConflicts.kt` (create), `app/src/test/kotlin/com/datathecodie/witgrid/ui/screens/play/RuleConflictsTest.kt` (create).
+**Do:** Product choice is (B): live conflicts, no Check button. Remove the Check control from Play (`PlayScreenLayout` / both Family A and Family B routes). Remove the Check-credit rewarded offer and check credit count from `GameScreen`. Keep Mistake Limit. `HintController.check()` may stay for tests but Play must not call it. Live rule-conflict cells (free, no spoiler): put a pure function in `RuleConflicts.cells(state: Any): Set<Cell>` that flags player-entered marks which break visible rules only — two crowns in one row/column/region or touching, three matching Binary symbols in a line, duplicate digits in a Sudoku/Mini/Killer house, broken Futoshiki inequality on two filled cells, Mosaic clue over-filled. Do not compare against the hidden solution. `PlayScreen` unions those cells into `LocalBoardHighlightCells` (or a dedicated error local if one exists). Family B Check today always returns Clear; with the button gone that stub is unused.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.screens.play.RuleConflictsTest" --tests "com.datathecodie.witgrid.ui.screens.play.PlayScreenLayoutTest" --tests "com.datathecodie.witgrid.play.HintControllerTest" --no-daemon -q` passes. RuleConflicts tests cover at least Crowns touch, Binary triple, Sudoku duplicate, and that a correct unique crown is not flagged.
+
+### P6 — Split Sudoku/Killer/Futoshiki/Mosaic pads
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P6. FEEDBACK 5, 14.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlaySudokuControls.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/sudoku/SudokuBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/killersudoku/KillerSudokuBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/futoshiki/FutoshikiBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/mosaic/MosaicBoard.kt`.
+**Do:** Mini Sudoku already splits: grid in `PlayBoard`, digits in `gameControls`, Notes/Erase in `modeTools` via `playLayout`. Do the same for `SudokuState`, `KillerSudokuState`, `FutoshikiState` (use `PlaySudokuDigits` / `PlaySudokuTools`). Mosaic: grid in `PlayBoard`, Fill/Cross chips in `gameControls` (pass `playLayout` like Nonogram). Do not embed pads inside the square board box. Highlight matching digits when a filled cell is selected (same digit, other cells). Keep 9-key pad usable: touch targets at least 48 dp. Do not add a Settings row for Auto-update notes in this card (that is P16/P17). Do not edit `PlayScreenLayout.kt`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.sudoku.*" --tests "com.datathecodie.witgrid.games.minisudoku.*" --no-daemon -q` passes. If a board has no JVM tests, do not add Compose tests; keep the split identical to Mini Sudoku's `playLayout` call in `PlayScreen`.
+
+### P10 — Colour Sort 3D tubes and pour
+Tier H · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P10. FEEDBACK 8.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/coloursort/**`, `app/src/test/kotlin/com/datathecodie/witgrid/games/coloursort/**`.
+**Do:** Draw each tube as a 3D-looking glass (rim, inner shadow, liquid meniscus) in paper-and-ink colourways. Pour animates into the destination unless `reduceMotion`. Tube-complete gets a short pop/cap. No new library, no bitmaps. Do not change engine rules. Do not edit `PlayScreen.kt`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.coloursort.*" --no-daemon -q` passes.
+
+### P11 — Arrows: no spoiler highlight; slide animation
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P11. FEEDBACK 9.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/arrows/ArrowsBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/arrows/ArrowsSlide.kt` (create), `app/src/test/kotlin/com/datathecodie/witgrid/games/arrows/ArrowsSlideTest.kt` (create). You may add tests under `app/src/test/kotlin/com/datathecodie/witgrid/games/arrows/**` only.
+**Do:** Draw every remaining arrow in the same ink colour until the player taps it. Remove the slideable accent fill and the accent-coloured arrow (`canSlide` must not change draw colour). On `ArrowTapFeedback.SLID`, if `reduceMotion` is false, animate the arrow along `ArrowsRules.pathCells` to the edge, then call `onAction`; if `reduceMotion`, call `onAction` immediately. Blocked tap keeps the existing haptic and still sends the blocked action (life lost). Put travel fractions in `ArrowsSlide` so a JVM test can check that a rightward slide from column 0 on size 4 visits increasing x and ends past the last cell.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.arrows.*" --no-daemon -q` passes. A test proves `ArrowsSlide` path is ordered toward the edge. Do not highlight every slideable arrow.
+
+### P13 — Home motifs and Result thumbnails for all 14 games
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: FEEDBACK 10a, 10b.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/GameBoardPreview.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/result/BoardThumbnail.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/preview/GameMotif.kt` (create), `app/src/test/kotlin/com/datathecodie/witgrid/ui/preview/GameMotifTest.kt` (create).
+**Do:** Home `GameBoardPreview` currently uses a distinctive motif only for `crowns`, `binary`, `nonogram`; every other `gameId` gets the same checkerboard. Result `BoardThumbnail` only draws Crowns/Binary/Nonogram/Mini Sudoku; any other saved state is an empty 5×5. Add a `GameMotif` helper that maps every id in `GameRegistry.games` and `PlayRegistry.games` (14 ids: crowns, binary, nonogram, minisudoku, sudoku, skyscrapers, futoshiki, path, killersudoku, mosaic, tactics, coloursort, arrows, klondike) to a distinct motif kind. Draw that motif on Home. On Result, draw a real thumbnail for every state type those games save (include Colour Sort tubes, Arrows, Path numbers, Tactics pieces as simple marks, Klondike columns, Mosaic clues, Sudoku digits, Skyscrapers, Futoshiki, Killer cages as a few lines). Paper-and-ink. No new library. Do not edit HomeScreen.kt or GameScreen.kt.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.preview.GameMotifTest" --no-daemon -q` passes. The test lists all 14 registry ids and fails if any maps to the shared placeholder kind.
+
+### P14 — Pack labels, daily chips, Game descriptors
+Tier L · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: FEEDBACK 1, 10c, 10d.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/HomeScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/game/GameViewModel.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/ui/screens/game/GameViewModelTest.kt`, `app/src/main/res/values/strings.xml`.
+**Do:** Pack badges use `game_board_size` as `N×N`, so Klondike shows 52×52 and Colour Sort shows tube counts as grids. Add a pack-label helper used by `GameScreen`: grid games keep `N×N`; Colour Sort is "%d tubes"; Klondike is "Draw 1" (or the deal size if the bank size means cards). Home "Today's puzzles" `FlowRow` of 14 chips wraps too much: make it a single-row `horizontalScroll`. Add a one-line Game-screen descriptor under the title for Binary, Futoshiki, Mosaic, Path, Tactics (new string keys). Welcome/store listing are not this card. Do not edit `GameBoardPreview.kt`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.screens.game.GameViewModelTest" --no-daemon -q` passes. Add tests that Colour Sort and Klondike pack labels are not `N×N`.
+
+### P15 — Family B hint highlights and fail copy
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: FEEDBACK 8 hint, 11.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/failed/LevelFailedScreen.kt`, `app/src/main/res/values/strings.xml`.
+**Do:** `hintCellsForAction` only highlights Arrows. For Colour Sort, highlight source and destination tubes (map tube indices to cells or a board-local highlight if the board already has one). For Klondike, highlight source and destination piles. Action-hint dialog must name the move (pour from tube A to B; move this card). Level Failed always says "one extra mistake": use game-specific copy for Colour Sort (extra tube) and Klondike (extra undo). Do not edit engines.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.screens.play.*" --no-daemon -q` passes, or if that glob is too wide, add a small JVM test for the highlight mapping and run that.
+
+### P16 — Play Restart, zoom, hint badge, status
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: FEEDBACK 12.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayout.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayoutTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayPuzzleStatus.kt`.
+**Do:** Restart is hidden when `modeTools != null`. Keep Restart visible (overflow menu or a fourth slot). Hide Zoom / Larger cells for Colour Sort and Klondike. Hint badge shows "0" even when free daily hints exist: show total available, or hide / show ∞ for Premium. `PlayPuzzleStatus` is missing for 8 of 14 games, so Mistake Limit prints a stray leading "· Mistakes: 0 of 3". Add status for every game, including Tactics "White to move · Mate in N" (or Black). Do not edit `PlayScreen.kt` beyond what status needs if you must — prefer `PlayPuzzleStatus.kt` only for status strings.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.screens.play.PlayScreenLayoutTest" --no-daemon -q` passes.
+
+### P17 — Rotation-safe nav, sound default, Settings
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: FEEDBACK 13.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/MainActivity.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/DataStorePlayerDataRepository.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/data/settings/PlayerData.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/data/settings/PlayerDataRepositoryTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/domain/monetisation/AllowanceLedger.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/domain/monetisation/AllowanceLedgerTest.kt`, `app/src/main/res/values/strings.xml`.
+**Do:** Rotating recreates Activity and drops navigation because the navigator lives in the Activity. Preserve back stack (`rememberSaveable` / a retained navigator) and do not recreate DB/ads/billing on config change (hold them in the Application or a retained object already used if one exists). Sound toggle defaults ON with no sound: default `soundEnabled` to false (plan) or hide the toggle. Colour-blind setting subtitle must mention Colour Sort as well as Pet Crowns. Cold start parses all bank files before Home: lazy-load per game or cache pack sizes; do not decode every puzzle. `chargedHintKeys` never clears: drop keys from a previous local day when the daily allowance resets.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.data.settings.PlayerDataRepositoryTest" --tests "com.datathecodie.witgrid.domain.monetisation.AllowanceLedgerTest" --no-daemon -q` passes.
+
+### P5 — Skip intro on known games
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P5. FEEDBACK 4.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/sudoku/SudokuGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/minisudoku/MiniSudokuGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/klondike/KlondikeGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/tactics/TacticsGameModule.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/coloursort/ColourSortGameModule.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/klondike/KlondikeGameModuleTest.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/klondike/KlondikeIntroTest.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/tactics/TacticsGameModuleTest.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/tactics/TacticsIntroTest.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/coloursort/ColourSortGameModuleTest.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/coloursort/ColourSortIntroTest.kt`.
+**Do:** Players already know Sudoku, Mini Sudoku, Klondike, Tactics, and Colour Sort. Pass `intro = null` on those five modules so Easy starts at numbered level 1, not a separate intro puzzle. Leave Intro.kt files in the tree unused. Keep intros on Pet Crowns, Binary, Nonogram, Futoshiki, Skyscrapers, Mosaic, Path, Arrows. Update owned tests: Easy `levelRefs` must not start with `isIntro`; Colour Sort tests that index `[1]` as the first bank level must use `[0]` (or `first { !it.isIntro }`). Do not edit `PlayScreen.kt`, `strings.xml`, or `PlayGameModule.kt`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.klondike.*" --tests "com.datathecodie.witgrid.games.tactics.*" --tests "com.datathecodie.witgrid.games.coloursort.*" --no-daemon -q` passes.
+
+### P7 — Klondike drag, smart move, recycle, auto-complete
+Tier H · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P7. FEEDBACK 6.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/klondike/**`, `app/src/test/kotlin/com/datathecodie/witgrid/games/klondike/**` except `KlondikeGameModuleTest.kt` and `KlondikeIntroTest.kt`.
+**Do:** Drag a card or face-up run onto a legal pile; keep tap-tap. Animate the card unless `reduceMotion`. Empty stock with waste cards must show a recycle icon (not a blank hole). Single-tap a selected card to auto-move to a legal foundation, else a legal tableau (smart move). When every tableau card is face-up, auto-complete legal foundation moves unless `reduceMotion` still applies them instantly. Read `LocalBoardHighlightCells`: treat `Cell(1)` as waste, `Cell(3)` as foundations, `Cell(7 + column)` as tableau column, and draw an accent ring on those piles so Family B hints are visible. Do not edit `PlayScreen.kt`. No new library.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.klondike.KlondikeBoardInputTest" --no-daemon -q` passes. Add JVM tests for smart-move destination and recycle-when-stock-empty.
+
+### P18 — Tactics flip, coords, legal-move dots, mate status
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P9 leftover. FEEDBACK 7.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/games/tactics/TacticsBoard.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/tactics/TacticsBoardInput.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/games/tactics/TacticsPieceDrawing.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/games/tactics/TacticsBoardInputTest.kt` (create if needed), `app/src/test/kotlin/com/datathecodie/witgrid/games/tactics/TacticsPieceDrawingTest.kt`.
+**Do:** Keep code-drawn silhouettes. Flip the board when `puzzle.sideToMove` is Black so that side is at the bottom. Draw file labels a–h and rank labels 1–8. When `pendingFrom` is set, draw legal-move dots on `currentBoard.legalMoves()` targets from that square. Do not show FEN letters. A JVM helper `tacticsBoardDisplayRow(isBlackToMove, rankFromWhite): Int` (or similar) must be tested: White has rank 8 at the top, Black has rank 1 at the top. Do not edit `PlayScreen.kt` or `strings.xml`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.games.tactics.*" --no-daemon -q` passes.
+
+### P19 — Spotlight intros + tall Klondike PlayBoard
+Tier H · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: 12.12 P5 leftover, P7 leftover. FEEDBACK 4, 6.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreen.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayout.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/ui/screens/play/PlayScreenLayoutTest.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/IntroSpotlight.kt` (create), `app/src/test/kotlin/com/datathecodie/witgrid/ui/screens/play/IntroSpotlightTest.kt` (create), `app/src/main/kotlin/com/datathecodie/witgrid/nav/WitgridNavigation.kt`.
+**Do:** For `levelRef.isIntro`, dim the board, pulse `LocalBoardHighlightCells` on the next legal step (`gameModule.nextHint(...).cells` for Family A; `hintAction` mapped to cells for Arrows), keep the existing intro coach line, and show Skip (`R.string.welcome_skip`) that jumps to Easy level 1 without the result screen. Wire `onSkipIntro` from `WitgridNavigation`: `goBack()` then `navigate(Play(nextLevelRef))` using `module.nextLevelRef`. After two or three successful intro moves the rest of the intro puzzle can be free (stop pulsing). Do not edit `strings.xml`. Klondike (and Colour Sort) must not use the 1:1 `PlayBoard` square: `PlayBoard` fills the remaining portrait height when `levelRef.gameId` is `klondike` or `coloursort`. Add `playBoardForcesSquare(gameId)` and test it. Do not edit game boards.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.screens.play.PlayScreenLayoutTest" --tests "com.datathecodie.witgrid.ui.screens.play.IntroSpotlightTest" --no-daemon -q` passes.
+
+### P21 — Live conflicts for Skyscrapers, Path, Nonogram
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: FEEDBACK 3 leftover.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/play/RuleConflicts.kt`, `app/src/test/kotlin/com/datathecodie/witgrid/ui/screens/play/RuleConflictsTest.kt`.
+**Do:** Extend `RuleConflicts.cells` for Skyscrapers, Path, and Nonogram using visible rules only — never `engine.mistakes` or stored solutions. Skyscrapers: duplicate heights in a row or column. Path: two orthogonally adjacent player-filled cells with different digits. Nonogram: a row or column whose FILLED count is greater than the sum of that line's clues; flag the filled cells on that line. Tactics has no house-duplicate rule; keep `emptySet()` and do not use `TacticsRules.mistakes` (those compare the solution line). Do not edit `PlayScreen.kt`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.screens.play.RuleConflictsTest" --no-daemon -q` passes. Tests must cover a Skyscrapers duplicate, a Path clash, a Nonogram over-filled line, and that a unique legal Tactics position is not flagged.
+
+### P22 — Distinct Home motifs and Continue thumbnails
+Tier M · Build Codex (`gpt-6-luna`) · Review Claude
+Plan: FEEDBACK 10 leftover.
+**Owns:** `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/home/GameBoardPreview.kt`, `app/src/main/kotlin/com/datathecodie/witgrid/ui/screens/result/BoardThumbnail.kt`.
+**Do:** Motif kinds are already unique; the drawings are not. Mini Sudoku, Sudoku and Killer must not share one drawing; Nonogram and Mosaic must not share one drawing. When `boardState` is set (Game Continue preview), draw a real thumbnail for every state type those 14 games save (Sudoku digits, Killer cages, Futoshiki, Skyscrapers, Path numbers, Mosaic, Tactics marks, Colour Sort tubes, Arrows, Klondike columns) — not only Crowns/Binary/Nonogram/Mini Sudoku. Paper-and-ink. No new library. Do not edit `HomeScreen.kt` or `GameScreen.kt`.
+**Done when:** `.\gradlew.bat :app:testDebugUnitTest --tests "com.datathecodie.witgrid.ui.preview.GameMotifTest" --no-daemon -q` passes. Add a JVM helper test if you extract thumbnail-size mapping; otherwise keep drawings in the owned files.
+
+**Lead completion note (27 Nov 2026):** Merged locally onto `main` as `4b4bd6e` (P2–P19, P21, P22). Conflicts resolved in PlayScreenLayout (keep P16 hint badge, drop Check), WitgridNavigation (P12 helpers + P17 auto-notes), TacticsBoard (P18), and PlayScreen highlights (conflicts + intro spotlight). Not pushed.
 
 ## Template for later games (plan 12.11)
 
