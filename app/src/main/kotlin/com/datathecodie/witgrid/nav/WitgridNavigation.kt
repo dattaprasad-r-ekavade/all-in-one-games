@@ -67,10 +67,24 @@ import com.datathecodie.witgrid.games.binary.BinaryBoardOptions
 import com.datathecodie.witgrid.games.binary.LocalBinaryBoardOptions
 import com.datathecodie.witgrid.games.crowns.CrownsBoardOptions
 import com.datathecodie.witgrid.games.crowns.LocalCrownsBoardOptions
+import com.datathecodie.witgrid.games.futoshiki.FutoshikiBoardOptions
+import com.datathecodie.witgrid.games.futoshiki.LocalFutoshikiBoardOptions
+import com.datathecodie.witgrid.games.killersudoku.KillerSudokuBoardOptions
+import com.datathecodie.witgrid.games.killersudoku.LocalKillerSudokuBoardOptions
+import com.datathecodie.witgrid.games.klondike.KlondikeBoardOptions
+import com.datathecodie.witgrid.games.klondike.LocalKlondikeBoardOptions
 import com.datathecodie.witgrid.games.minisudoku.LocalMiniSudokuBoardOptions
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoardOptions
+import com.datathecodie.witgrid.games.mosaic.LocalMosaicBoardOptions
+import com.datathecodie.witgrid.games.mosaic.MosaicBoardOptions
 import com.datathecodie.witgrid.games.nonogram.LocalNonogramBoardOptions
 import com.datathecodie.witgrid.games.nonogram.NonogramBoardOptions
+import com.datathecodie.witgrid.games.path.LocalPathBoardOptions
+import com.datathecodie.witgrid.games.path.PathBoardOptions
+import com.datathecodie.witgrid.games.skyscrapers.LocalSkyscrapersBoardOptions
+import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersBoardOptions
+import com.datathecodie.witgrid.games.sudoku.LocalSudokuBoardOptions
+import com.datathecodie.witgrid.games.sudoku.SudokuBoardOptions
 import com.datathecodie.witgrid.games.tactics.LocalTacticsBoardOptions
 import com.datathecodie.witgrid.games.tactics.TacticsBoardOptions
 import com.datathecodie.witgrid.reminder.AndroidReminderAlarmScheduler
@@ -508,6 +522,13 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         hapticsEnabled = playerData.settings.hapticsEnabled,
                         reduceMotion = playerData.settings.reduceMotion,
                     ),
+                    LocalSudokuBoardOptions provides sudokuBoardOptionsFromSettings(playerData.settings),
+                    LocalKillerSudokuBoardOptions provides killerSudokuBoardOptionsFromSettings(playerData.settings),
+                    LocalFutoshikiBoardOptions provides futoshikiBoardOptionsFromSettings(playerData.settings),
+                    LocalSkyscrapersBoardOptions provides skyscrapersBoardOptionsFromSettings(playerData.settings),
+                    LocalMosaicBoardOptions provides mosaicBoardOptionsFromSettings(playerData.settings),
+                    LocalPathBoardOptions provides pathBoardOptionsFromSettings(playerData.settings),
+                    LocalKlondikeBoardOptions provides klondikeBoardOptionsFromSettings(playerData.settings),
                 ) {
                     if (module != null) {
                         PlayScreenRoute(
