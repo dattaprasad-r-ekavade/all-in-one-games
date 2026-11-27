@@ -5,6 +5,7 @@ import com.datathecodie.witgrid.games.crowns.CrownsGameModule
 import com.datathecodie.witgrid.games.futoshiki.FutoshikiGameModule
 import com.datathecodie.witgrid.games.killersudoku.KillerSudokuGameModule
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuGameModule
+import com.datathecodie.witgrid.games.mosaic.MosaicGameModule
 import com.datathecodie.witgrid.games.nonogram.NonogramGameModule
 import com.datathecodie.witgrid.games.path.PathGameModule
 import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersGameModule
@@ -21,6 +22,7 @@ object GameRegistry {
         FutoshikiGameModule,
         PathGameModule,
         KillerSudokuGameModule,
+        MosaicGameModule,
     )
 
     private val gamesById = games.associateBy { it.id }
