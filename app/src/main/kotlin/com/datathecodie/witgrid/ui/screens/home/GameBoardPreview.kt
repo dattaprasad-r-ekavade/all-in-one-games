@@ -17,6 +17,8 @@ import com.datathecodie.witgrid.engine.binary.BinaryState
 import com.datathecodie.witgrid.engine.binary.BinarySymbol
 import com.datathecodie.witgrid.engine.nonogram.NonogramState
 import com.datathecodie.witgrid.engine.minisudoku.MiniSudokuState
+import com.datathecodie.witgrid.ui.preview.GameMotif
+import com.datathecodie.witgrid.ui.preview.GameMotifKind
 
 /** A decorative board motif; game controls and accessibility belong to the playable board. */
 @Composable
@@ -54,14 +56,43 @@ internal fun GameBoardPreview(gameId: String, modifier: Modifier = Modifier, boa
                     is NonogramState -> if (boardState.marks[index] == Mark.FILLED) drawRect(colors.ink, position, cellSize)
                     is MiniSudokuState -> if (boardState.digits[index] != null) drawRoundRect(colors.accent, position, cellSize, CornerRadius(gap))
                 }
-            } else when (gameId) {
-                "crowns" -> drawRoundRect(regions[if (column > 2) 1 else if (row < 2) 0 else if (column < 2) 2 else 3], position, cellSize, CornerRadius(gap))
-                "binary" -> if ((row + column) % 3 != 1) {
+            } else when (GameMotif.kindFor(gameId)) {
+                GameMotifKind.CROWNS -> drawRoundRect(regions[if (column > 2) 1 else if (row < 2) 0 else if (column < 2) 2 else 3], position, cellSize, CornerRadius(gap))
+                GameMotifKind.BINARY -> if ((row + column) % 3 != 1) {
                     if ((row + column) % 2 == 0) drawCircle(colors.accent, cell / 2.3f, position + Offset(cell / 2, cell / 2))
                     else drawCircle(Color(0xFFC2622F), cell / 2.7f, position + Offset(cell / 2, cell / 2), style = Stroke(cell / 5))
                 }
-                "nonogram" -> if ((row * 3 + column) % 4 != 0) drawRoundRect(colors.ink, position, cellSize, CornerRadius(gap))
-                else -> if ((row + column) % 2 == 0) drawRoundRect(if (index == 12) colors.accent else colors.cardEdge, position, cellSize, CornerRadius(gap))
+                GameMotifKind.NONOGRAM, GameMotifKind.MOSAIC -> if ((row * 3 + column) % 4 != 0) drawRoundRect(colors.ink, position, cellSize, CornerRadius(gap))
+                GameMotifKind.MINI_SUDOKU, GameMotifKind.SUDOKU, GameMotifKind.KILLER_SUDOKU -> {
+                    if ((row + column) % 2 == 0) drawRoundRect(colors.cardEdge, position, cellSize, CornerRadius(gap))
+                    if ((row * 2 + column) % 4 == 0) drawCircle(colors.accent, cell / 4, position + Offset(cell / 2, cell / 2))
+                }
+                GameMotifKind.SKYSCRAPERS -> {
+                    val height = cell * (0.25f + ((row + column * 2) % 4) * 0.16f)
+                    drawRect(colors.accent, Offset(position.x + cell * 0.22f, position.y + cell - height), Size(cell * 0.56f, height))
+                }
+                GameMotifKind.FUTOSHIKI -> {
+                    drawRoundRect(colors.cardEdge, position, cellSize, CornerRadius(gap))
+                    if ((row + column) % 2 == 0) drawLine(colors.accent, position + Offset(cell * .3f, cell * .7f), position + Offset(cell * .7f, cell * .3f), cell * .12f)
+                }
+                GameMotifKind.PATH -> if ((row == column) || (row + column == count - 1)) drawCircle(colors.accent, cell * .28f, position + Offset(cell / 2, cell / 2))
+                GameMotifKind.TACTICS -> {
+                    drawRect(if ((row + column) % 2 == 0) colors.ink else colors.cardEdge, position, cellSize)
+                    if ((row * 3 + column) % 4 == 0) drawCircle(colors.paper, cell * .25f, position + Offset(cell / 2, cell / 2))
+                }
+                GameMotifKind.COLOUR_SORT -> {
+                    drawRoundRect(colors.cardEdge, Offset(position.x + cell * .25f, position.y + cell * .15f), Size(cell * .5f, cell * .7f), CornerRadius(cell * .2f), style = Stroke(cell * .08f))
+                    if ((row + column) % 2 == 0) drawRect(colors.accent, Offset(position.x + cell * .3f, position.y + cell * .55f), Size(cell * .4f, cell * .22f))
+                }
+                GameMotifKind.ARROWS -> {
+                    drawRoundRect(colors.cardEdge, position, cellSize, CornerRadius(gap))
+                    if ((row + column) % 2 == 0) drawLine(colors.accent, position + Offset(cell * .25f, cell * .5f), position + Offset(cell * .75f, cell * .5f), cell * .12f)
+                }
+                GameMotifKind.KLONDIKE -> {
+                    drawRoundRect(colors.cardEdge, Offset(position.x + cell * .12f, position.y + cell * .12f), Size(cell * .76f, cell * .76f), CornerRadius(cell * .18f))
+                    if ((row + column) % 2 == 0) drawCircle(colors.accent, cell * .2f, position + Offset(cell / 2, cell / 2))
+                }
+                GameMotifKind.UNKNOWN -> if ((row + column) % 2 == 0) drawRoundRect(colors.cardEdge, position, cellSize, CornerRadius(gap))
             }
         }
         drawRoundRect(colors.ink, cornerRadius = CornerRadius(8.dp.toPx()), style = Stroke(1.5.dp.toPx()))
