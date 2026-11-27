@@ -355,6 +355,13 @@
     <string name="result_daily_label">%1$s · %2$s · Daily puzzle</string>
     <string name="result_intro_label">%1$s · Guided intro</string>
     <string name="failed_explanation">Continue with one extra mistake, or restart with a fresh board.</string>
+    <string name="failed_explanation_tube">Continue with one extra empty tube, or restart with a fresh board.</string>
+    <string name="failed_explanation_undo">Continue with one extra undo, or restart with a fresh board.</string>
+    <string name="hint_colour_sort_pour">Pour from tube %1$d to tube %2$d.</string>
+    <string name="hint_klondike_draw">Draw the next card from the stock.</string>
+    <string name="hint_klondike_column">column %1$d</string>
+    <string name="hint_klondike_foundation">its foundation</string>
+    <string name="hint_klondike_move_card">Move the %1$s of %2$s to %3$s.</string>
     <string name="stats_solved_label">Levels solved</string>
     <string name="stats_daily_label">Daily solves</string>
     <string name="stats_average_label">Average best</string>
