@@ -406,5 +406,6 @@ internal fun playRulesResource(gameId: String): Int = when (gameId) {
     "coloursort" -> R.string.play_rules_coloursort
     "mosaic" -> R.string.play_rules_mosaic
     "klondike" -> R.string.play_rules_klondike
+    "tactics" -> R.string.play_rules_tactics
     else -> R.string.play_rules_minisudoku
 }

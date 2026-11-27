@@ -22,6 +22,7 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.tactics.Piece
 import com.datathecodie.witgrid.engine.tactics.TacticsBoard as TacticsEngineBoard
 import com.datathecodie.witgrid.engine.tactics.PieceColor
+import com.datathecodie.witgrid.engine.tactics.PieceType
 import com.datathecodie.witgrid.engine.tactics.TacticsRules
 import com.datathecodie.witgrid.engine.tactics.TacticsState
 import com.datathecodie.witgrid.engine.tactics.cellToSquare
@@ -180,9 +181,27 @@ private fun describeTacticsCell(
     val row = cell.index / TACTICS_BOARD_SIZE + 1
     val column = cell.index % TACTICS_BOARD_SIZE + 1
     val square = cellToSquare(cell)
-    val pieceLabel = board.pieceAt(cell)?.toChar()?.toString() ?: "-"
-    return stringResource(R.string.board_cell_accessibility_label, row, column) +
-        ", $square, $pieceLabel"
+    return stringResource(
+        R.string.tactics_cell_accessibility_label,
+        row,
+        column,
+        square,
+        tacticsPieceLabel(board.pieceAt(cell)),
+    )
+}
+
+@Composable
+private fun tacticsPieceLabel(piece: Piece?): String {
+    if (piece == null) return stringResource(R.string.tactics_square_empty)
+    val resource = when (piece.type) {
+        PieceType.KING -> if (piece.color == PieceColor.WHITE) R.string.tactics_white_king else R.string.tactics_black_king
+        PieceType.QUEEN -> if (piece.color == PieceColor.WHITE) R.string.tactics_white_queen else R.string.tactics_black_queen
+        PieceType.ROOK -> if (piece.color == PieceColor.WHITE) R.string.tactics_white_rook else R.string.tactics_black_rook
+        PieceType.BISHOP -> if (piece.color == PieceColor.WHITE) R.string.tactics_white_bishop else R.string.tactics_black_bishop
+        PieceType.KNIGHT -> if (piece.color == PieceColor.WHITE) R.string.tactics_white_knight else R.string.tactics_black_knight
+        PieceType.PAWN -> if (piece.color == PieceColor.WHITE) R.string.tactics_white_pawn else R.string.tactics_black_pawn
+    }
+    return stringResource(resource)
 }
 
 private const val TACTICS_BOARD_SIZE = 8

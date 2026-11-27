@@ -180,6 +180,7 @@
     <string name="game_coloursort">Colour Sort</string>
     <string name="game_mosaic">Mosaic</string>
     <string name="game_klondike">Klondike</string>
+    <string name="game_tactics">Tactics</string>
     <string name="game_unknown">Game</string>
     <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally.</string>
     <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
@@ -194,6 +195,7 @@
     <string name="intro_coach_coloursort">Tap a tube, then tap another to pour. Matching colours stack, and an empty tube takes any colour. Fill each tube with one colour.</string>
     <string name="intro_coach_mosaic">A number is how many filled cells sit in that cell and its neighbours. Fill or Cross until every clue is true.</string>
     <string name="intro_coach_klondike">Build each foundation up in suit from ace to king. Flip tableau cards, and draw from the stock one at a time.</string>
+    <string name="intro_coach_tactics">Tap the piece that mates, then tap the square it moves to. You play the winning side; the opponent does not move in mate in one.</string>
     <string name="reminder_notification_channel_name">Daily puzzle reminder</string>
     <string name="reminder_notification_channel_description">A reminder at the time you choose.</string>
     <string name="reminder_notification_title">Your daily puzzle is ready</string>
@@ -308,6 +310,21 @@
     <string name="play_rules_coloursort">Pour from one tube onto another when the destination is empty or its top colour matches, and there is space. Win when every tube is empty or a single colour. If you get stuck, Continue adds one extra empty tube.</string>
     <string name="play_rules_mosaic">Each number is how many cells are filled in its 3 by 3 area (the cell and its neighbours). Fill or Cross cells until every clue is satisfied. Drag to paint, or long press to clear.</string>
     <string name="play_rules_klondike">Draw-1 Klondike. Build tableau down in alternating colours and foundations up in suit from ace to king. Tap a card, then tap a legal pile. If you get stuck, Continue grants one extra undo.</string>
+    <string name="play_rules_tactics">Each puzzle has a unique mate. Tap a piece on your side, then tap the square it moves to. You play only the winning side; opponent replies are forced. A pawn that reaches the last rank becomes a queen.</string>
+    <string name="tactics_cell_accessibility_label">Row %1$d, column %2$d, square %3$s, %4$s</string>
+    <string name="tactics_square_empty">empty</string>
+    <string name="tactics_white_king">white king</string>
+    <string name="tactics_white_queen">white queen</string>
+    <string name="tactics_white_rook">white rook</string>
+    <string name="tactics_white_bishop">white bishop</string>
+    <string name="tactics_white_knight">white knight</string>
+    <string name="tactics_white_pawn">white pawn</string>
+    <string name="tactics_black_king">black king</string>
+    <string name="tactics_black_queen">black queen</string>
+    <string name="tactics_black_rook">black rook</string>
+    <string name="tactics_black_bishop">black bishop</string>
+    <string name="tactics_black_knight">black knight</string>
+    <string name="tactics_black_pawn">black pawn</string>
     <string name="play_restart_message">Clear your entries and start this puzzle again?</string>
     <string name="play_cancel">Cancel</string>
     <string name="play_crowns_count">%1$d of %2$d crowns placed</string>

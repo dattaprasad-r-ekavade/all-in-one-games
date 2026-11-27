@@ -8,11 +8,11 @@ import com.datathecodie.witgrid.engine.tactics.TacticsState
 import com.datathecodie.witgrid.games.EngineGameModule
 import com.datathecodie.witgrid.games.GameModule
 
-/** Tactics bank behaviour and its tap-move board. Registration lives in CTC. */
+/** Tactics bank behaviour and its tap-move board. */
 object TacticsGameModule : GameModule<TacticsPuzzle, TacticsState> by EngineGameModule(
     engine = TacticsEngine,
     puzzleOf = TacticsState::puzzle,
-    intro = null,
+    intro = Intro.definition,
     interstitialRule = { 2 },
 ) {
     @Composable

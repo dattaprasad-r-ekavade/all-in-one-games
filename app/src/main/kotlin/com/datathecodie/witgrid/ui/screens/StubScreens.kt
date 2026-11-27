@@ -127,5 +127,6 @@ private fun gameNameResource(gameId: String): Int = when (gameId) {
     "coloursort" -> R.string.game_coloursort
     "mosaic" -> R.string.game_mosaic
     "klondike" -> R.string.game_klondike
+    "tactics" -> R.string.game_tactics
     else -> R.string.game_unknown
 }

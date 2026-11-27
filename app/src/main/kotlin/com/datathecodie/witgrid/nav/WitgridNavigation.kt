@@ -71,6 +71,8 @@ import com.datathecodie.witgrid.games.minisudoku.LocalMiniSudokuBoardOptions
 import com.datathecodie.witgrid.games.minisudoku.MiniSudokuBoardOptions
 import com.datathecodie.witgrid.games.nonogram.LocalNonogramBoardOptions
 import com.datathecodie.witgrid.games.nonogram.NonogramBoardOptions
+import com.datathecodie.witgrid.games.tactics.LocalTacticsBoardOptions
+import com.datathecodie.witgrid.games.tactics.TacticsBoardOptions
 import com.datathecodie.witgrid.reminder.AndroidReminderAlarmScheduler
 import com.datathecodie.witgrid.reminder.AndroidReminderPermissionStatus
 import com.datathecodie.witgrid.reminder.ReminderController
@@ -502,6 +504,10 @@ fun WitgridNavigation(navigator: AppNavigator) {
                         hapticsEnabled = playerData.settings.hapticsEnabled,
                         reduceMotion = playerData.settings.reduceMotion,
                     ),
+                    LocalTacticsBoardOptions provides TacticsBoardOptions(
+                        hapticsEnabled = playerData.settings.hapticsEnabled,
+                        reduceMotion = playerData.settings.reduceMotion,
+                    ),
                 ) {
                     if (module != null) {
                         PlayScreenRoute(
@@ -824,6 +830,7 @@ private fun gameTitleResource(gameId: String): Int = when (gameId) {
     "coloursort" -> R.string.game_coloursort
     "mosaic" -> R.string.game_mosaic
     "klondike" -> R.string.game_klondike
+    "tactics" -> R.string.game_tactics
     else -> R.string.game_unknown
 }
 
