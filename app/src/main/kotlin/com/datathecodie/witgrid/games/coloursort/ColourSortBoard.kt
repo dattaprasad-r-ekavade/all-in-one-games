@@ -70,6 +70,7 @@ import com.datathecodie.witgrid.engine.coloursort.ColourSortPuzzle
 import com.datathecodie.witgrid.engine.coloursort.ColourSortRules
 import com.datathecodie.witgrid.engine.coloursort.ColourSortState
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.ui.board.LocalBoardHighlightCells
 import com.datathecodie.witgrid.ui.board.rememberBoardHaptics
 import com.datathecodie.witgrid.ui.theme.HatchPattern
 import com.datathecodie.witgrid.ui.theme.RegionStyle
@@ -92,6 +93,7 @@ fun ColourSortBoard(
     val haptics = rememberBoardHaptics(options.hapticsEnabled)
     val colors = WitgridTheme.colors
     val textMeasurer = rememberTextMeasurer()
+    val highlightedTubes = LocalBoardHighlightCells.current.map { it.index }.toSet()
 
     // Clear stale selection if undo, restart, or Continue alters the selected tube out from under it.
     LaunchedEffect(state.tubes) {
@@ -166,6 +168,7 @@ fun ColourSortBoard(
                                 tubeIndex = tubeIndex,
                                 tube = tube,
                                 isSelected = isSelected,
+                                isHinted = tubeIndex in highlightedTubes,
                                 isLegalDestination = isLegalDest,
                                 metrics = metrics,
                                 options = options,
@@ -203,6 +206,7 @@ private fun TubeItem(
     tubeIndex: Int,
     tube: List<Int>,
     isSelected: Boolean,
+    isHinted: Boolean,
     isLegalDestination: Boolean,
     metrics: TubeGridMetrics,
     options: ColourSortBoardOptions,
@@ -264,6 +268,7 @@ private fun TubeItem(
             drawTube(
                 tube = tube,
                 isSelected = isSelected,
+                isHinted = isHinted,
                 isLegalDestination = isLegalDestination,
                 isSortedFull = isSortedFull,
                 showColourAids = options.showColourAids,
@@ -295,6 +300,7 @@ private fun describeTube(tubeIndex: Int, tube: List<Int>, isSelected: Boolean): 
 private fun DrawScope.drawTube(
     tube: List<Int>,
     isSelected: Boolean,
+    isHinted: Boolean,
     isLegalDestination: Boolean,
     isSortedFull: Boolean,
     showColourAids: Boolean,
@@ -427,13 +433,13 @@ private fun DrawScope.drawTube(
     }
 
     val outlineColor = when {
-        isSelected -> colors.accent
+        isSelected || isHinted -> colors.accent
         isLegalDestination -> colors.accent.copy(alpha = DESTINATION_OUTLINE_ALPHA)
         isSortedFull -> colors.ink
         else -> colors.ink.copy(alpha = IDLE_OUTLINE_ALPHA)
     }
     val outlineWidth = when {
-        isSelected -> SELECTED_STROKE_DP.dp.toPx()
+        isSelected || isHinted -> SELECTED_STROKE_DP.dp.toPx()
         isLegalDestination || isSortedFull -> EMPHASIS_STROKE_DP.dp.toPx()
         else -> IDLE_STROKE_DP.dp.toPx()
     }
