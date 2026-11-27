@@ -5,7 +5,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 /** Options the play screen can provide from persisted settings. */
 data class CrownsBoardOptions(
     val showRegionAids: Boolean = false,
-    val autoXEnabled: Boolean = false,
+    val autoXEnabled: Boolean = true,
     val hapticsEnabled: Boolean = true,
     val reduceMotion: Boolean = false,
 )

@@ -19,9 +19,21 @@ internal object CrownsBoardInput {
         return buildList {
             add(Move.SetMark(cell, nextMark))
             if (nextMark == Mark.FILLED && autoXEnabled) {
-                state.puzzle.grid.neighbours(cell).forEach { neighbour ->
-                    if (state.marks[neighbour.index] == Mark.EMPTY) {
-                        add(Move.SetMark(neighbour, Mark.CROSSED))
+                val grid = state.puzzle.grid
+                val row = grid.row(cell)
+                val column = grid.column(cell)
+                val region = state.puzzle.regions[cell.index]
+                val neighbours = grid.neighbours(cell).toSet()
+                for (index in state.marks.indices) {
+                    val candidate = grid.cell(index / grid.size, index % grid.size)
+                    val sameLine = grid.row(candidate) == row || grid.column(candidate) == column
+                    val sameRegion = state.puzzle.regions[index] == region
+                    val touching = candidate in neighbours
+                    if (index != cell.index &&
+                        (sameLine || sameRegion || touching) &&
+                        state.marks[index] == Mark.EMPTY
+                    ) {
+                        add(Move.SetMark(candidate, Mark.CROSSED))
                     }
                 }
             }

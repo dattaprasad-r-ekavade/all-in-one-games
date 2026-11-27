@@ -73,7 +73,7 @@ class DataStorePlayerDataRepository(
                 } ?: ThemeMode.SYSTEM,
                 colourwayId = preferences[COLOURWAY_ID] ?: "indigo",
                 crownsShowRegionAids = preferences[CROWNS_SHOW_REGION_AIDS] ?: AppSettings().crownsShowRegionAids,
-                crownsAutoXEnabled = preferences[CROWNS_AUTO_X_ENABLED] ?: false,
+                crownsAutoXEnabled = preferences[CROWNS_AUTO_X_ENABLED] ?: true,
                 nonogramAutoCrossEnabled = preferences[NONOGRAM_AUTO_CROSS_ENABLED] ?: false,
                 reduceMotion = preferences[REDUCE_MOTION] ?: false,
                 welcomeSeen = preferences[WELCOME_SEEN] ?: false,

@@ -45,7 +45,10 @@ class CrownsGestureHistoryTest {
         controller.applyGesture(CrownsBoardInput.tapMoves(beforeCrown, crownCell, true))
         val afterCrown = controller.snapshot.value.state
         assertEquals(Mark.FILLED, afterCrown.marks[crownCell.index])
-        assertTrue(puzzle.grid.neighbours(crownCell).all { afterCrown.marks[it.index] == Mark.CROSSED })
+        val grid = puzzle.grid
+        assertEquals(Mark.CROSSED, afterCrown.marks[Cell(6).index])
+        assertEquals(Mark.CROSSED, afterCrown.marks[Cell(32).index])
+        assertTrue(grid.neighbours(crownCell).all { afterCrown.marks[it.index] == Mark.CROSSED })
 
         assertTrue(controller.undo())
         assertEquals(beforeCrown, controller.snapshot.value.state)
