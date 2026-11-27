@@ -12,7 +12,7 @@ import com.datathecodie.witgrid.games.PlayGameModule
 object ColourSortGameModule : PlayGameModule<ColourSortPuzzle, ColourSortState, ColourSortAction> by EnginePlayGameModule(
     engine = ColourSortEngine,
     puzzleOf = ColourSortState::puzzle,
-    intro = Intro.definition,
+    intro = null,
     interstitialRule = { 2 },
 ) {
     @Composable

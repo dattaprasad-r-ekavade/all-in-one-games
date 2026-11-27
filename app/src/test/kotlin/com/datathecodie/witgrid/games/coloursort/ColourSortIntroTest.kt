@@ -37,16 +37,14 @@ class ColourSortIntroTest {
     }
 
     @Test
-    fun introAssetLoadsAsFirstEasyLevelAndSolvesToNextRegularLevel() {
+    fun easyStartsWithNumberedLevelOne() {
         val bank = assetFileBankSource()
         val refs = ColourSortGameModule.levelRefs(Pack.EASY, bank)
-        val introRef = refs.first()
+        val firstRef = refs.first()
+        assertFalse(firstRef.isIntro)
+        assertEquals(1L, firstRef.levelNumber)
 
-        assertTrue(introRef.isIntro)
-        assertEquals("CS-INTRO-01", introRef.levelId)
-        assertEquals(R.string.intro_coach_coloursort, introRef.introCoachLineResourceId)
-
-        val level = ColourSortGameModule.loadLevel(introRef, bank)
+        val level = ColourSortGameModule.loadLevel(firstRef, bank)
         assertEquals(4, level.size)
         var state = ColourSortGameModule.newState(level)
         assertFalse(ColourSortGameModule.isWon(level, state))
@@ -56,10 +54,6 @@ class ColourSortIntroTest {
         }
         assertTrue(ColourSortGameModule.isWon(level, state))
 
-        val next = ColourSortGameModule.nextLevelRef(introRef, bank)
-        assertEquals(1L, next?.levelNumber)
-        assertFalse(next!!.isIntro)
-        assertEquals(refs[1].levelId, next.levelId)
     }
 
     @Test

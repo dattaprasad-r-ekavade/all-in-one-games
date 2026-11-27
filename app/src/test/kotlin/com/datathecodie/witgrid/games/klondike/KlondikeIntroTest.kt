@@ -33,25 +33,19 @@ class KlondikeIntroTest {
     }
 
     @Test
-    fun introAssetLoadsAsFirstEasyLevel() {
+    fun easyStartsWithNumberedLevelOne() {
         val bank = assetFileBankSource()
         val refs = KlondikeGameModule.levelRefs(Pack.EASY, bank)
-        val introRef = refs.first()
+        val firstRef = refs.first()
+        assertFalse(firstRef.isIntro)
+        assertEquals(1L, firstRef.levelNumber)
 
-        assertTrue(introRef.isIntro)
-        assertEquals("KL-INTRO-01", introRef.levelId)
-        assertEquals(R.string.intro_coach_klondike, introRef.introCoachLineResourceId)
-
-        val level = KlondikeGameModule.loadLevel(introRef, bank)
+        val level = KlondikeGameModule.loadLevel(firstRef, bank)
         assertEquals(52, level.size)
         val start = KlondikeGameModule.newState(level)
         assertFalse(KlondikeGameModule.isWon(level, start))
         assertFalse(KlondikeGameModule.isLost(level, start))
 
-        val next = KlondikeGameModule.nextLevelRef(introRef, bank)
-        assertEquals(1L, next?.levelNumber)
-        assertFalse(next!!.isIntro)
-        assertEquals(refs[1].levelId, next.levelId)
     }
 
     private fun assetFileBankSource(): BankSource {

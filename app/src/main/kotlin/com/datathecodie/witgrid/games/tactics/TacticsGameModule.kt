@@ -12,7 +12,7 @@ import com.datathecodie.witgrid.games.GameModule
 object TacticsGameModule : GameModule<TacticsPuzzle, TacticsState> by EngineGameModule(
     engine = TacticsEngine,
     puzzleOf = TacticsState::puzzle,
-    intro = Intro.definition,
+    intro = null,
     interstitialRule = { 2 },
 ) {
     @Composable

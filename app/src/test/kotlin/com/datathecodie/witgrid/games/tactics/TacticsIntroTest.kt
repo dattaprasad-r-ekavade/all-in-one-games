@@ -48,24 +48,17 @@ class TacticsIntroTest {
     }
 
     @Test
-    fun introAssetLoadsAsFirstEasyLevel() {
+    fun easyStartsWithNumberedLevelOne() {
         val bank = assetFileBankSource()
         val refs = TacticsGameModule.levelRefs(Pack.EASY, bank)
-        val introRef = refs.first()
+        val firstRef = refs.first()
+        assertFalse(firstRef.isIntro)
+        assertEquals(1L, firstRef.levelNumber)
 
-        assertTrue(introRef.isIntro)
-        assertEquals("CT-INTRO-01", introRef.levelId)
-        assertEquals(R.string.intro_coach_tactics, introRef.introCoachLineResourceId)
-
-        val level = TacticsGameModule.loadLevel(introRef, bank)
+        val level = TacticsGameModule.loadLevel(firstRef, bank)
         assertEquals(8, level.size)
         val start = TacticsGameModule.newState(level)
         assertFalse(TacticsGameModule.isSolved(level, start))
-
-        val next = TacticsGameModule.nextLevelRef(introRef, bank)
-        assertEquals(1L, next?.levelNumber)
-        assertFalse(next!!.isIntro)
-        assertEquals(refs[1].levelId, next.levelId)
     }
 
     private fun assetFileBankSource(): BankSource {

@@ -12,7 +12,7 @@ import com.datathecodie.witgrid.games.PlayGameModule
 object KlondikeGameModule : PlayGameModule<KlondikePuzzle, KlondikeState, CardMove> by EnginePlayGameModule(
     engine = KlondikeEngine,
     puzzleOf = KlondikeState::puzzle,
-    intro = Intro.definition,
+    intro = null,
     interstitialRule = { 1 },
 ) {
     @Composable

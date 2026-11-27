@@ -12,7 +12,7 @@ import com.datathecodie.witgrid.games.GameModule
 object SudokuGameModule : GameModule<SudokuPuzzle, SudokuState> by EngineGameModule(
     engine = SudokuEngine,
     puzzleOf = SudokuState::puzzle,
-    intro = Intro.definition,
+    intro = null,
     interstitialRule = { 1 },
 ) {
     @Composable
