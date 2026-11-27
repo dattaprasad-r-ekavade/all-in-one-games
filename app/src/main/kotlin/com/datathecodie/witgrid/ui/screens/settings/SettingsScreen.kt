@@ -281,8 +281,6 @@ fun SettingsScreen(
                     editedSettings.mistakeLimitEnabled) { updateSettings(editedSettings.copy(mistakeLimitEnabled = it)) }
                 AssistSetting(R.string.settings_haptics, R.string.settings_haptics_subtitle,
                     editedSettings.hapticsEnabled) { updateSettings(editedSettings.copy(hapticsEnabled = it)) }
-                AssistSetting(R.string.settings_sound, R.string.settings_sound_subtitle,
-                    editedSettings.soundEnabled) { updateSettings(editedSettings.copy(soundEnabled = it)) }
                 AssistSetting(R.string.settings_reduce_motion, R.string.settings_motion_subtitle,
                     editedSettings.reduceMotion) { updateSettings(editedSettings.copy(reduceMotion = it)) }
             }
