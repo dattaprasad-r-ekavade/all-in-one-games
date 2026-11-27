@@ -4,16 +4,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
 import com.datathecodie.witgrid.R
@@ -31,8 +26,6 @@ import com.datathecodie.witgrid.ui.board.rememberBoardHaptics
 import com.datathecodie.witgrid.ui.theme.NumberStyles
 import com.datathecodie.witgrid.ui.theme.WitgridColors
 import com.datathecodie.witgrid.ui.theme.WitgridTheme
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
 
 @Composable
 fun TacticsBoard(
@@ -46,50 +39,57 @@ fun TacticsBoard(
     val board = state.currentBoard
     val colors = WitgridTheme.colors
     val textMeasurer = rememberTextMeasurer()
-    val whitePieceStyle = NumberStyles.cell.copy(
-        color = colors.ink,
-        fontWeight = FontWeight.Bold,
-        fontSize = PIECE_LABEL_SIZE_SP.sp,
-    )
-    val blackPieceStyle = NumberStyles.cell.copy(
-        color = colors.mutedInk,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = PIECE_LABEL_SIZE_SP.sp,
-    )
+    val coordinateStyle = NumberStyles.cell.copy(color = colors.ink, fontSize = 10.sp)
+    val isBlackToMove = puzzle.sideToMove == PieceColor.BLACK
     val haptics = rememberBoardHaptics(options.hapticsEnabled)
     val mistakeCells = remember(state) {
         TacticsRules.mistakes(puzzle, state).map { it.index }.toSet()
+    }
+    val legalTargets = remember(state) {
+        state.pendingFrom?.let { from -> board.legalMoves().filter { it.from == from }.map { it.to }.toSet() }.orEmpty()
     }
     val errorFill = MaterialTheme.colorScheme.error.copy(alpha = MISTAKE_FILL_ALPHA)
 
     BoardCanvas(
         gridSize = TACTICS_BOARD_SIZE,
-        cellDescription = { cell -> describeTacticsCell(board, cell) },
+        cellDescription = { displayCell -> describeTacticsCell(board, TacticsBoardInput.displayCellToEngineCell(isBlackToMove, displayCell)) },
         modifier = modifier,
         solved = TacticsRules.isSolved(puzzle, state),
         reduceMotion = options.reduceMotion,
         hapticsEnabled = options.hapticsEnabled,
         dragPaintEnabled = false,
         drawCell = { cell, bounds ->
-            val row = cell.index / TACTICS_BOARD_SIZE
+            val displayRow = cell.index / TACTICS_BOARD_SIZE
             val column = cell.index % TACTICS_BOARD_SIZE
+            val rankFromWhite = TacticsBoardInput.displayRowToRankFromWhite(isBlackToMove, displayRow)
+            val row = 7 - rankFromWhite
+            val engineCell = Cell(row * TACTICS_BOARD_SIZE + column)
             val lightSquare = (row + column) % 2 == 0
             val squareColor = if (lightSquare) colors.card else colors.paper
             drawRect(squareColor, topLeft = bounds.topLeft, size = bounds.size)
 
-            highlightSquare(bounds, state, cell.index, colors, errorFill, mistakeCells)
+            highlightSquare(bounds, state, engineCell.index, colors, errorFill, mistakeCells)
             drawPiece(
-                piece = board.pieceAt(cell),
+                piece = board.pieceAt(engineCell),
                 bounds = bounds,
-                textMeasurer = textMeasurer,
-                whiteStyle = whitePieceStyle,
-                blackStyle = blackPieceStyle,
+                colors = colors,
             )
+            if (column == 0) {
+                drawText(textMeasurer.measure((rankFromWhite + 1).toString(), coordinateStyle), topLeft = bounds.topLeft + androidx.compose.ui.geometry.Offset(2f, 1f))
+            }
+            if (displayRow == 7) {
+                drawText(textMeasurer.measure(('a' + column).toString(), coordinateStyle), topLeft = bounds.topLeft + androidx.compose.ui.geometry.Offset(bounds.width - 10f, bounds.height - 13f))
+            }
+            if (engineCell in legalTargets) {
+                    drawCircle(colors.accent.copy(alpha = 0.72f), radius = bounds.width * if (board.pieceAt(engineCell) == null) 0.13f else 0.34f, center = bounds.center,
+                        style = if (board.pieceAt(engineCell) == null) androidx.compose.ui.graphics.drawscope.Fill else androidx.compose.ui.graphics.drawscope.Stroke(bounds.width * 0.07f))
+            }
         },
         onCellTap = { cell ->
+            val engineCell = TacticsBoardInput.displayCellToEngineCell(isBlackToMove, cell)
             val moves = TacticsBoardInput.tapMoves(state, cell)
-            val willPlace = state.pendingFrom != null && state.pendingFrom != cell
-            if (willPlace || (state.pendingFrom == null && board.pieceAt(cell)?.color == puzzle.sideToMove)) {
+            val willPlace = state.pendingFrom != null && state.pendingFrom != engineCell
+            if (willPlace || (state.pendingFrom == null && board.pieceAt(engineCell)?.color == puzzle.sideToMove)) {
                 haptics.placement()
             }
             onMoves(moves)
@@ -139,39 +139,7 @@ private fun DrawScope.highlightSquare(
     }
 }
 
-private fun DrawScope.drawPiece(
-    piece: Piece?,
-    bounds: Rect,
-    textMeasurer: TextMeasurer,
-    whiteStyle: TextStyle,
-    blackStyle: TextStyle,
-) {
-    if (piece == null) return
-    val label = piece.toChar().toString()
-    val style = if (piece.color == PieceColor.WHITE) whiteStyle else blackStyle
-    val text = textMeasurer.measure(AnnotatedString(label), style = style)
-    drawCenteredLabel(text, bounds)
-}
-
-private fun DrawScope.drawCenteredLabel(
-    text: TextLayoutResult,
-    bounds: Rect,
-) {
-    val labelScale = minOf(
-        1f,
-        bounds.width * LABEL_SIZE_FRACTION / text.size.width.coerceAtLeast(1),
-        bounds.height * LABEL_SIZE_FRACTION / text.size.height.coerceAtLeast(1),
-    )
-    scale(labelScale, pivot = bounds.center) {
-        drawText(
-            text,
-            topLeft = Offset(
-                x = bounds.center.x - text.size.width / 2f,
-                y = bounds.center.y - text.size.height / 2f,
-            ),
-        )
-    }
-}
+private fun DrawScope.drawPiece(piece: Piece?, bounds: Rect, colors: WitgridColors) = drawTacticsPiece(piece, bounds, colors)
 
 @Composable
 private fun describeTacticsCell(
@@ -205,8 +173,6 @@ private fun tacticsPieceLabel(piece: Piece?): String {
 }
 
 private const val TACTICS_BOARD_SIZE = 8
-private const val PIECE_LABEL_SIZE_SP = 22
-private const val LABEL_SIZE_FRACTION = 0.72f
 private const val SELECTION_FILL_ALPHA = 0.22f
 private const val OPPONENT_MOVE_FILL_ALPHA = 0.14f
 private const val MISTAKE_FILL_ALPHA = 0.28f

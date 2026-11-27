@@ -5,6 +5,7 @@ import com.datathecodie.witgrid.engine.core.Move
 import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.tactics.ChessMove
 import com.datathecodie.witgrid.engine.tactics.PieceColor
+import com.datathecodie.witgrid.engine.tactics.PieceType
 import com.datathecodie.witgrid.engine.tactics.TacticsBoard
 import com.datathecodie.witgrid.engine.tactics.TacticsEngine
 import com.datathecodie.witgrid.engine.tactics.TacticsPuzzle
@@ -17,6 +18,14 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class TacticsBoardInputTest {
+
+    @Test
+    fun boardCoordinatesPutTheMovingSideAtTheBottom() {
+        assertEquals((7 downTo 0).toList(), (0..7).map { tacticsBoardDisplayRow(false, it) })
+        assertEquals((0..7).toList(), (0..7).map { tacticsBoardDisplayRow(true, it) })
+        assertEquals(com.datathecodie.witgrid.engine.core.Cell(0), TacticsBoardInput.displayCellToEngineCell(false, com.datathecodie.witgrid.engine.core.Cell(0)))
+        assertEquals(com.datathecodie.witgrid.engine.core.Cell(56), TacticsBoardInput.displayCellToEngineCell(true, com.datathecodie.witgrid.engine.core.Cell(0)))
+    }
 
     @Test
     fun mateInOneFixtureSolvesThroughTapPicks() {
