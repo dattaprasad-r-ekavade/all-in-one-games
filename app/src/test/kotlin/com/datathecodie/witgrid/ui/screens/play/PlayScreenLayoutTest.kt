@@ -32,6 +32,29 @@ class PlayScreenLayoutTest {
     }
 
     @Test
+    fun zoomIsHiddenForBoardlessCardAndTubeGames() {
+        assertFalse(supportsBoardZoom("coloursort"))
+        assertFalse(supportsBoardZoom("klondike"))
+        assertTrue(supportsBoardZoom("crowns"))
+        assertTrue(supportsBoardZoom("tactics"))
+    }
+
+    @Test
+    fun hintBadgeDoesNotShowZeroWhenFreeDailyHintIsAvailable() {
+        assertEquals(null, visibleHintBadge("0"))
+        assertEquals("2", visibleHintBadge("2"))
+        assertEquals(null, visibleHintBadge(null))
+        assertEquals(null, visibleHintBadge(""))
+    }
+
+    @Test
+    fun tacticsMateRemainingUsesHorizonMinusCompletedMoves() {
+        assertEquals(2, tacticsMateRemaining(mateIn = 2, completedPlayerMoves = 0))
+        assertEquals(1, tacticsMateRemaining(mateIn = 2, completedPlayerMoves = 1))
+        assertEquals(1, tacticsMateRemaining(mateIn = 1, completedPlayerMoves = 1))
+    }
+
+    @Test
     fun formatDurationFormatsMinutesAndSeconds() {
         assertEquals("0:00", formatDuration(0L))
         assertEquals("0:05", formatDuration(5_000L))

@@ -337,6 +337,9 @@
     <string name="play_cancel">Cancel</string>
     <string name="play_crowns_count">%1$d of %2$d crowns placed</string>
     <string name="play_cells_count">%1$d of %2$d cells filled</string>
+    <string name="play_tactics_status">%1$s to move \u00b7 Mate in %2$d</string>
+    <string name="play_tactics_white">White</string>
+    <string name="play_tactics_black">Black</string>
     <string name="play_marked_count">%1$d of %2$d cells marked</string>
     <string name="play_status_with_mistakes">%1$s \u00b7 %2$s</string>
     <string name="play_digit_left">%1$d left</string>
