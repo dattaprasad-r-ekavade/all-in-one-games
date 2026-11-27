@@ -19,5 +19,5 @@ val LocalKlondikeBoardOptions = staticCompositionLocalOf { KlondikeBoardOptions(
 internal fun klondikeRedSuitRgb(darkTheme: Boolean): Int =
     if (darkTheme) Colourway.RUST.darkAccent else Colourway.RUST.lightAccent
 
-/** Card moves snap to the new pile. Reduce motion and full motion both skip travel animation. */
-internal fun klondikeMoveDurationMillis(reduceMotion: Boolean): Int = if (reduceMotion) 0 else 0
+/** Reduce motion keeps pile changes immediate; otherwise the layout eases into its new shape. */
+internal fun klondikeMoveDurationMillis(reduceMotion: Boolean): Int = if (reduceMotion) 0 else 180

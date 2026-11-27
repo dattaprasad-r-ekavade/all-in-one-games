@@ -1,11 +1,10 @@
 package com.datathecodie.witgrid.games.klondike
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -39,8 +38,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -57,12 +58,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.datathecodie.witgrid.R
 import com.datathecodie.witgrid.engine.core.Pack
+import com.datathecodie.witgrid.engine.core.Cell
 import com.datathecodie.witgrid.engine.klondike.Card
 import com.datathecodie.witgrid.engine.klondike.CardMove
 import com.datathecodie.witgrid.engine.klondike.KlondikePuzzle
+import com.datathecodie.witgrid.engine.klondike.KlondikeRules
 import com.datathecodie.witgrid.engine.klondike.KlondikeState
 import com.datathecodie.witgrid.engine.klondike.Suit
 import com.datathecodie.witgrid.ui.board.rememberBoardHaptics
+import com.datathecodie.witgrid.ui.board.LocalBoardHighlightCells
 import com.datathecodie.witgrid.ui.theme.NumberStyles
 import com.datathecodie.witgrid.ui.theme.Spacing
 import com.datathecodie.witgrid.ui.theme.WitgridColors
@@ -80,10 +84,16 @@ fun KlondikeBoard(
     val haptics = rememberBoardHaptics(options.hapticsEnabled)
     val colors = WitgridTheme.colors
     val textMeasurer = rememberTextMeasurer()
+    val viewConfiguration = LocalViewConfiguration.current
+    var isDragging by remember { mutableStateOf(false) }
+    var dragPosition by remember { mutableStateOf(Offset.Zero) }
 
     // Undo, restart, and Continue replace the piles under the selection.
     LaunchedEffect(state.tableau, state.waste, state.foundations, state.stock, state.moveCount) {
         selection = KlondikeBoardInput.activeSelection(state, selection)
+    }
+    LaunchedEffect(state.tableau, state.waste, state.foundations, state.stock, state.moveCount, options.reduceMotion) {
+        if (!KlondikeRules.isWon(state)) KlondikeBoardInput.autoCompleteMove(state)?.let(onAction)
     }
 
     val onHit: (KlondikeHit) -> Unit = { hit ->
@@ -117,7 +127,60 @@ fun KlondikeBoard(
         val boxModifier = if (boundedHeight) Modifier.fillMaxSize() else Modifier.fillMaxWidth()
 
         Box(modifier = boxModifier, contentAlignment = Alignment.TopCenter) {
-            Column(verticalArrangement = Arrangement.spacedBy(metrics.rowGapDp.dp)) {
+            Column(
+                modifier = Modifier.pointerInput(state, metrics, selection, viewConfiguration) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown()
+                        val startHit = KlondikeBoardLayout.hitAt(
+                            xDp = down.position.x.toDp().value,
+                            yDp = down.position.y.toDp().value,
+                            state = state,
+                            metrics = metrics,
+                            snapForDrop = false,
+                        ) ?: return@awaitEachGesture
+                        var dragging = false
+                        var last = down.position
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            last = change.position
+                            if (!dragging && (last - down.position).getDistance() > viewConfiguration.touchSlop) {
+                                val source = KlondikeBoardInput.selectionAt(state, startHit)
+                                if (source != null) {
+                                    dragging = true
+                                    isDragging = true
+                                    selection = source
+                                    dragPosition = last
+                                    change.consume()
+                                }
+                            } else if (dragging) {
+                                dragPosition = last
+                                change.consume()
+                            }
+                            if (change.changedToUp() || !change.pressed) break
+                        }
+                        if (dragging) {
+                            val dest = KlondikeBoardLayout.hitAt(
+                                xDp = last.x.toDp().value,
+                                yDp = last.y.toDp().value,
+                                state = state,
+                                metrics = metrics,
+                                snapForDrop = true,
+                            )
+                            val move = dest?.let { KlondikeBoardInput.dragMove(state, selection, it) }
+                            if (move != null) {
+                                haptics.placement()
+                                onAction(move)
+                                selection = null
+                            }
+                            isDragging = false
+                        } else {
+                            onHit(startHit)
+                        }
+                    }
+                },
+                verticalArrangement = Arrangement.spacedBy(metrics.rowGapDp.dp),
+            ) {
                 TopRow(
                     state = state,
                     selection = selection,
@@ -134,6 +197,27 @@ fun KlondikeBoard(
                     textMeasurer = textMeasurer,
                     onHit = onHit,
                 )
+            }
+            if (isDragging) {
+                val dragged = KlondikeBoardInput.cardsForSelection(state, selection)
+                Box(
+                    modifier = Modifier.offset {
+                        IntOffset(
+                            (dragPosition.x - metrics.cardWidthDp.dp.toPx() / 2f).toInt(),
+                            (dragPosition.y - metrics.cardHeightDp.dp.toPx() / 4f).toInt(),
+                        )
+                    },
+                ) {
+                    dragged.forEachIndexed { index, card ->
+                        Canvas(
+                            modifier = Modifier
+                                .offset(y = (index * metrics.faceUpPeekDp).dp)
+                                .size(metrics.cardWidthDp.dp, metrics.cardHeightDp.dp),
+                        ) {
+                            drawCardFace(card, selected = true, legalDest = false, colors = colors, textMeasurer = textMeasurer)
+                        }
+                    }
+                }
             }
         }
     }
@@ -161,7 +245,7 @@ private fun TopRow(
         ) { legalDest ->
             val top = state.stock.lastOrNull()
             if (top == null) {
-                drawEmptySlot(colors, suit = null, legalDest = legalDest)
+                drawEmptySlot(colors, suit = null, legalDest = legalDest, recycle = KlondikeBoardInput.shouldShowRecycle(state))
             } else {
                 drawCardFace(top, selected = false, legalDest = legalDest, colors = colors, textMeasurer = textMeasurer)
             }
@@ -247,6 +331,13 @@ private fun PileSlot(
     onHit: (KlondikeHit) -> Unit,
     draw: DrawScope.(legalDest: Boolean) -> Unit,
 ) {
+    val highlightIndex = when (pile) {
+        KlondikePile.Waste -> 1
+        is KlondikePile.Foundation -> 3
+        is KlondikePile.Tableau -> 7 + pile.column
+        KlondikePile.Stock -> -1
+    }
+    val isHinted = Cell(highlightIndex) in LocalBoardHighlightCells.current
     val description = describePile(state, pile, selection)
     val label = KlondikeBoardInput.pileLabel(state, pile, selection)
     val legalDest = KlondikeBoardInput.isLegalDestination(state, selection, KlondikeBoardInput.accessibilityHit(state, pile))
@@ -254,19 +345,22 @@ private fun PileSlot(
         modifier = Modifier
             .testTag(testTag)
             .size(width = metrics.cardWidthDp.dp, height = metrics.cardHeightDp.dp)
+            .animateContentSize(animationSpec = tween(klondikeMoveDurationMillis(LocalKlondikeBoardOptions.current.reduceMotion)))
             .semantics {
+                role = Role.Button
                 selected = label.selected
                 contentDescription = description
-            }
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                role = Role.Button,
-                onClick = { onHit(KlondikeBoardInput.accessibilityHit(state, pile)) },
-            ),
+                onClick {
+                    onHit(KlondikeBoardInput.accessibilityHit(state, pile))
+                    true
+                }
+            },
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             draw(legalDest)
+            if (isHinted) {
+                drawRoundRect(colors.accent, style = Stroke(width = 3.dp.toPx()), cornerRadius = CornerRadius(6.dp.toPx()))
+            }
         }
     }
 }
@@ -281,6 +375,7 @@ private fun TableauColumn(
     textMeasurer: TextMeasurer,
     onHit: (KlondikeHit) -> Unit,
 ) {
+    val isHinted = Cell(7 + column) in LocalBoardHighlightCells.current
     val pile = state.tableau[column]
     val geometry = KlondikeBoardLayout.columnGeometry(pile, metrics)
     val pileId = KlondikePile.Tableau(column)
@@ -297,6 +392,7 @@ private fun TableauColumn(
             .testTag("klondike-column-$column")
             .width(metrics.cardWidthDp.dp)
             .height(geometry.columnHeightDp.dp)
+            .animateContentSize(animationSpec = tween(klondikeMoveDurationMillis(LocalKlondikeBoardOptions.current.reduceMotion)))
             .semantics {
                 role = Role.Button
                 selected = label.selected
@@ -305,19 +401,12 @@ private fun TableauColumn(
                     onHit(KlondikeBoardInput.accessibilityHit(state, pileId))
                     true
                 }
-            }
-            .pointerInput(state, selection, geometry) {
-                detectTapGestures { offset ->
-                    val yDp = offset.y.toDp().value
-                    if (!KlondikeBoardLayout.tapInsideColumn(geometry, yDp)) return@detectTapGestures
-                    val index = if (pile.isEmpty()) null else KlondikeBoardLayout.cardIndexAt(geometry, yDp)
-                    onHit(KlondikeHit.Tableau(column, index))
-                }
             },
     ) {
         if (pile.isEmpty()) {
             Canvas(modifier = Modifier.size(metrics.cardWidthDp.dp, metrics.cardHeightDp.dp)) {
                 drawEmptySlot(colors, suit = null, legalDest = legalDest)
+                if (isHinted) drawRoundRect(colors.accent, style = Stroke(width = 3.dp.toPx()), cornerRadius = CornerRadius(6.dp.toPx()))
             }
         } else {
             pile.forEachIndexed { index, card ->
@@ -480,7 +569,7 @@ private fun DrawScope.drawFaceDown(colors: WitgridColors, selected: Boolean, leg
     drawCardOutline(bounds, selected, legalDest, colors)
 }
 
-private fun DrawScope.drawEmptySlot(colors: WitgridColors, suit: Suit?, legalDest: Boolean) {
+private fun DrawScope.drawEmptySlot(colors: WitgridColors, suit: Suit?, legalDest: Boolean, recycle: Boolean = false) {
     val radius = 4.dp.toPx()
     val color = if (legalDest) colors.accent else colors.cardEdge
     drawRoundRect(
@@ -494,6 +583,18 @@ private fun DrawScope.drawEmptySlot(colors: WitgridColors, suit: Suit?, legalDes
             center = Offset(size.width / 2f, size.height / 2f),
             radius = minOf(size.width, size.height) * 0.14f,
             color = colors.mutedInk,
+        )
+    }
+    if (recycle) {
+        val radius = minOf(size.width, size.height) * 0.18f
+        drawArc(
+            colors.accent,
+            startAngle = 35f,
+            sweepAngle = 285f,
+            useCenter = false,
+            topLeft = Offset(size.width / 2f - radius, size.height / 2f - radius),
+            size = Size(radius * 2, radius * 2),
+            style = Stroke(width = 2.dp.toPx()),
         )
     }
 }

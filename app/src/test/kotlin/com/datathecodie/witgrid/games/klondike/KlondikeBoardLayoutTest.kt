@@ -1,6 +1,9 @@
 package com.datathecodie.witgrid.games.klondike
 
+import com.datathecodie.witgrid.engine.core.Pack
 import com.datathecodie.witgrid.engine.klondike.Card
+import com.datathecodie.witgrid.engine.klondike.KlondikePuzzle
+import com.datathecodie.witgrid.engine.klondike.KlondikeState
 import com.datathecodie.witgrid.engine.klondike.Suit
 import com.datathecodie.witgrid.ui.theme.Colourway
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -68,11 +71,36 @@ class KlondikeBoardLayoutTest {
     }
 
     @Test
+    fun hitAtMapsTopRowAndTableauCoordinates() {
+        val metrics = KlondikeBoardLayout.calculate(360f, 640f, tallestTableau = 2)
+        val deal = KlondikeState(
+            puzzle = KlondikePuzzle(
+                bankId = "kl-hit",
+                pack = Pack.EASY,
+                difficulty = "d1",
+                seed = 1L,
+            ),
+            tableau = List(7) { emptyList() },
+            foundations = Suit.entries.associateWith { emptyList() },
+            stock = emptyList(),
+            waste = emptyList(),
+        )
+        val stock = KlondikeBoardLayout.hitAt(metrics.cardWidthDp / 2f, metrics.cardHeightDp / 2f, deal, metrics, false)
+        assertEquals(KlondikeHit.Stock, stock)
+        val wasteLeft = KlondikeBoardLayout.columnLeftDp(1, metrics) + 1f
+        assertEquals(KlondikeHit.Waste, KlondikeBoardLayout.hitAt(wasteLeft, 1f, deal, metrics, false))
+        val clubLeft = KlondikeBoardLayout.columnLeftDp(3, metrics) + 1f
+        assertEquals(KlondikeHit.Foundation(Suit.CLUBS), KlondikeBoardLayout.hitAt(clubLeft, 1f, deal, metrics, false))
+        val tableauY = metrics.cardHeightDp + metrics.rowGapDp + 1f
+        assertEquals(KlondikeHit.Tableau(0, null), KlondikeBoardLayout.hitAt(1f, tableauY, deal, metrics, false))
+    }
+
+    @Test
     fun redSuitsUseTheRustColourwayAndMovesDoNotAnimate() {
         assertEquals(Colourway.RUST.lightAccent, klondikeRedSuitRgb(darkTheme = false))
         assertEquals(Colourway.RUST.darkAccent, klondikeRedSuitRgb(darkTheme = true))
         assertEquals(0, klondikeMoveDurationMillis(reduceMotion = true))
-        assertEquals(0, klondikeMoveDurationMillis(reduceMotion = false))
+        assertEquals(180, klondikeMoveDurationMillis(reduceMotion = false))
     }
 
     @Test

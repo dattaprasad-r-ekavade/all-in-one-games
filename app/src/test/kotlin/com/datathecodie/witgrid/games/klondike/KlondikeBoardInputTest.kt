@@ -17,6 +17,58 @@ import org.junit.jupiter.api.Test
 
 class KlondikeBoardInputTest {
     @Test
+    fun smartMovePrefersFoundationThenFindsLegalTableau() {
+        val foundationState = state(tableau = columns(listOf(card(1, Suit.HEARTS))))
+        val ace = KlondikeBoardInput.tap(foundationState, null, KlondikeHit.Tableau(0, 0))
+        assertEquals(CardMove.TableauToFoundation(0), KlondikeBoardInput.smartMove(foundationState, ace.selection))
+
+        val tableauState = state(tableau = columns(listOf(card(12, Suit.HEARTS)), listOf(card(13, Suit.SPADES))))
+        val queen = KlondikeBoardInput.tap(tableauState, null, KlondikeHit.Tableau(0, 0))
+        assertEquals(CardMove.TableauToTableau(0, 0, 1), KlondikeBoardInput.smartMove(tableauState, queen.selection))
+    }
+
+    @Test
+    fun recycleIndicatorAppearsOnlyForWasteWithEmptyStock() {
+        assertTrue(KlondikeBoardInput.shouldShowRecycle(state(stock = emptyList(), waste = listOf(card(4, Suit.CLUBS)))))
+        assertFalse(KlondikeBoardInput.shouldShowRecycle(state(stock = listOf(card(4, Suit.CLUBS, false)))))
+        assertFalse(KlondikeBoardInput.shouldShowRecycle(state()))
+    }
+
+    @Test
+    fun selectionAtPicksADraggableRunAndIgnoresTheStock() {
+        val deal = state(
+            waste = listOf(card(4, Suit.CLUBS)),
+            tableau = columns(listOf(card(11, Suit.SPADES), card(10, Suit.HEARTS))),
+        )
+        assertNull(KlondikeBoardInput.selectionAt(deal, KlondikeHit.Stock))
+        assertEquals(KlondikeSelection.Waste, KlondikeBoardInput.selectionAt(deal, KlondikeHit.Waste))
+        assertEquals(
+            KlondikeSelection.Tableau(0, 0),
+            KlondikeBoardInput.selectionAt(deal, KlondikeHit.Tableau(0, 0)),
+        )
+        assertEquals(
+            listOf(card(11, Suit.SPADES), card(10, Suit.HEARTS)),
+            KlondikeBoardInput.cardsForSelection(deal, KlondikeSelection.Tableau(0, 0)),
+        )
+    }
+
+    @Test
+    fun dragMoveUsesTheSameLegalityRulesAsTapDestination() {
+        val deal = state(tableau = columns(listOf(card(11, Suit.SPADES), card(10, Suit.HEARTS)), listOf(card(12, Suit.DIAMONDS))))
+        val selection = KlondikeSelection.Tableau(0, 0)
+        assertEquals(CardMove.TableauToTableau(0, 0, 1), KlondikeBoardInput.dragMove(deal, selection, KlondikeHit.Tableau(1, 0)))
+        assertNull(KlondikeBoardInput.dragMove(deal, selection, KlondikeHit.Tableau(2, 0)))
+    }
+
+    @Test
+    fun autoCompleteWaitsForFaceUpTableauThenReturnsLegalFoundationMove() {
+        val faceDown = state(tableau = columns(listOf(card(1, Suit.HEARTS)), listOf(card(3, Suit.CLUBS, false))))
+        assertNull(KlondikeBoardInput.autoCompleteMove(faceDown))
+        val ready = state(tableau = columns(listOf(card(1, Suit.HEARTS))))
+        assertEquals(CardMove.TableauToFoundation(0), KlondikeBoardInput.autoCompleteMove(ready))
+    }
+
+    @Test
     fun followsEasyDealHintsToWinThroughTaps() {
         val puzzle = KlondikeEngine.generate(SplitMix64(1), Pack.EASY)
         assertEquals(Pack.EASY, puzzle.pack)
