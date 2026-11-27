@@ -48,6 +48,27 @@ class PlayerDataRepositoryTest {
     }
 
     @Test
+    fun autoXDefaultsOnWhenSettingIsMissingAndPersistsAnExplicitOptOut() = runBlocking {
+        val directory = Files.createTempDirectory("witgrid-auto-x")
+        val file = directory.resolve("witgrid_settings.preferences_pb").toFile()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val dataStore = PreferenceDataStoreFactory.create(scope = scope, produceFile = { file })
+        try {
+            val repository = DataStorePlayerDataRepository(dataStore)
+            val freshSettings = withTimeout(2_000) { repository.playerData.first() }.settings
+            assertTrue(freshSettings.crownsAutoXEnabled)
+            repository.updateSettings(freshSettings.copy(crownsAutoXEnabled = false))
+            assertFalse(withTimeout(2_000) {
+                DataStorePlayerDataRepository(dataStore).playerData.first().settings.crownsAutoXEnabled
+            })
+        } finally {
+            scope.cancel()
+            Files.deleteIfExists(file.toPath())
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
     fun cancelledDataStoreUpdateDoesNotStopSettingsWriter() = runBlocking {
         val directory = Files.createTempDirectory("witgrid-cancelled-store-update")
         val file = directory.resolve("witgrid_settings.preferences_pb").toFile()

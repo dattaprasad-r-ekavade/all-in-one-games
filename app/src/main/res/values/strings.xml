@@ -167,7 +167,7 @@
     <string name="button_board_enlarge">Larger cells</string>
     <string name="button_board_fit">Fit board</string>
     <string name="button_home">Home</string>
-    <string name="game_crowns">Crowns</string>
+    <string name="game_crowns">Pet Crowns</string>
     <string name="game_binary">Binary</string>
     <string name="game_nonogram">Nonogram</string>
     <string name="game_minisudoku">Mini Sudoku</string>
@@ -182,7 +182,7 @@
     <string name="game_klondike">Klondike</string>
     <string name="game_tactics">Tactics</string>
     <string name="game_unknown">Game</string>
-    <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally.</string>
+    <string name="intro_coach_crowns">Place one crown in each row, column, and colour region; crowns never touch, even diagonally. Tap an empty cell for X, tap again for a crown, and tap once more to clear.</string>
     <string name="intro_coach_binary">Each row and column needs three of each symbol, and no three alike may touch.</string>
     <string name="intro_coach_nonogram">A clue gives the length of a filled run; a 5 fills the whole column.</string>
     <string name="intro_coach_minisudoku">Each row, column, and 2 by 3 box uses digits 1 through 6 once; fill the cell with only one possible digit.</string>
@@ -297,7 +297,7 @@
     <string name="play_timer_hidden">Timer</string>
     <string name="play_rules">Rules</string>
     <string name="play_rules_title">How to play %1$s</string>
-    <string name="play_rules_crowns">Place one crown in each row, column, and colour region. Crowns cannot touch, even diagonally. Tap to cycle between a crown, a cross, and an empty cell. Long press to clear a cell.</string>
+    <string name="play_rules_crowns">Place one crown in each row, column, and colour region. Crowns cannot touch, even diagonally. Tap an empty cell for X, tap again for a crown, and tap once more to clear. Long press to clear a cell.</string>
     <string name="play_rules_binary">Fill each row and column with equal numbers of the two symbols. No three matching symbols may touch in a row or column. Rows and columns must be unique. Tap to cycle symbols; long press to clear.</string>
     <string name="play_rules_nonogram">Numbers beside each row and above each column describe the lengths of filled runs in order. Leave at least one empty cell between runs. Use Fill or Cross to mark cells. Drag to paint, or long press to clear.</string>
     <string name="play_rules_minisudoku">Fill each row, column, and 2 by 3 box with digits 1 through 6 exactly once. Select a cell, then choose a digit. Notes toggles pencil marks; Erase clears the selected cell.</string>
