@@ -23,6 +23,22 @@ data class PackProgress(
     val boardSizes: IntRange? = null,
 )
 
+data class PackLabel(val resourceId: Int, val arguments: List<Int> = emptyList())
+
+internal fun packLabel(gameId: String, sizes: IntRange): PackLabel = when (gameId) {
+    "coloursort" -> if (sizes.first == sizes.last) {
+        PackLabel(com.datathecodie.witgrid.R.string.game_tube_count, listOf(sizes.first))
+    } else {
+        PackLabel(com.datathecodie.witgrid.R.string.game_tube_count_range, listOf(sizes.first, sizes.last))
+    }
+    "klondike" -> PackLabel(com.datathecodie.witgrid.R.string.game_klondike_deal)
+    else -> if (sizes.first == sizes.last) {
+        PackLabel(com.datathecodie.witgrid.R.string.game_board_size, listOf(sizes.first))
+    } else {
+        PackLabel(com.datathecodie.witgrid.R.string.game_board_size_range, listOf(sizes.first, sizes.last))
+    }
+}
+
 data class GameUiState(
     val gameId: String,
     val packs: List<PackProgress> = emptyList(),
