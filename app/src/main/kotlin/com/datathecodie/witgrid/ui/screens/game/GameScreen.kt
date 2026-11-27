@@ -125,8 +125,6 @@ fun GameScreen(
                 Text(stringResource(R.string.ads_earn_credits_header), style = MaterialTheme.typography.titleLarge)
                 RewardedActionButton(R.string.ads_earn_hint_credit, R.string.ads_hint_credit_added,
                     onEarnHintCredit, { showRewards = false; showPremiumOffer = true })
-                RewardedActionButton(R.string.ads_earn_check_credit, R.string.ads_check_credit_added,
-                    onEarnCheckCredit, { showRewards = false; showPremiumOffer = true })
                 Spacer(Modifier.height(16.dp))
             }
         }
@@ -228,13 +226,8 @@ fun GameScreen(
                     hintCredits,
                     hintCredits,
                 )
-                val checkCount = context.resources.getQuantityString(
-                    R.plurals.game_check_credit_count,
-                    checkCredits,
-                    checkCredits,
-                )
                 SavedCreditsRow(
-                    title = stringResource(R.string.game_saved_credits, hintCount, checkCount),
+                    title = hintCount,
                     onClick = { showRewards = true },
                 )
             }

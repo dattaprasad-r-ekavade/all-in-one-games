@@ -53,7 +53,6 @@ import com.datathecodie.witgrid.games.mosaic.MosaicBoard
 import com.datathecodie.witgrid.games.nonogram.NonogramBoard
 import com.datathecodie.witgrid.games.skyscrapers.SkyscrapersBoard
 import com.datathecodie.witgrid.play.Allowance
-import com.datathecodie.witgrid.play.CheckUi
 import com.datathecodie.witgrid.play.HintAllowanceDecision
 import com.datathecodie.witgrid.play.HintController
 import com.datathecodie.witgrid.play.HintRequest
@@ -259,7 +258,6 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
             )
         }
         var hintRequest by remember(controller) { mutableStateOf<HintRequest?>(null) }
-        var checkResult by remember(controller) { mutableStateOf<CheckUi?>(null) }
         var highlightedCells by remember(controller) { mutableStateOf(emptySet<Cell>()) }
         var feedbackGeneration by remember(controller) { mutableStateOf(0L) }
         var hintOperationPending by remember(controller) { mutableStateOf(false) }
@@ -268,7 +266,6 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
         fun clearFeedback() {
             feedbackGeneration += 1
             hintRequest = null
-            checkResult = null
             highlightedCells = emptySet()
         }
 
@@ -306,40 +303,10 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 }
             }
         }
-        val onCheck: () -> Unit = {
-            if (!hintOperationPending) {
-                hintOperationPending = true
-                clearFeedback()
-                val generation = feedbackGeneration
-                scope.launch {
-                    try {
-                        val result = interactionMutex.withLock { hintController.check() }
-                        if (feedbackGeneration == generation) {
-                            checkResult = result
-                            highlightedCells = when (result) {
-                                is CheckUi.Mistakes -> result.cells.toSet()
-                                else -> emptySet()
-                            }
-                        }
-                    } catch (exception: CancellationException) {
-                        throw exception
-                    } catch (_: Exception) {
-                        saveFailed = true
-                    } finally {
-                        hintOperationPending = false
-                    }
-                }
-            }
-        }
         val statusMessage = when (val request = hintRequest) {
             HintRequest.NoStep -> stringResource(R.string.hint_unavailable)
             HintRequest.NotAllowed -> stringResource(R.string.hint_allowance_unavailable)
-            else -> when (val result = checkResult) {
-                is CheckUi.Mistakes -> stringResource(R.string.check_mistakes_found, result.cells.size)
-                CheckUi.Clear -> stringResource(R.string.check_no_mistakes)
-                CheckUi.NotAllowed -> stringResource(R.string.check_allowance_unavailable)
-                null -> null
-            }
+            else -> null
         }
         val puzzleStatus = playPuzzleStatus(snapshot.state)
         val visibleStatusMessage = statusMessage ?: if (snapshot.mistakeLimitEnabled) {
@@ -371,13 +338,13 @@ internal fun <P : Any, S : Any> PlayScreenRoute(
                 onUndo = onUndo,
                 onRedo = onRedo,
                 onRequestHint = onRequestHint,
-                onCheck = onCheck,
                 onBack = leave,
             )
         }
         val flaggedCells = if (snapshot.mistakeLimitEnabled) snapshot.mistakes.toSet() else emptySet()
+        val ruleConflictCells = RuleConflicts.cells(snapshot.state)
         CompositionLocalProvider(
-            LocalBoardHighlightCells provides (highlightedCells + flaggedCells),
+            LocalBoardHighlightCells provides (highlightedCells + flaggedCells + ruleConflictCells),
             LocalBoardViewportMode provides BoardViewportMode(enlargedBoardMode, embedded = true),
         ) {
             when (val state = snapshot.state) {
@@ -613,7 +580,6 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
         }
 
         var actionHintRequest by remember(controller) { mutableStateOf<ActionHintRequest<A>?>(null) }
-        var checkResult by remember(controller) { mutableStateOf<CheckUi?>(null) }
         var highlightedCells by remember(controller) { mutableStateOf(emptySet<Cell>()) }
         var feedbackGeneration by remember(controller) { mutableStateOf(0L) }
         var hintOperationPending by remember(controller) { mutableStateOf(false) }
@@ -622,7 +588,6 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
         fun clearFeedback() {
             feedbackGeneration += 1
             actionHintRequest = null
-            checkResult = null
             highlightedCells = emptySet()
         }
 
@@ -675,22 +640,10 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
                 }
             }
         }
-        val onCheck: () -> Unit = {
-            if (!hintOperationPending) {
-                clearFeedback()
-                checkResult = CheckUi.Clear
-            }
-        }
-
         val statusMessage = when (actionHintRequest) {
             ActionHintRequest.NoStep -> stringResource(R.string.hint_unavailable)
             ActionHintRequest.NotAllowed -> stringResource(R.string.hint_allowance_unavailable)
-            else -> when (val result = checkResult) {
-                is CheckUi.Mistakes -> stringResource(R.string.check_mistakes_found, result.cells.size)
-                CheckUi.Clear -> stringResource(R.string.check_no_mistakes)
-                CheckUi.NotAllowed -> stringResource(R.string.check_allowance_unavailable)
-                null -> null
-            }
+            else -> null
         }
         val layout: @Composable (@Composable () -> Unit, @Composable () -> Unit, (@Composable () -> Unit)?) -> Unit = { board, controls, modeTools ->
             PlayScreenLayout(
@@ -712,12 +665,11 @@ internal fun <P : Any, S : Any, A : Any> PlayScreenRoute(
                 onUndo = onUndo,
                 onRedo = onRedo,
                 onRequestHint = onRequestHint,
-                onCheck = onCheck,
                 onBack = leave,
             )
         }
         CompositionLocalProvider(
-            LocalBoardHighlightCells provides highlightedCells,
+            LocalBoardHighlightCells provides (highlightedCells + RuleConflicts.cells(snapshot.state)),
             LocalBoardViewportMode provides BoardViewportMode(enlargedBoardMode, embedded = true),
         ) {
             when (val state = snapshot.state) {
